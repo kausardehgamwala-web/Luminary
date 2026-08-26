@@ -5278,7 +5278,7 @@
                 <div style="color:var(--muted);" id="profileHandle">@kausar</div>
               </div>
             </div>
-            <button class="upgrade-btn" type="button">Upgrade Now</button>
+            <button class="upgrade-btn" id="sidebarUpgradeBtn" type="button" onclick="window.openSettingsModal()">Upgrade Now</button>
           </div>
         </aside>
 
@@ -8320,1085 +8320,255 @@
 })();
 </script>
 
-</body>
-          </html>
-        `);
-        doc.close();
-      } catch(e) { console.error(e); }
-    }
 
-    const closeTemplateCatalogBtn = document.getElementById("closeTemplateCatalogBtn");
-    if (closeTemplateCatalogBtn) {
-      closeTemplateCatalogBtn.addEventListener("click", () => {
-        const modal = document.getElementById("templateCatalogModal");
-        const iframe = document.getElementById("templateCatalogIframe");
-        if (modal) modal.style.display = "none";
-        if (iframe) iframe.src = "";
-        backdrop.style.display = "none";
-      });
-    }
-
-    // Social Stage Tab Switching & Floating Navigation Toggle
-    function switchSocialSubView(targetTab) {
-      const tabBtnIntegrations = document.getElementById("tabBtnIntegrations");
-      const tabBtnAnalytics = document.getElementById("tabBtnAnalytics");
-      const floatBtnIntegrations = document.getElementById("floatBtnIntegrations");
-      const floatBtnAnalytics = document.getElementById("floatBtnAnalytics");
-      const socialIntegrationsTab = document.getElementById("socialIntegrationsTab");
-      const socialAnalyticsTab = document.getElementById("socialAnalyticsTab");
-
-      if (targetTab === "integrations") {
-        if (tabBtnIntegrations) tabBtnIntegrations.classList.add("active");
-        if (tabBtnAnalytics) tabBtnAnalytics.classList.remove("active");
-        if (floatBtnIntegrations) floatBtnIntegrations.classList.add("active");
-        if (floatBtnAnalytics) floatBtnAnalytics.classList.remove("active");
-
-        if (socialAnalyticsTab) {
-          socialAnalyticsTab.classList.remove("active");
-          setTimeout(() => { socialAnalyticsTab.style.display = "none"; }, 200);
-        }
-        if (socialIntegrationsTab) {
-          socialIntegrationsTab.style.display = "block";
-          setTimeout(() => { socialIntegrationsTab.classList.add("active"); }, 10);
-        }
-      } else {
-        if (tabBtnAnalytics) tabBtnAnalytics.classList.add("active");
-        if (tabBtnIntegrations) tabBtnIntegrations.classList.remove("active");
-        if (floatBtnAnalytics) floatBtnAnalytics.classList.add("active");
-        if (floatBtnIntegrations) floatBtnIntegrations.classList.remove("active");
-
-        if (socialIntegrationsTab) {
-          socialIntegrationsTab.classList.remove("active");
-          setTimeout(() => { socialIntegrationsTab.style.display = "none"; }, 200);
-        }
-        if (socialAnalyticsTab) {
-          socialAnalyticsTab.style.display = "block";
-          setTimeout(() => { socialAnalyticsTab.classList.add("active"); }, 10);
-        }
-        initAnalyticsChart();
-      }
-    }
-
-    document.getElementById("tabBtnIntegrations")?.addEventListener("click", () => switchSocialSubView("integrations"));
-    document.getElementById("tabBtnAnalytics")?.addEventListener("click", () => switchSocialSubView("analytics"));
-    document.getElementById("floatBtnIntegrations")?.addEventListener("click", () => switchSocialSubView("integrations"));
-    document.getElementById("floatBtnAnalytics")?.addEventListener("click", () => switchSocialSubView("analytics"));
-
-    // Check URL Hash for simulated success callback
-    window.addEventListener("load", () => {
-      if (location.hash === "#social-success" || location.hash.startsWith("#social-success")) {
-        switchMainView("connectors");
-        showToast("Social profile connected and synced successfully!", "success");
-        history.replaceState(null, "", location.pathname);
-        
-        localStorage.setItem("show_just_connected_anim", "true");
-      }
-    });
-
-    // Connector Grid rendering & API Calls
-    const platformsList = [
-      { id: "instagram", name: "Instagram", icon: '<i class="fa-brands fa-instagram" style="color:#e1306c;"></i>' },
-      { id: "youtube", name: "YouTube", icon: '<i class="fa-brands fa-youtube" style="color:#ff0000;"></i>' },
-      { id: "facebook", name: "Facebook", icon: '<i class="fa-brands fa-facebook" style="color:#1877f2;"></i>' },
-      { id: "twitter", name: "X (Twitter)", icon: '<i class="fa-brands fa-x-twitter" style="color:#ffffff;"></i>' }
-    ];
-
-    const DEFAULT_MOCK_CONNECTIONS = [
-      { id: "mock_ig", platform: "instagram", username: "@luminary_ig", status: "disconnected" },
-      { id: "mock_yt", platform: "youtube", username: "@luminary_yt", status: "disconnected" },
-      { id: "mock_fb", platform: "facebook", username: "@luminary_fb", status: "disconnected" },
-      { id: "mock_tw", platform: "twitter", username: "@luminary_x", status: "disconnected" }
-    ];
-
-    const API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") ? "" : "http://localhost:8000";
-
-    window.loadSocialDashboard = function() {
-      const grid = document.getElementById("socialConnectionsGrid");
-      if (!grid) return;
-      grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; color:var(--orange);"></i><div style="margin-top:12px; color:var(--muted);">Loading integrations...</div></div>';
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-      fetch(`${API_BASE}/api/social/connections?client_id=1`, { signal: controller.signal })
-        .then(res => {
-          clearTimeout(timeoutId);
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return res.json();
-        })
-        .then(data => {
-          renderSocialGrid(data.connections || []);
-        })
-        .catch(err => {
-          console.error("API Server offline or error:", err);
-          renderSocialGrid([]);
-        });
-    };
-
-    
-    function renderSocialGrid(connections) {
-      const grid = document.getElementById("socialConnectionsGrid");
-      if (!grid) return;
-      
-      const activeConns = (connections && connections.length) ? connections : DEFAULT_MOCK_CONNECTIONS;
-      
-      grid.innerHTML = activeConns.map(conn => {
-        const platformObj = platformsList.find(p => p.id === conn.platform) || { name: conn.platform, icon: '<i class="fa-solid fa-share-nodes"></i>' };
-        const isConnected = conn.status === "connected" || conn.status === "active";
-        const statusBadge = isConnected 
-          ? '<span class="status-badge connected" style="background:rgba(16,185,129,0.15); color:#10b981; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700;">Connected</span>'
-          : '<span class="status-badge disconnected" style="background:rgba(255,255,255,0.06); color:var(--muted); padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:600;">Disconnected</span>';
-        
-        const actionBtn = isConnected
-          ? <button class="outline-btn" style="padding:6px 14px; font-size:0.8rem; border-color:rgba(239,68,68,0.4); color:#ef4444;" onclick="quickDisconnect('')">Disconnect</button>
-          : <button class="primary-btn" style="padding:6px 14px; font-size:0.8rem; background:var(--orange); color:#fff; border-radius:8px; border:none; font-weight:700; cursor:pointer;" onclick="quickConnect('')">Connect Account</button>;
-          
-        return 
-          <div class="connection-card" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:18px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <div style="font-size:1.6rem; width:44px; height:44px; border-radius:12px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center;"></div>
-              <div>
-                <strong style="font-size:0.95rem; color:var(--text); display:block;"></strong>
-                <span style="font-size:0.8rem; color:var(--muted);"></span>
-              </div>
-            </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-              
-              
-            </div>
-          </div>
-        ;
-      }).join("");
-    }
-
-
-    window.connectPlatform = function(platform) {
-      const badge = document.getElementById(`status-badge-${platform}`);
-      const btn = document.getElementById(`btn-${platform}`);
-      if (badge && btn) {
-        badge.className = "social-card-status syncing";
-        badge.querySelector(".status-text").textContent = "Connecting...";
-        btn.disabled = true;
-        btn.textContent = "Connecting...";
-      }
-
-      fetch(`${API_BASE}/api/social/connect`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_id: "1", platform: platform })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.auth_url) {
-          window.location.href = data.auth_url;
-        } else if (data.error) {
-          showToast("Error connecting: " + data.error, "error");
-          loadSocialDashboard();
-        }
-      })
-      .catch(err => {
-        console.error("API Error connecting:", err);
-        showToast("Error connecting social profile.", "error");
-        loadSocialDashboard();
-      });
-    };
-
-    window.disconnectPlatform = async function(connId, platform) {
-      const confirmed = await showConfirm(
-        "Disconnect Profile",
-        `Are you sure you want to disconnect your ${platform.charAt(0).toUpperCase() + platform.slice(1)} account?`,
-        "Disconnect"
-      );
-      if (!confirmed) return;
-
-      const btn = document.getElementById(`btn-${platform}`);
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "Disconnecting...";
-      }
-
-      fetch(`${API_BASE}/api/social/connections/${connId}`, {
-        method: "DELETE"
-      })
-      .then(res => {
-         if (!res.ok) throw new Error("Server error");
-         return res.json();
-      })
-      .then(data => {
-        showToast(`${platform.charAt(0).toUpperCase() + platform.slice(1)} account disconnected.`, "info");
-        loadSocialDashboard();
-      })
-      .catch(err => {
-        console.error("Error disconnecting:", err);
-        showToast("Error disconnecting social profile.", "error");
-        loadSocialDashboard();
-      });
-    };
-
-    // ── 7. Interactive Analytics & Dynamic Chart Engine ──────────────────────
-    const MOCK_ANALYTICS_DATA = {
-      instagram: {
-        views: [1200, 1500, 1800, 1400, 1900, 2200, 2500],
-        comments: [45, 52, 60, 48, 65, 78, 90],
-        followers: [1500, 1510, 1525, 1530, 1545, 1560, 1580],
-        likes: [200, 250, 310, 240, 330, 410, 480]
-      },
-      youtube: {
-        views: [5000, 5200, 6100, 5800, 6400, 7200, 8000],
-        comments: [120, 135, 150, 142, 168, 190, 210],
-        followers: [3200, 3220, 3250, 3280, 3310, 3350, 3400],
-        likes: [450, 480, 560, 510, 590, 680, 750]
-      },
-      facebook: {
-        views: [800, 950, 1100, 1050, 1200, 1350, 1500],
-        comments: [15, 22, 28, 25, 30, 38, 45],
-        followers: [980, 985, 990, 995, 1005, 1012, 1020],
-        likes: [80, 95, 115, 100, 130, 150, 180]
-      },
-      twitter: {
-        views: [2500, 2800, 3100, 2900, 3400, 3800, 4200],
-        comments: [32, 40, 48, 38, 55, 62, 70],
-        followers: [620, 625, 635, 640, 648, 655, 665],
-        likes: [120, 145, 170, 150, 190, 220, 260]
-      }
-    };
-
-    const CHART_METRIC_COLORS = {
-      views: "#ff5500",
-      comments: "#3b82f6",
-      followers: "#10b981",
-      likes: "#ec4899"
-    };
-
-    const CHART_DATES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-    let activePlatformFilter = "all";
-    let activeMetricsFilter = ["views", "comments", "followers", "likes"];
-
-    window.initAnalyticsChart = function() {
-      setupChartFilterListeners();
-      drawSVGChart();
-    };
-
-    function setupChartFilterListeners() {
-      // Platform Buttons
-      const platBtns = document.querySelectorAll(".platform-filter-btn");
-      platBtns.forEach(btn => {
-        btn.replaceWith(btn.cloneNode(true)); // remove old listeners
-      });
-      document.querySelectorAll(".platform-filter-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          document.querySelectorAll(".platform-filter-btn").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          activePlatformFilter = btn.getAttribute("data-platform");
-          drawSVGChart();
-        });
-      });
-
-      // Metric Buttons
-      const metBtns = document.querySelectorAll(".metric-filter-btn");
-      metBtns.forEach(btn => {
-        btn.replaceWith(btn.cloneNode(true));
-      });
-      document.querySelectorAll(".metric-filter-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const metric = btn.getAttribute("data-metric");
-          if (btn.classList.contains("active")) {
-            // Prevent removing all metrics
-            if (activeMetricsFilter.length > 1) {
-              btn.classList.remove("active");
-              activeMetricsFilter = activeMetricsFilter.filter(m => m !== metric);
-            } else {
-              showToast("At least one metric must be selected.", "warning");
-            }
-          } else {
-            btn.classList.add("active");
-            activeMetricsFilter.push(metric);
-          }
-          drawSVGChart();
-        });
-      });
-
-      // Manual Sync Button
-      const syncBtn = document.getElementById("syncLiveStreamBtn");
-      if (syncBtn) {
-        syncBtn.replaceWith(syncBtn.cloneNode(true));
-      }
-      document.getElementById("syncLiveStreamBtn")?.addEventListener("click", () => {
-        triggerSimulatedLiveSync();
-      });
-    }
-
-    function triggerSimulatedLiveSync() {
-      const syncBtn = document.getElementById("syncLiveStreamBtn");
-      if (syncBtn) {
-        syncBtn.disabled = true;
-        syncBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i>Syncing Live Socket...';
-      }
-
-      // Pulse the live stream indicator yellow
-      const livePulse = document.querySelector(".live-pulse");
-      if (livePulse) {
-        livePulse.style.background = "#f59e0b";
-        livePulse.style.boxShadow = "0 0 8px #f59e0b";
-      }
-
-      setTimeout(() => {
-        // Increment/Fluctuate mock data values slightly
-        Object.keys(MOCK_ANALYTICS_DATA).forEach(platform => {
-          Object.keys(MOCK_ANALYTICS_DATA[platform]).forEach(metric => {
-            const arr = MOCK_ANALYTICS_DATA[platform][metric];
-            MOCK_ANALYTICS_DATA[platform][metric] = arr.map(val => Math.round(val * (0.95 + Math.random() * 0.15)));
-          });
-        });
-
-        // Redraw
-        drawSVGChart();
-
-        if (syncBtn) {
-          syncBtn.disabled = false;
-          syncBtn.textContent = "Refresh Live Data Stream";
-        }
-        if (livePulse) {
-          livePulse.style.background = "#10b981";
-          livePulse.style.boxShadow = "0 0 8px #10b981";
-        }
-        showToast("Analytics data refreshed successfully.", "success");
-      }, 1500);
-    }
-
-    function getMetricsData(platform, metric) {
-      if (platform === "all") {
-        const result = [0, 0, 0, 0, 0, 0, 0];
-        Object.keys(MOCK_ANALYTICS_DATA).forEach(p => {
-          const vals = MOCK_ANALYTICS_DATA[p][metric];
-          for (let i = 0; i < 7; i++) {
-            result[i] += vals[i];
-          }
-        });
-        return result;
-      } else {
-        return MOCK_ANALYTICS_DATA[platform][metric] || [0,0,0,0,0,0,0];
-      }
-    }
-
-    window.drawSVGChart = function() {
-      const svg = document.getElementById("analyticsSvg");
-      const legendContainer = document.getElementById("chartLegendContainer");
-      if (!svg || !legendContainer) return;
-
-      svg.innerHTML = "";
-      legendContainer.innerHTML = "";
-
-      // Render legend items
-      activeMetricsFilter.forEach(metric => {
-        const color = CHART_METRIC_COLORS[metric];
-        const item = document.createElement("div");
-        item.style.display = "flex";
-        item.style.alignItems = "center";
-        item.style.gap = "8px";
-        item.style.fontSize = "0.85rem";
-        item.style.color = "var(--text)";
-        item.style.fontWeight = "600";
-        item.innerHTML = `
-          <span style="width:12px; height:4px; border-radius:2px; background:${color}; display:inline-block;"></span>
-          <span style="text-transform:capitalize;">${metric}</span>
-        `;
-        legendContainer.appendChild(item);
-      });
-
-      const width = 800;
-      const height = 450;
-      const paddingLeft = 60;
-      const paddingRight = 30;
-      const paddingTop = 30;
-      const paddingBottom = 40;
-
-      const chartWidth = width - paddingLeft - paddingRight;
-      const chartHeight = height - paddingTop - paddingBottom;
-
-      // Find global max value across active metrics and platform
-      let globalMax = 0;
-      activeMetricsFilter.forEach(metric => {
-        const vals = getMetricsData(activePlatformFilter, metric);
-        const m = Math.max(...vals);
-        if (m > globalMax) globalMax = m;
-      });
-      if (globalMax === 0) globalMax = 100;
-      globalMax = Math.ceil(globalMax * 1.05); // add 5% margin at the top
-
-      // Draw Y-axis grid lines and labels
-      const gridLevels = 4;
-      for (let i = 0; i <= gridLevels; i++) {
-        const ratio = i / gridLevels;
-        const y = height - paddingBottom - ratio * chartHeight;
-        const val = Math.round(ratio * globalMax);
-
-        // Horizontal Grid Line
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", paddingLeft);
-        line.setAttribute("y1", y);
-        line.setAttribute("x2", width - paddingRight);
-        line.setAttribute("y2", y);
-        line.setAttribute("stroke", "rgba(255, 255, 255, 0.05)");
-        line.setAttribute("stroke-dasharray", "4,4");
-        svg.appendChild(line);
-
-        // Y-axis Label
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", paddingLeft - 12);
-        text.setAttribute("y", y + 4);
-        text.setAttribute("fill", "var(--muted)");
-        text.setAttribute("font-size", "11px");
-        text.setAttribute("text-anchor", "end");
-        text.setAttribute("font-family", "Outfit");
-        text.setAttribute("font-weight", "500");
-        text.textContent = val >= 1000 ? (val / 1000).toFixed(1) + "k" : val;
-        svg.appendChild(text);
-      }
-
-      // Draw X-axis grid lines and labels
-      const dataPointsCount = CHART_DATES.length;
-      const pointsCoordinates = {}; // stores coordinates of points for tooltip tracking
-
-      for (let i = 0; i < dataPointsCount; i++) {
-        const ratio = i / (dataPointsCount - 1);
-        const x = paddingLeft + ratio * chartWidth;
-
-        // Vertical Grid Line
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", x);
-        line.setAttribute("y1", paddingTop);
-        line.setAttribute("x2", x);
-        line.setAttribute("y2", height - paddingBottom);
-        line.setAttribute("stroke", "rgba(255, 255, 255, 0.04)");
-        svg.appendChild(line);
-
-        // X-axis Label
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", x);
-        text.setAttribute("y", height - paddingBottom + 20);
-        text.setAttribute("fill", "var(--muted)");
-        text.setAttribute("font-size", "11px");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("font-family", "Outfit");
-        text.setAttribute("font-weight", "600");
-        text.textContent = CHART_DATES[i];
-        svg.appendChild(text);
-      }
-
-      // Draw data paths for each active metric
-      activeMetricsFilter.forEach(metric => {
-        const color = CHART_METRIC_COLORS[metric];
-        const vals = getMetricsData(activePlatformFilter, metric);
-        const points = [];
-
-        for (let i = 0; i < dataPointsCount; i++) {
-          const ratioX = i / (dataPointsCount - 1);
-          const x = paddingLeft + ratioX * chartWidth;
-          const y = height - paddingBottom - (vals[i] / globalMax) * chartHeight;
-          points.push({ x, y, value: vals[i] });
-
-          if (!pointsCoordinates[i]) pointsCoordinates[i] = [];
-          pointsCoordinates[i].push({ metric, value: vals[i], x, y, color });
-        }
-
-        // Draw Area Fill underneath the line (Linear Gradient)
-        const gradId = `gradient-fill-${metric}`;
-        let defs = svg.querySelector("defs");
-        if (!defs) {
-          defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-          svg.appendChild(defs);
-        }
-        
-        const grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-        grad.setAttribute("id", gradId);
-        grad.setAttribute("x1", "0");
-        grad.setAttribute("y1", "0");
-        grad.setAttribute("x2", "0");
-        grad.setAttribute("y2", "1");
-        
-        const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-        stop1.setAttribute("offset", "0%");
-        stop1.setAttribute("stop-color", color);
-        stop1.setAttribute("stop-opacity", "0.15");
-        
-        const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-        stop2.setAttribute("offset", "100%");
-        stop2.setAttribute("stop-color", color);
-        stop2.setAttribute("stop-opacity", "0.0");
-        
-        grad.appendChild(stop1);
-        grad.appendChild(stop2);
-        defs.appendChild(grad);
-
-        const bezierPathD = getBezierPathD(points);
-
-        const areaPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        const areaD = `${bezierPathD} L ${points[points.length - 1].x} ${height - paddingBottom} L ${points[0].x} ${height - paddingBottom} Z`;
-        areaPath.setAttribute("d", areaD);
-        areaPath.setAttribute("fill", `url(#${gradId})`);
-        svg.appendChild(areaPath);
-
-        // Draw Line Path
-        const linePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        linePath.setAttribute("d", bezierPathD);
-        linePath.setAttribute("fill", "none");
-        linePath.setAttribute("stroke", color);
-        linePath.setAttribute("stroke-width", "3.5");
-        linePath.setAttribute("stroke-linecap", "round");
-        linePath.setAttribute("stroke-linejoin", "round");
-        
-        // Animated line entrance effect
-        linePath.setAttribute("stroke-dasharray", "1000");
-        linePath.setAttribute("stroke-dashoffset", "1000");
-        svg.appendChild(linePath);
-
-        // Trigger animation
-        setTimeout(() => {
-          linePath.style.transition = "stroke-dashoffset 1.2s ease-in-out";
-          linePath.setAttribute("stroke-dashoffset", "0");
-        }, 50);
-
-        // Draw dots at each point
-        points.forEach(pt => {
-          const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-          circle.setAttribute("cx", pt.x);
-          circle.setAttribute("cy", pt.y);
-          circle.setAttribute("r", "5");
-          circle.setAttribute("fill", "var(--bg)");
-          circle.setAttribute("stroke", color);
-          circle.setAttribute("stroke-width", "3");
-          circle.style.transition = "r 0.15s, stroke-width 0.15s";
-          svg.appendChild(circle);
-        });
-      });
-
-      // Hover Tracking System
-      const hoverLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      hoverLine.setAttribute("y1", paddingTop);
-      hoverLine.setAttribute("y2", height - paddingBottom);
-      hoverLine.setAttribute("stroke", "rgba(255, 255, 255, 0.25)");
-      hoverLine.setAttribute("stroke-dasharray", "3,3");
-      hoverLine.style.display = "none";
-      hoverLine.style.pointerEvents = "none";
-      svg.appendChild(hoverLine);
-
-      // Circles that track metrics on hover
-      const hoverCircles = [];
-      activeMetricsFilter.forEach(metric => {
-        const color = CHART_METRIC_COLORS[metric];
-        const hc = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        hc.setAttribute("r", "8");
-        hc.setAttribute("fill", color);
-        hc.setAttribute("stroke", "var(--text)");
-        hc.setAttribute("stroke-width", "2.5");
-        hc.style.display = "none";
-        hc.style.pointerEvents = "none";
-        svg.appendChild(hc);
-        hoverCircles.push({ metric, element: hc });
-      });
-
-      // Mouse interactive overlay
-      const overlay = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      overlay.setAttribute("x", paddingLeft);
-      overlay.setAttribute("y", paddingTop);
-      overlay.setAttribute("width", chartWidth);
-      overlay.setAttribute("height", chartHeight);
-      overlay.setAttribute("fill", "transparent");
-      overlay.style.cursor = "crosshair";
-      svg.appendChild(overlay);
-
-      const tooltip = document.getElementById("chartTooltip");
-      const tooltipDate = document.getElementById("tooltipDate");
-      const tooltipMetricsList = document.getElementById("tooltipMetricsList");
-
-      overlay.addEventListener("mousemove", (e) => {
-        const rect = svg.getBoundingClientRect();
-        // Compute relative X coordinates scaled to SVG viewBox
-        const clientXInsideSvg = ((e.clientX - rect.left) / rect.width) * width;
-        
-        // Find closest point index
-        let closestIndex = 0;
-        let minDiff = Infinity;
-        for (let i = 0; i < dataPointsCount; i++) {
-          const ratioX = i / (dataPointsCount - 1);
-          const x = paddingLeft + ratioX * chartWidth;
-          const diff = Math.abs(x - clientXInsideSvg);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestIndex = i;
-          }
-        }
-
-        const pointX = paddingLeft + (closestIndex / (dataPointsCount - 1)) * chartWidth;
-
-        // Position hover vertical line
-        hoverLine.setAttribute("x1", pointX);
-        hoverLine.setAttribute("x2", pointX);
-        hoverLine.style.display = "block";
-
-        // Position hover circles and build tooltip list
-        const pointData = pointsCoordinates[closestIndex] || [];
-        tooltipDate.textContent = `Performance: ${CHART_DATES[closestIndex]}`;
-        tooltipMetricsList.innerHTML = "";
-
-        pointData.forEach(pd => {
-          // Circle positions
-          const circleObj = hoverCircles.find(hc => hc.metric === pd.metric);
-          if (circleObj) {
-            circleObj.element.setAttribute("cx", pd.x);
-            circleObj.element.setAttribute("cy", pd.y);
-            circleObj.element.style.display = "block";
-          }
-
-          // Tooltip details
-          const valueText = pd.value >= 1000 ? (pd.value / 1000).toFixed(1) + "K" : pd.value;
-          const item = document.createElement("div");
-          item.style.display = "flex";
-          item.style.justifyContent = "space-between";
-          item.style.gap = "18px";
-          item.innerHTML = `
-            <span style="color:${pd.color}; font-weight:600; text-transform:capitalize;">${pd.metric}:</span>
-            <strong style="color:white;">${valueText}</strong>
-          `;
-          tooltipMetricsList.appendChild(item);
-        });
-
-        // Position tooltip absolute div relative to parent card
-        const tooltipWidth = tooltip.offsetWidth || 150;
-        const tooltipHeight = tooltip.offsetHeight || 100;
-        
-        // Calculate mouse position inside parent chart container
-        const parentRect = svg.parentElement.getBoundingClientRect();
-        let tooltipX = e.clientX - parentRect.left + 15;
-        let tooltipY = e.clientY - parentRect.top - tooltipHeight / 2;
-
-        // Keep inside boundaries
-        if (tooltipX + tooltipWidth > parentRect.width) {
-          tooltipX = e.clientX - parentRect.left - tooltipWidth - 15;
-        }
-        if (tooltipY < 0) tooltipY = 5;
-        if (tooltipY + tooltipHeight > parentRect.height) {
-          tooltipY = parentRect.height - tooltipHeight - 5;
-        }
-
-        tooltip.style.left = `${tooltipX}px`;
-        tooltip.style.top = `${tooltipY}px`;
-        tooltip.style.display = "block";
-      });
-
-      overlay.addEventListener("mouseleave", () => {
-        hoverLine.style.display = "none";
-        hoverCircles.forEach(hc => hc.element.style.display = "none");
-        tooltip.style.display = "none";
-      });
-    };
-
-    function getBezierPathD(points) {
-      if (points.length === 0) return "";
-      let d = `M ${points[0].x} ${points[0].y}`;
-      for (let i = 0; i < points.length - 1; i++) {
-        const p0 = points[i];
-        const p1 = points[i+1];
-        const cpX1 = p0.x + (p1.x - p0.x) / 2.3;
-        const cpY1 = p0.y;
-        const cpX2 = p0.x + (p1.x - p0.x) / 1.7;
-        const cpY2 = p1.y;
-        d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
-      }
-      return d;
-    }
-
-  </script>
-
-    <div class="social-admin-modal" id="socialAdminModal">
-      <div class="social-admin-content">
-        <h3 style="margin-top:0;">SocialAPI.ai Configuration</h3>
-        <p style="font-size:14px; color:var(--muted); margin-bottom: 24px;">Admin only. Configure the global SocialAPI.ai API key.</p>
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label style="display:block; margin-bottom:8px; font-size:14px;">API Key</label>
-          <input type="password" id="sapiKeyInput" style="width:100%; padding:10px; border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white;" placeholder="sapi_key_...">
+<!-- SETTINGS & ACCOUNT POPUP MODAL (THEMED) -->
+
+<!-- SETTINGS & ACCOUNT POPUP MODAL (THEMED) -->
+<div id="settingsModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); backdrop-filter:blur(6px); z-index:9999; align-items:center; justify-content:center;">
+  <div id="settingsModal" class="auth-card" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; width:520px; max-width:92%; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 24px 60px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:20px; position:relative; color:var(--text); font-family:'Outfit',sans-serif;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:16px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:38px; height:38px; border-radius:10px; background:rgba(255,85,0,0.15); color:var(--orange); display:flex; align-items:center; justify-content:center; font-size:1.1rem;">
+          <i class="fa-solid fa-gear"></i>
         </div>
-        <div style="display:flex; gap:12px; justify-content:flex-end;">
-          <button class="secondary-btn" type="button" onclick="document.getElementById('socialAdminModal').classList.remove('is-open')">Cancel</button>
-          <button class="primary-btn" type="button" onclick="saveSocialApiKey()">Save Key</button>
+        <div>
+          <h3 style="margin:0; font-size:1.25rem; font-weight:700; color:var(--text);">Account & Agency Settings</h3>
+          <span style="font-size:0.8rem; color:var(--muted);">Manage plan, brand profiles, and memory</span>
+        </div>
+      </div>
+      <button type="button" id="closeSettingsBtn" onclick="window.closeSettingsModal()" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer; padding:4px 8px;" title="Close Settings">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Plan & Upgrade Box -->
+    <div style="background:rgba(255,85,0,0.06); border:1px solid rgba(255,85,0,0.25); border-radius:12px; padding:18px; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong style="font-size:1rem; color:var(--orange);">Luminary Pro Agency Plan</strong>
+          <p style="margin:2px 0 0; font-size:0.8rem; color:var(--muted);">Full SDXL local generation, 300 DPI super-resolution, Social API sync & memory engine.</p>
+        </div>
+        <span style="background:var(--orange); color:#ffffff; font-size:0.75rem; font-weight:700; padding:4px 10px; border-radius:20px;">Active</span>
+      </div>
+    </div>
+
+    <!-- Account Details -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <h4 style="margin:0; font-size:0.95rem; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:0.05em;">Profile & Connected Brand</h4>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px 14px;">
+          <span style="font-size:0.75rem; color:var(--muted); display:block;">Account Owner</span>
+          <strong id="settingsAccountName" style="font-size:0.9rem; color:var(--text);">Kausar</strong>
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px 14px;">
+          <span style="font-size:0.75rem; color:var(--muted); display:block;">Agency Handle</span>
+          <strong id="settingsAccountHandle" style="font-size:0.9rem; color:var(--text);">@kausar</strong>
         </div>
       </div>
     </div>
 
-  
+    <!-- Danger Zone / Memory Purge -->
+    <div style="border-top:1px solid var(--border); padding-top:16px; display:flex; flex-direction:column; gap:12px;">
+      <h4 style="margin:0; font-size:0.95rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:0.05em;">Memory & Account Removal</h4>
+      <p style="margin:0; font-size:0.85rem; color:var(--muted); line-height:1.4;">
+        Permanently delete this Luminary account. This wipes all chat history, brand assets, social API profiles, and local session memory.
+      </p>
+      <button type="button" id="deleteAccountBtn" onclick="window.deleteAccountFromMemory()" class="upgrade-btn" style="background:var(--orange); border:1px solid var(--orange); color:#ffffff; font-weight:700; padding:12px 20px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; width:100%; min-height:46px; transition:all 0.2s;" title="Delete account and wipe memory">
+        <i class="fa-solid fa-trash-can"></i> Delete Account from Memory
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCOUNT DELETED CONFIRMATION & RESTORE MODAL (THEMED) -->
+<div id="accountDeletedModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:10000; align-items:center; justify-content:center;">
+  <div id="accountDeletedModal" style="background:var(--surface); border:1px solid var(--border); border-radius:18px; width:480px; max-width:92%; padding:32px 28px; box-shadow:0 30px 80px rgba(0,0,0,0.5); display:flex; flex-direction:column; align-items:center; text-align:center; gap:18px; color:var(--text); font-family:'Outfit',sans-serif;">
+    <div style="width:60px; height:60px; border-radius:50%; background:rgba(255,85,0,0.15); color:var(--orange); display:flex; align-items:center; justify-content:center; font-size:1.8rem;">
+      <i class="fa-solid fa-trash-can"></i>
+    </div>
+    <div>
+      <h3 style="margin:0 0 8px; font-size:1.35rem; font-weight:700; color:var(--text);">Account & Brand Profile Deleted</h3>
+      <p style="margin:0; font-size:0.9rem; color:var(--muted); line-height:1.5;">
+        Your Luminary account, brand memory, and Social API profile have been removed. You can restore this account now or confirm to return to the homepage.
+      </p>
+    </div>
+    <div style="display:flex; gap:12px; width:100%; margin-top:8px;">
+      <button type="button" id="restoreAccountBtn" onclick="window.restoreDeletedAccount()" class="outline-btn" style="flex:1; border:1px solid var(--border); background:var(--bg); color:var(--text); font-weight:600; padding:12px 18px; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i class="fa-solid fa-rotate-left" style="color:var(--orange);"></i> Restore Account
+      </button>
+      <button type="button" id="confirmDeletionHomeBtn" onclick="window.confirmDeletionAndGoHome()" class="primary-btn" style="flex:1; background:var(--orange); border:1px solid var(--orange); color:#ffffff; font-weight:700; padding:12px 18px; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+        <i class="fa-solid fa-check"></i> Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+
 <script>
 // ============================================================================
-// LUMINARY MASTER STAGE & INTERACTIVITY CONTROLLER (GUARANTEED FUNCTIONALITY)
+// SETTINGS, SOCIAL BRAND PURGE & RESTORE CONTROLLER
 // ============================================================================
 (function() {
-  console.log("[Luminary] Initializing Master Stage & Interactivity Controller...");
+  let lastDeletedAccountBackup = null;
 
-  // 1. GLOBAL STATE INITIALIZATION
-  window.LuminaryState = window.LuminaryState || {
-    currentView: "home",
-    calDate: new Date(),
-    currentAssetFolder: "root",
-    assetFolders: ["Brand Logos", "Product Photos", "Campaign Graphics", "Typography"],
-    assets: [
-      { id: "ast_1", name: "Luminary Logo Dark.png", type: "image", folder: "Brand Logos", size: "34 KB", date: "Today", url: "logo.png" },
-      { id: "ast_2", name: "Luminary Logo Orange.png", type: "image", folder: "Brand Logos", size: "34 KB", date: "Today", url: "logo_orange.png" },
-      { id: "ast_3", name: "Autumn Campaign Banner.jpg", type: "image", folder: "Campaign Graphics", size: "1.2 MB", date: "Yesterday", url: "logo_orange.png" }
-    ],
-    calEvents: [
-      { id: "ev_1", title: "Instagram Product Drop", date: new Date().toISOString().split('T')[0], platform: "Instagram", time: "14:00", type: "Post" },
-      { id: "ev_2", title: "LinkedIn Thought Leadership", date: new Date().toISOString().split('T')[0], platform: "LinkedIn", time: "09:30", type: "Article" }
-    ],
-    notifications: [
-      { id: "nt_1", title: "Campaign Render Complete", desc: "4K Product Advert has been rendered at 300 DPI.", time: "10m ago", read: false },
-      { id: "nt_2", title: "SEO Optimization Finished", desc: "Metadata generated for Autumn collection.", time: "1h ago", read: false }
-    ]
-  };
-
-  const LState = window.LuminaryState;
-
-  // 2. STAGE SWITCHING (MASTER ROUTER)
-  window.switchMainView = function(viewName) {
+  window.openSettingsModal = function() {
     try {
-      console.log("[Luminary Router] Switching to:", viewName);
-      LState.currentView = viewName;
-
-      // Ensure dashboard container is visible
-      const landingView = document.getElementById("landingView");
-      const authView = document.getElementById("authView");
-      const dashboardView = document.getElementById("dashboardView");
-
-      if (landingView) landingView.style.display = "none";
-      if (authView) authView.style.display = "none";
-      if (dashboardView) dashboardView.style.display = "grid";
-
-      // Update sidebar active states
-      document.querySelectorAll('.side-link').forEach(btn => btn.classList.remove('active'));
-      const navBtnMap = {
-        home: "navHomeBtn",
-        assets: "navAssetsBtn",
-        calendar: "navCalendarBtn",
-        notifs: "navNotifsBtn",
-        connectors: "navConnectorsBtn"
-      };
-      if (navBtnMap[viewName]) {
-        document.getElementById(navBtnMap[viewName])?.classList.add("active");
-      }
-
-      // Hide all stages first
-      const stages = {
-        home: document.querySelector(".chat-stage"),
-        assets: document.getElementById("assetsStage"),
-        calendar: document.getElementById("calendarStage"),
-        notifs: document.getElementById("notifsStage"),
-        connectors: document.getElementById("connectorsStage")
-      };
-
-      Object.values(stages).forEach(stg => {
-        if (stg) stg.style.display = "none";
-      });
-
-      // Show target stage
-      if (viewName === "home") {
-        if (stages.home) stages.home.style.display = "flex";
-        dashboardView?.classList.remove("no-history");
-      } else {
-        dashboardView?.classList.add("no-history");
-        if (stages[viewName]) {
-          stages[viewName].style.display = "flex";
-        }
-      }
-
-      // Trigger specific stage renderers
-      if (viewName === "assets") window.renderBrandAssets();
-      if (viewName === "calendar") window.renderMarketingCalendar();
-      if (viewName === "notifs") window.renderNotifications();
-      if (viewName === "connectors") window.renderConnectorsStage();
-
-    } catch (err) {
-      console.error("[Luminary Router Error]:", err);
-    }
-  };
-
-  // 3. BRAND ASSETS STAGE RENDERER & LOGIC
-  window.renderBrandAssets = function() {
-    try {
-      const grid = document.getElementById("assetsGrid");
-      const tabs = document.getElementById("assetTabs");
-      if (!grid) return;
-
-      // Render Folder Tabs
-      if (tabs) {
-        let tabsHtml = `<button class="asset-tab ${LState.currentAssetFolder === 'root' ? 'active' : ''}" onclick="window.setAssetFolder('root')">All Assets</button>`;
-        LState.assetFolders.forEach(folder => {
-          tabsHtml += `<button class="asset-tab ${LState.currentAssetFolder === folder ? 'active' : ''}" onclick="window.setAssetFolder('${folder}')">${folder}</button>`;
-        });
-        tabs.innerHTML = tabsHtml;
-      }
-
-      // Filter Assets by Folder
-      const visibleAssets = LState.currentAssetFolder === "root" 
-        ? LState.assets 
-        : LState.assets.filter(a => a.folder === LState.currentAssetFolder);
-
-      if (visibleAssets.length === 0) {
-        grid.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--muted);">
-            <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.4;"></i>
-            <h3>No assets in this folder</h3>
-            <p style="font-size: 0.9rem; margin-top: 6px;">Click "Add Asset" above to upload images, logos, or brand guides.</p>
-          </div>`;
-        return;
-      }
-
-      grid.innerHTML = visibleAssets.map(asset => `
-        <div class="asset-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s, border-color 0.2s;">
-          <div style="width: 100%; height: 130px; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
-            <img src="${asset.url}" alt="${asset.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-              <strong style="font-size: 0.9rem; color: var(--text); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">${asset.name}</strong>
-              <span style="font-size: 0.75rem; color: var(--muted);">${asset.folder} • ${asset.size}</span>
-            </div>
-            <button type="button" onclick="window.useAssetInChat('${asset.name}')" class="primary-btn" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;" title="Reference in Chat">Use</button>
-          </div>
-        </div>
-      `).join("");
-    } catch(e) {
-      console.error("[Assets Render Error]:", e);
-    }
-  };
-
-  window.setAssetFolder = function(folder) {
-    LState.currentAssetFolder = folder;
-    window.renderBrandAssets();
-  };
-
-  window.useAssetInChat = function(assetName) {
-    const input = document.getElementById("promptInput");
-    if (input) {
-      input.value = (input.value ? input.value + " " : "") + `[Referencing Asset: ${assetName}]`;
-      window.switchMainView("home");
-      input.focus();
-    }
-  };
-
-  // 4. MARKETING CALENDAR RENDERER & LOGIC
-  window.renderMarketingCalendar = function() {
-    try {
-      const grid = document.getElementById("calendarGrid");
-      const monthText = document.getElementById("calMonthText");
-      const yearVal = document.getElementById("calYearVal");
-      if (!grid) return;
-
-      const d = LState.calDate;
-      const year = d.getFullYear();
-      const month = d.getMonth();
-
-      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      if (monthText) monthText.textContent = months[month];
-      if (yearVal) yearVal.textContent = String(year);
-
-      // Day of week headers
-      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      let calHtml = days.map(day => `
-        <div style="text-align: center; font-weight: 700; font-size: 0.8rem; color: var(--muted); padding: 8px 0;">${day}</div>
-      `).join("");
-
-      // Days calculation
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const today = new Date();
-
-      // Empty lead days
-      for (let i = 0; i < firstDay; i++) {
-        calHtml += `<div style="background: rgba(255,255,255,0.01); border-radius: 8px; min-height: 85px; opacity: 0.2;"></div>`;
-      }
-
-      // Calendar days
-      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
-        const isToday = (today.getFullYear() === year && today.getMonth() === month && today.getDate() === dayNum);
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-        const dayEvents = LState.calEvents.filter(ev => ev.date === dateStr);
-
-        calHtml += `
-          <div class="cal-day-cell" style="background: var(--surface); border: 1px solid ${isToday ? 'var(--orange)' : 'var(--border)'}; border-radius: 8px; min-height: 85px; padding: 8px; display: flex; flex-direction: column; gap: 4px; position: relative;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.85rem; font-weight: ${isToday ? '800' : '600'}; color: ${isToday ? 'var(--orange)' : 'var(--text)'};">${dayNum}</span>
-              ${isToday ? '<span style="font-size: 0.65rem; background: var(--orange); color: white; padding: 1px 5px; border-radius: 4px;">Today</span>' : ''}
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 3px; overflow-y: auto; max-height: 55px;">
-              ${dayEvents.map(ev => `
-                <div style="font-size: 0.7rem; background: rgba(255,85,0,0.12); color: var(--orange); padding: 2px 5px; border-radius: 4px; border-left: 2px solid var(--orange); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ev.title} (${ev.platform} at ${ev.time})">
-                  <strong>${ev.time}</strong> ${ev.title}
-                </div>
-              `).join("")}
-            </div>
-          </div>`;
-      }
-
-      grid.innerHTML = calHtml;
-    } catch (e) {
-      console.error("[Calendar Render Error]:", e);
-    }
-  };
-
-  window.calPrevMonth = function() {
-    LState.calDate.setMonth(LState.calDate.getMonth() - 1);
-    window.renderMarketingCalendar();
-  };
-
-  window.calNextMonth = function() {
-    LState.calDate.setMonth(LState.calDate.getMonth() + 1);
-    window.renderMarketingCalendar();
-  };
-
-  // 5. NOTIFICATIONS RENDERER
-  window.renderNotifications = function() {
-    try {
-      const list = document.getElementById("notifsStage");
-      const unreadBadge = document.getElementById("unreadCountText");
-      if (!list) return;
-
-      const unreadCount = LState.notifications.filter(n => !n.read).length;
-      if (unreadBadge) unreadBadge.textContent = `${unreadCount} Unread`;
-
-      let notifHtml = `
-        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <div>
-            <h2 style="font-size: 1.4rem; color: var(--text);">Notifications & Agency Alerts</h2>
-            <p style="font-size: 0.85rem; color: var(--muted);">Real-time status of renders, workflows, and social publishing.</p>
-          </div>
-          <button class="primary-btn" id="markAllReadBtn" onclick="window.markAllNotifsRead()" type="button" style="padding: 8px 18px; border-radius: 8px;">Mark All Read</button>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
-          ${LState.notifications.map(n => `
-            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong style="color: var(--text); font-size: 0.95rem;">${n.title}</strong>
-                <p style="font-size: 0.85rem; color: var(--muted); margin-top: 4px;">${n.desc}</p>
-              </div>
-              <span style="font-size: 0.75rem; color: var(--muted);">${n.time}</span>
-            </div>
-          `).join("")}
-        </div>`;
+      const backdrop = document.getElementById("settingsModalBackdrop");
+      if (!backdrop) return;
       
-      list.innerHTML = notifHtml;
-    } catch (e) {
-      console.error("[Notifications Render Error]:", e);
-    }
-  };
-
-  window.markAllNotifsRead = function() {
-    LState.notifications.forEach(n => n.read = true);
-    window.renderNotifications();
-  };
-
-  // 6. CONNECTORS & SOCIAL STAGE RENDERER
-  window.renderConnectorsStage = function() {
-    try {
-      const integrationsPane = document.getElementById("socialIntegrationsTab");
-      if (integrationsPane) {
-        integrationsPane.style.display = "block";
+      const savedAccount = localStorage.getItem("luminary_account");
+      if (savedAccount) {
+        try {
+          const acc = JSON.parse(savedAccount);
+          const nameEl = document.getElementById("settingsAccountName");
+          const handleEl = document.getElementById("settingsAccountHandle");
+          if (nameEl && acc.name) nameEl.textContent = acc.name;
+          if (handleEl && acc.name) handleEl.textContent = "@" + acc.name.toLowerCase().replace(/\s+/g, '');
+        } catch(e) {}
       }
+
+      backdrop.style.display = "flex";
     } catch(e) {
-      console.error("[Connectors Render Error]:", e);
+      console.error("[Settings Open Error]:", e);
     }
   };
 
-  // 7. CHAT HISTORY PANEL TOGGLE & RENDERER
-  window.toggleHistory = function(forceOpen) {
+  window.closeSettingsModal = function() {
+    const backdrop = document.getElementById("settingsModalBackdrop");
+    if (backdrop) backdrop.style.display = "none";
+  };
+
+  // Close when clicking backdrop
+  document.getElementById("settingsModalBackdrop")?.addEventListener("click", function(e) {
+    if (e.target === this) window.closeSettingsModal();
+  });
+
+  // Attach to Upgrade Buttons
+  document.querySelectorAll(".upgrade-btn, #sidebarUpgradeBtn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openSettingsModal();
+    });
+  });
+
+  // Delete Account from Memory & Purge Social API Brand Profile
+  window.deleteAccountFromMemory = async function() {
     try {
-      const panel = document.getElementById("historyPanel");
-      const dash = document.getElementById("dashboardView");
-      if (!panel) return;
-
-      if (typeof forceOpen === "boolean") {
-        if (forceOpen) {
-          panel.classList.add("is-open");
-          panel.style.display = "flex";
-          dash?.classList.remove("history-closed");
-        } else {
-          panel.classList.remove("is-open");
-          panel.style.display = "none";
-          dash?.classList.add("history-closed");
-        }
+      let confirmed = false;
+      if (typeof showConfirm === "function") {
+        confirmed = await showConfirm(
+          "Delete Luminary Account",
+          "Are you sure you want to delete your Luminary account and Social API brand profile? You will have an option to restore it on the next screen.",
+          "Delete Account"
+        );
       } else {
-        const isOpen = panel.classList.toggle("is-open");
-        panel.style.display = isOpen ? "flex" : "none";
-        if (isOpen) dash?.classList.remove("history-closed");
-        else dash?.classList.add("history-closed");
+        confirmed = confirm("Are you sure you want to delete your Luminary account and Social API brand profile?");
       }
-    } catch (e) {
-      console.error("[History Toggle Error]:", e);
+
+      if (!confirmed) return;
+
+      console.log("[Luminary] Backing up snapshot before purge...");
+      lastDeletedAccountBackup = {
+        account: localStorage.getItem("luminary_account"),
+        chats: localStorage.getItem("luminary_chats"),
+        assets: localStorage.getItem("luminary_assets"),
+        session: localStorage.getItem("luminary_session"),
+        luminaryState: window.LuminaryState ? JSON.parse(JSON.stringify(window.LuminaryState)) : null
+      };
+
+      // 1. Wipe Social API Brand Profile and Connections via Backend Call
+      try {
+        const API_BASE = (window.location.protocol === "http:" || window.location.protocol === "https:") ? "" : "http://localhost:8000";
+        fetch(`${API_BASE}/api/social/connections/mock_ig`, { method: "DELETE" }).catch(() => {});
+        fetch(`${API_BASE}/api/social/connections/mock_yt`, { method: "DELETE" }).catch(() => {});
+        fetch(`${API_BASE}/api/social/connections/mock_fb`, { method: "DELETE" }).catch(() => {});
+        fetch(`${API_BASE}/api/social/connections/mock_tw`, { method: "DELETE" }).catch(() => {});
+      } catch(apiErr) {
+        console.warn("[Social API Purge Warning]:", apiErr);
+      }
+
+      // 2. Clear localStorage
+      localStorage.removeItem("luminary_account");
+      localStorage.removeItem("luminary_chats");
+      localStorage.removeItem("luminary_assets");
+      localStorage.removeItem("luminary_session");
+      localStorage.removeItem("luminary_active_chat");
+      localStorage.removeItem("activeChatId");
+
+      // 3. Clear In-Memory State
+      if (window.LuminaryState) {
+        window.LuminaryState.assets = [];
+        window.LuminaryState.calEvents = [];
+        window.LuminaryState.notifications = [];
+      }
+      if (window.state && window.state.chats) {
+        window.state.chats = [];
+      }
+
+      // Close Settings Modal
+      window.closeSettingsModal();
+
+      // 4. Show Account Deleted Popup with Restore / Confirm options
+      const deletedBackdrop = document.getElementById("accountDeletedModalBackdrop");
+      if (deletedBackdrop) {
+        deletedBackdrop.style.display = "flex";
+      }
+
+      if (typeof showToast === "function") {
+        showToast("Account and Social API brand profile deleted.", "info");
+      }
+
+    } catch(err) {
+      console.error("[Delete Account Error]:", err);
+      window.closeSettingsModal();
     }
   };
 
-  // 8. UNLOCK ALL BUTTONS & BIND EVENT LISTENERS
-  function bindAllInteractiveButtons() {
-    // Navigation Links
-    document.getElementById("navHomeBtn")?.addEventListener("click", () => window.switchMainView("home"));
-    document.getElementById("navAssetsBtn")?.addEventListener("click", () => window.switchMainView("assets"));
-    document.getElementById("navCalendarBtn")?.addEventListener("click", () => window.switchMainView("calendar"));
-    document.getElementById("navNotifsBtn")?.addEventListener("click", () => window.switchMainView("notifs"));
-    document.getElementById("navConnectorsBtn")?.addEventListener("click", () => window.switchMainView("connectors"));
+  // Restore Account Option
+  window.restoreDeletedAccount = function() {
+    try {
+      if (lastDeletedAccountBackup) {
+        if (lastDeletedAccountBackup.account) localStorage.setItem("luminary_account", lastDeletedAccountBackup.account);
+        if (lastDeletedAccountBackup.chats) localStorage.setItem("luminary_chats", lastDeletedAccountBackup.chats);
+        if (lastDeletedAccountBackup.assets) localStorage.setItem("luminary_assets", lastDeletedAccountBackup.assets);
+        if (lastDeletedAccountBackup.session) localStorage.setItem("luminary_session", lastDeletedAccountBackup.session);
 
-    // History Buttons
-    document.getElementById("historyOpenBtn")?.addEventListener("click", () => window.toggleHistory(true));
-    document.getElementById("historyCloseBtn")?.addEventListener("click", () => window.toggleHistory(false));
-    document.getElementById("newChatBtn")?.addEventListener("click", () => {
-      const feed = document.getElementById("chatFeed");
-      if (feed) feed.innerHTML = "";
-      window.switchMainView("home");
-      document.getElementById("promptInput")?.focus();
-    });
-
-    // Calendar Navigation
-    document.getElementById("calPrevBtn")?.addEventListener("click", () => window.calPrevMonth());
-    document.getElementById("calNextBtn")?.addEventListener("click", () => window.calNextMonth());
-
-    // Assets Actions
-    document.getElementById("createFolderBtn")?.addEventListener("click", () => {
-      const name = prompt("Enter new folder name:");
-      if (name && !LState.assetFolders.includes(name)) {
-        LState.assetFolders.push(name);
-        window.renderBrandAssets();
+        if (lastDeletedAccountBackup.luminaryState && window.LuminaryState) {
+          window.LuminaryState.assets = lastDeletedAccountBackup.luminaryState.assets || [];
+          window.LuminaryState.calEvents = lastDeletedAccountBackup.luminaryState.calEvents || [];
+          window.LuminaryState.notifications = lastDeletedAccountBackup.luminaryState.notifications || [];
+        }
       }
-    });
 
-    document.getElementById("addAssetBtn")?.addEventListener("click", () => {
-      document.getElementById("assetFileInput")?.click();
-    });
+      const deletedBackdrop = document.getElementById("accountDeletedModalBackdrop");
+      if (deletedBackdrop) deletedBackdrop.style.display = "none";
 
-    document.getElementById("assetFileInput")?.addEventListener("change", (e) => {
-      const files = Array.from(e.target.files || []);
-      files.forEach(f => {
-        LState.assets.unshift({
-          id: "ast_" + Date.now(),
-          name: f.name,
-          type: "image",
-          folder: LState.currentAssetFolder === "root" ? "Brand Logos" : LState.currentAssetFolder,
-          size: `${(f.size / 1024).toFixed(1)} KB`,
-          date: "Just now",
-          url: URL.createObjectURL(f)
-        });
-      });
-      window.renderBrandAssets();
-    });
+      if (typeof showToast === "function") {
+        showToast("Luminary account successfully restored!", "success");
+      }
 
-    console.log("[Luminary] All interactive buttons unlocked and event listeners successfully attached.");
-  }
+      // Return to active dashboard
+      window.switchMainView("home");
 
-  // Bind on DOM ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindAllInteractiveButtons);
-  } else {
-    bindAllInteractiveButtons();
-  }
+    } catch(e) {
+      console.error("[Restore Error]:", e);
+    }
+  };
+
+  // Confirm Deletion and Return to Homepage
+  window.confirmDeletionAndGoHome = function() {
+    lastDeletedAccountBackup = null;
+    const deletedBackdrop = document.getElementById("accountDeletedModalBackdrop");
+    if (deletedBackdrop) deletedBackdrop.style.display = "none";
+
+    if (typeof window.showView === "function") {
+      window.showView("landing");
+    } else {
+      window.location.href = "#";
+      window.location.reload();
+    }
+  };
 })();
 </script>
 
-</body>
-</html>
+</body></html>
