@@ -157,15 +157,26 @@ DELIVERABLE_KEYWORDS = {
 # ── Creative Director Core Functions ─────────────────────────────────────────
 
 def detect_deliverable_type(prompt: str) -> str:
-    """Identifies the exact deliverable the client needs."""
-    lowered = prompt.lower()
-    for deliverable, keywords in DELIVERABLE_KEYWORDS.items():
-        if any(kw in lowered for kw in keywords):
-            return deliverable
-    # Fallback: check if image or text
-    if any(kw in lowered for kw in ["image", "photo", "visual", "graphic", "picture", "generate"]):
-        return "product_ad"
-    return "text_content"
+    """Identifies the exact deliverable the client needs using unified prompt engine."""
+    import luminary_prompt_engine
+    spec = luminary_prompt_engine.engine.parse_and_understand(prompt)
+    dtype = spec.deliverable_type
+    
+    # Map to agency template key
+    type_map = {
+        "presentation": "presentation",
+        "document": "document",
+        "spreadsheet": "document",
+        "product_ad": "product_ad",
+        "image": "product_ad",
+        "website": "website_creative",
+        "social_carousel": "presentation",
+        "instagram_post": "product_ad",
+        "pinterest_post": "product_ad",
+        "email": "text_content",
+        "copywriting": "text_content"
+    }
+    return type_map.get(dtype, "text_content")
 
 
 def select_template_for_brief(deliverable: str, style_hint: str = "") -> Dict[str, Any]:
@@ -364,7 +375,7 @@ def build_text_ai_instructions(brief: CreativeProductionBrief) -> str:
 
 def orchestrate_task(
     prompt: str,
-    specs: Dict[str, Any],
+    specs: Dict[str, Any] = None,
     history: List[Dict] = None,
     brand_context: str = "",
     memory_context: str = "",
@@ -378,6 +389,8 @@ def orchestrate_task(
     Flow: Understand → Classify → Select Template → Analyze → Build Instructions
     """
     brief = CreativeProductionBrief()
+    if specs is None:
+        specs = {}
     lowered = prompt.lower()
 
     # ── Step 1: Understand the Task ───────────────────────────────────────────

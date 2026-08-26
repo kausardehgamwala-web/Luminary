@@ -1,2 +1,0 @@
-# Luminary
-AI agenncy 

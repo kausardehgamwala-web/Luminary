@@ -1,3 +1,4 @@
+import luminary_auth
 import json
 import social_api
 import mimetypes
@@ -775,11 +776,7 @@ def generate_comprehensive_report(topic, prompt_details):
 
 class LuminaryHandler(BaseHTTPRequestHandler):
     def _json(self, status=200):
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        luminary_auth.handle_cors_headers(self, status)
         self.end_headers()
 
     def _serve_file(self, file_path, content_type):

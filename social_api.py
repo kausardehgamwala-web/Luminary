@@ -44,12 +44,10 @@ def get_redirect_uri(handler=None):
     # 3. Default fallback
     return "http://localhost:8000/api/social/callback"
 
+import luminary_auth
+
 def _json_response(handler, status, data):
-    handler.send_response(status)
-    handler.send_header("Content-Type", "application/json")
-    handler.send_header("Access-Control-Allow-Origin", "*")
-    handler.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
-    handler.send_header("Access-Control-Allow-Headers", "Content-Type")
+    luminary_auth.handle_cors_headers(handler, status)
     handler.end_headers()
     handler.wfile.write(json.dumps(data).encode("utf-8"))
 
@@ -115,8 +113,8 @@ def upload_media_bytes(file_bytes, file_name, mime_type):
 def handle_get(handler):
     path = handler.path
     if path.startswith("/api/social/connections"):
-        query = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)
-        client_id = query.get("client_id", ["1"])[0]
+        session = luminary_auth.get_authenticated_session(handler)
+        client_id = session.get("client_id", "1") if session else "1"
         brand_name_input = query.get("brand_name", [query.get("account_name", ["Default Client"])[0]])[0]
         if not client_id:
             _json_response(handler, 400, {"error": "Missing client_id"})
@@ -139,8 +137,8 @@ def handle_get(handler):
         return True
 
     if path.startswith("/api/social/analytics"):
-        query = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)
-        client_id = query.get("client_id", ["1"])[0]
+        session = luminary_auth.get_authenticated_session(handler)
+        client_id = session.get("client_id", "1") if session else "1"
         if not client_id:
             _json_response(handler, 400, {"error": "Missing client_id"})
             return True
@@ -239,8 +237,8 @@ def handle_get(handler):
         return True
 
     if path.startswith("/api/social/dashboard"):
-        query = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)
-        client_id = query.get("client_id", ["1"])[0]
+        session = luminary_auth.get_authenticated_session(handler)
+        client_id = session.get("client_id", "1") if session else "1"
         if not client_id:
             _json_response(handler, 400, {"error": "Missing client_id"})
             return True
@@ -589,13 +587,8 @@ def handle_post(handler, body):
             
         return True
 
-    if path == "/api/social/admin/key":
-        api_key = body.get("api_key")
-        if not api_key:
-            _json_response(handler, 400, {"error": "Missing api_key"})
-            return True
-            
-        # Save to .env
+    # /api/social/admin/key endpoint removed for security
+    # Save to .env
         env_path = Path(__file__).resolve().parent / ".env"
         env_lines = []
         key_found = False

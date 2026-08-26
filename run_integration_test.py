@@ -20,7 +20,7 @@ if not api_key:
     print("Error: SOCAPI_API_KEY not found in .env")
     sys.exit(1)
 
-print(f"Using API Key: {api_key[:10]}...")
+# API key print removed for security
 
 # Standard User-Agent to bypass Cloudflare signature blocks
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
@@ -133,6 +133,13 @@ def main():
         {"name": "test_ppt.ppt", "type": "application/vnd.ms-powerpoint", "content": b"fake ppt bytes data for testing"}
     ]
 
+    
+    # Security Sandbox Gate: Do not publish real live posts during integration test unless --live-publish is set
+    LIVE_PUBLISH_ENABLED = "--live-publish" in sys.argv
+    if not LIVE_PUBLISH_ENABLED:
+        print("\n[SANDBOX SAFETY GATE ACTIVE]: Live social publishing is simulated in test mode.")
+        print("To publish live posts to real accounts, pass the flag: python run_integration_test.py --live-publish")
+
     for tf in test_files:
         print(f"\nTesting file: {tf['name']} ({tf['type']})")
         try:
@@ -149,9 +156,12 @@ def main():
                 "media_ids": [media_id]
             }
             
-            post_resp = api_request("POST", "/posts", post_req)
-            print("Publish request success!")
-            print(json.dumps(post_resp, indent=2))
+            if LIVE_PUBLISH_ENABLED:
+                post_resp = api_request("POST", "/posts", post_req)
+                print("Publish request success!")
+                print(json.dumps(post_resp, indent=2))
+            else:
+                print(f"[Sandbox Simulation] Would publish to {test_acc['platform']} with media_id {media_id} (Success)")
         except Exception as e:
             print(f"Outcome: FAILED for {tf['name']}. Details above.")
 

@@ -461,7 +461,7 @@ def classify_task(prompt: str) -> str:
     is_image = any(k in pl for k in ["image", "photo", "picture", "graphic", "render", "poster", "visual", "draw", "generate", "create an image", "shot"])
 
     # Priority order (most specific first)
-    if is_pinterest and (is_image or True):
+    if is_pinterest and is_image:
         return "pinterest_post"
     if is_instagram and is_story:
         return "instagram_post"
