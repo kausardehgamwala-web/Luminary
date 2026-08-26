@@ -3624,7 +3624,7 @@
 </script>
 <script>
     window.quickConnect = function(platform) {
-      if (typeof showToast === "function") showToast(Connected  profile!, "success");
+      if (typeof showToast === "function") showToast("Connected profile!", "success");
       const grid = document.getElementById("socialConnectionsGrid");
       if (grid) {
         const item = DEFAULT_MOCK_CONNECTIONS.find(c => c.platform === platform);
@@ -7931,7 +7931,7 @@
 </script>
 <script>
     window.quickConnect = function(platform) {
-      if (typeof showToast === "function") showToast(Connected  profile!, "success");
+      if (typeof showToast === "function") showToast("Connected profile!", "success");
       const grid = document.getElementById("socialConnectionsGrid");
       if (grid) {
         const item = DEFAULT_MOCK_CONNECTIONS.find(c => c.platform === platform);
@@ -7946,12 +7946,7 @@
       renderSocialGrid(DEFAULT_MOCK_CONNECTIONS);
     };
 </script>
-</head>
-          <body>
-            <div class="card">
-              <h3>No Template Items Found</h3>
-              <p>The Template Catalogue is currently generating or updating. Please retry in a few moments.</p>
-            </div>
+
           
 <script>
 // ============================================================================
