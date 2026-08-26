@@ -1,0 +1,39 @@
+# Environment & Secrets
+.env
+.env.*
+*.env
+
+# Databases
+luminary.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Large Binary Archives
+system_prompts.zip
+*.zip
+*.tar
+*.gz
+
+# Temporary / Dummy test files
+dummy.*
+dummy.docx
+dummy.mp4
+dummy.png
+dummy.ppt
+
+# Python cache & artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Workspace artifacts
+scratch/
+memory/
+generated/
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
