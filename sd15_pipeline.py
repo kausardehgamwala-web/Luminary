@@ -1,68 +1,98 @@
 """
-sd15_pipeline.py
-================
-Highly optimized SD 1.5 inference pipeline tailored for 16GB RAM + Intel Iris Xe (~2GB VRAM).
-Uses HuggingFace Diffusers with OpenVINO / CPU optimizations to prevent crashes and swapping.
+sd15_pipeline.py / sdxl_pipeline.py
+====================================
+Real Local SDXL inference pipeline with IP-Adapter product conditioning,
+8-16GB VRAM memory offload, and local super-resolution print upscaler.
 """
 
+import os
+import sys
 import time
-import re
 from pathlib import Path
+from typing import Optional, List, Dict, Any
+from PIL import Image
 
 APP_ROOT = Path(__file__).resolve().parent
 
+import local_sdxl_service
+import luminary_image_engine
+
 def generate_sd15_image(
     prompt: str, 
-    negative_prompt: str,
-    width: int, 
-    height: int, 
-    checkpoint: str, 
-    loras: list,
-    num_steps: int = 20,
-    cfg_scale: float = 7.0
+    negative_prompt: str = "",
+    width: int = 1024, 
+    height: int = 1024, 
+    checkpoint: str = "stabilityai/stable-diffusion-xl-base-1.0", 
+    loras: Optional[List[Dict[str, Any]]] = None,
+    num_steps: int = 35,
+    cfg_scale: float = 7.5,
+    reference_image_path: Optional[str] = None,
+    category: str = "product"
 ) -> str:
     """
-    Generates an image via highly optimized SD 1.5 pipeline.
+    Generates an image via real persistent local SDXL inference service.
     """
-    filename = f"local_sd15_{int(time.time())}.jpg"
+    filename = f"local_sdxl_{int(time.time())}.jpg"
     out_dir = APP_ROOT / "generated"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / filename
 
+    # 1. Parse resolution & print requirements
+    target_w, target_h, is_print = luminary_image_engine.parse_target_resolution(prompt, (width, height))
+    
+    # SDXL native generation size
+    native_w = min(1536, max(768, target_w))
+    native_h = min(1536, max(768, target_h))
+
+    # 2. Reference image path
+    ref_obj = Path(reference_image_path) if reference_image_path and Path(reference_image_path).exists() else None
+
+    # 3. Call local SDXL service under concurrency lock
     try:
-        # In a real environment, we'd import Diffusers / OpenVINO here.
-        # We simulate the pipeline initialization and hardware offloading steps:
-        print(f"[SD15 Pipeline] Initializing {checkpoint}...")
-        print(f"[SD15 Pipeline] Hardware Optimization: Enabling CPU offload & sliced attention (16GB RAM / Iris Xe tuning).")
-        
-        if loras:
-            for lora in loras:
-                print(f"[SD15 Pipeline] Applying LoRA: {lora['name']} at weight {lora['weight']}")
+        gen_img = local_sdxl_service.sdxl_service.generate(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            width=native_w,
+            height=native_h,
+            num_inference_steps=num_steps,
+            guidance_scale=cfg_scale,
+            reference_image_path=ref_obj,
+            loras=loras
+        )
+    except Exception as err:
+        print(f"[SDXL Pipeline Notice] Local inference error: {err}")
+        # Fallback to local image engine
+        img_bytes, _ = luminary_image_engine.engine.generate_image(
+            prompt=prompt,
+            width=native_w,
+            height=native_h,
+            negative_prompt=negative_prompt,
+            reference_image_path=ref_obj,
+            category=category,
+            is_print=is_print
+        )
+        out_file.write_bytes(img_bytes)
+        gen_img = Image.open(out_file)
 
-        print(f"[SD15 Pipeline] Generating {width}x{height} image (Steps: {num_steps}, CFG: {cfg_scale})...")
-        
-        # Simulate generation process taking time (mocked for testing without full weight downloads)
-        time.sleep(2)
-        
-        print("[SD15 Pipeline] Generation complete. Applying latent upscaler/refinement pass...")
+    # 4. If print resolution was requested (e.g. A4 2480x3508), apply local AI upscaling
+    if is_print and (target_w > native_w or target_h > native_h):
+        gen_img = local_sdxl_service.upscale_image_for_print(gen_img, target_w, target_h)
 
-        # Fallback to saving a mock image to represent the output
-        from PIL import Image, ImageDraw
-        clean_title = re.sub(r"[^a-zA-Z0-9 ]", "", prompt)[:30] or "SD 1.5 Graphic"
-        img = Image.new("RGB", (width, height), color=(15, 20, 25))
-        draw = ImageDraw.Draw(img)
+    # 5. If reference product photo was uploaded, composite exact product into scene
+    if ref_obj:
+        gen_img.save(out_file, "JPEG", quality=95)
+        luminary_image_engine.composite_real_product_into_scene(
+            product_image_path=ref_obj,
+            scene_background_path=out_file,
+            output_path=out_file,
+            position="center_bottom"
+        )
+        gen_img = Image.open(out_file)
 
-        cx, cy = width // 2, height // 2
-        draw.rectangle([(20, 20), (width - 20, height - 20)], outline=(100, 100, 150), width=3)
-        draw.text((cx, cy), f"SD 1.5: {checkpoint.split('/')[-1]}", fill=(200, 200, 220), anchor="ms")
-        if loras:
-            draw.text((cx, cy + 30), f"LoRA: {loras[0]['name']} ({loras[0]['weight']})", fill=(150, 150, 180), anchor="ms")
-        draw.text((cx, height - 40), f"{width}x{height} | {num_steps} steps | CFG {cfg_scale}", fill=(100, 100, 120), anchor="ms")
-        
-        img.save(out_file, "JPEG", quality=95)
-        print(f"[SD15 Pipeline] Saved to {out_file}")
-        return f"/generated/{filename}?v={int(time.time())}"
-        
-    except Exception as e:
-        print(f"[SD15 Pipeline] CRITICAL ERROR: {e}")
-        return ""
+    # 6. Apply subject-aware post processing and 300 DPI metadata
+    gen_img.save(out_file, "JPEG", quality=96, dpi=(300, 300) if is_print else (144, 144))
+    profile_name = luminary_image_engine.detect_post_process_profile(prompt, category)
+    luminary_image_engine.apply_subject_aware_post_processing(out_file, profile_name=profile_name, is_print=is_print)
+
+    print(f"[SDXL Pipeline] Saved deliverable to {out_file} (Resolution: {gen_img.size[0]}x{gen_img.size[1]})")
+    return f"/generated/{filename}?v={int(time.time())}"
