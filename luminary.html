@@ -7952,7 +7952,380 @@
               <h3>No Template Items Found</h3>
               <p>The Template Catalogue is currently generating or updating. Please retry in a few moments.</p>
             </div>
-          </body>
+          
+<script>
+// ============================================================================
+// LUMINARY MASTER STAGE & INTERACTIVITY CONTROLLER (GUARANTEED FUNCTIONALITY)
+// ============================================================================
+(function() {
+  console.log("[Luminary] Initializing Master Stage & Interactivity Controller...");
+
+  // 1. GLOBAL STATE INITIALIZATION
+  window.LuminaryState = window.LuminaryState || {
+    currentView: "home",
+    calDate: new Date(),
+    currentAssetFolder: "root",
+    assetFolders: ["Brand Logos", "Product Photos", "Campaign Graphics", "Typography"],
+    assets: [
+      { id: "ast_1", name: "Luminary Logo Dark.png", type: "image", folder: "Brand Logos", size: "34 KB", date: "Today", url: "logo.png" },
+      { id: "ast_2", name: "Luminary Logo Orange.png", type: "image", folder: "Brand Logos", size: "34 KB", date: "Today", url: "logo_orange.png" },
+      { id: "ast_3", name: "Autumn Campaign Banner.jpg", type: "image", folder: "Campaign Graphics", size: "1.2 MB", date: "Yesterday", url: "logo_orange.png" }
+    ],
+    calEvents: [
+      { id: "ev_1", title: "Instagram Product Drop", date: new Date().toISOString().split('T')[0], platform: "Instagram", time: "14:00", type: "Post" },
+      { id: "ev_2", title: "LinkedIn Thought Leadership", date: new Date().toISOString().split('T')[0], platform: "LinkedIn", time: "09:30", type: "Article" }
+    ],
+    notifications: [
+      { id: "nt_1", title: "Campaign Render Complete", desc: "4K Product Advert has been rendered at 300 DPI.", time: "10m ago", read: false },
+      { id: "nt_2", title: "SEO Optimization Finished", desc: "Metadata generated for Autumn collection.", time: "1h ago", read: false }
+    ]
+  };
+
+  const LState = window.LuminaryState;
+
+  // 2. STAGE SWITCHING (MASTER ROUTER)
+  window.switchMainView = function(viewName) {
+    try {
+      console.log("[Luminary Router] Switching to:", viewName);
+      LState.currentView = viewName;
+
+      // Ensure dashboard container is visible
+      const landingView = document.getElementById("landingView");
+      const authView = document.getElementById("authView");
+      const dashboardView = document.getElementById("dashboardView");
+
+      if (landingView) landingView.style.display = "none";
+      if (authView) authView.style.display = "none";
+      if (dashboardView) dashboardView.style.display = "grid";
+
+      // Update sidebar active states
+      document.querySelectorAll('.side-link').forEach(btn => btn.classList.remove('active'));
+      const navBtnMap = {
+        home: "navHomeBtn",
+        assets: "navAssetsBtn",
+        calendar: "navCalendarBtn",
+        notifs: "navNotifsBtn",
+        connectors: "navConnectorsBtn"
+      };
+      if (navBtnMap[viewName]) {
+        document.getElementById(navBtnMap[viewName])?.classList.add("active");
+      }
+
+      // Hide all stages first
+      const stages = {
+        home: document.querySelector(".chat-stage"),
+        assets: document.getElementById("assetsStage"),
+        calendar: document.getElementById("calendarStage"),
+        notifs: document.getElementById("notifsStage"),
+        connectors: document.getElementById("connectorsStage")
+      };
+
+      Object.values(stages).forEach(stg => {
+        if (stg) stg.style.display = "none";
+      });
+
+      // Show target stage
+      if (viewName === "home") {
+        if (stages.home) stages.home.style.display = "flex";
+        dashboardView?.classList.remove("no-history");
+      } else {
+        dashboardView?.classList.add("no-history");
+        if (stages[viewName]) {
+          stages[viewName].style.display = "flex";
+        }
+      }
+
+      // Trigger specific stage renderers
+      if (viewName === "assets") window.renderBrandAssets();
+      if (viewName === "calendar") window.renderMarketingCalendar();
+      if (viewName === "notifs") window.renderNotifications();
+      if (viewName === "connectors") window.renderConnectorsStage();
+
+    } catch (err) {
+      console.error("[Luminary Router Error]:", err);
+    }
+  };
+
+  // 3. BRAND ASSETS STAGE RENDERER & LOGIC
+  window.renderBrandAssets = function() {
+    try {
+      const grid = document.getElementById("assetsGrid");
+      const tabs = document.getElementById("assetTabs");
+      if (!grid) return;
+
+      // Render Folder Tabs
+      if (tabs) {
+        let tabsHtml = `<button class="asset-tab ${LState.currentAssetFolder === 'root' ? 'active' : ''}" onclick="window.setAssetFolder('root')">All Assets</button>`;
+        LState.assetFolders.forEach(folder => {
+          tabsHtml += `<button class="asset-tab ${LState.currentAssetFolder === folder ? 'active' : ''}" onclick="window.setAssetFolder('${folder}')">${folder}</button>`;
+        });
+        tabs.innerHTML = tabsHtml;
+      }
+
+      // Filter Assets by Folder
+      const visibleAssets = LState.currentAssetFolder === "root" 
+        ? LState.assets 
+        : LState.assets.filter(a => a.folder === LState.currentAssetFolder);
+
+      if (visibleAssets.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--muted);">
+            <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.4;"></i>
+            <h3>No assets in this folder</h3>
+            <p style="font-size: 0.9rem; margin-top: 6px;">Click "Add Asset" above to upload images, logos, or brand guides.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = visibleAssets.map(asset => `
+        <div class="asset-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s, border-color 0.2s;">
+          <div style="width: 100%; height: 130px; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+            <img src="${asset.url}" alt="${asset.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <strong style="font-size: 0.9rem; color: var(--text); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">${asset.name}</strong>
+              <span style="font-size: 0.75rem; color: var(--muted);">${asset.folder} • ${asset.size}</span>
+            </div>
+            <button type="button" onclick="window.useAssetInChat('${asset.name}')" class="primary-btn" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;" title="Reference in Chat">Use</button>
+          </div>
+        </div>
+      `).join("");
+    } catch(e) {
+      console.error("[Assets Render Error]:", e);
+    }
+  };
+
+  window.setAssetFolder = function(folder) {
+    LState.currentAssetFolder = folder;
+    window.renderBrandAssets();
+  };
+
+  window.useAssetInChat = function(assetName) {
+    const input = document.getElementById("promptInput");
+    if (input) {
+      input.value = (input.value ? input.value + " " : "") + `[Referencing Asset: ${assetName}]`;
+      window.switchMainView("home");
+      input.focus();
+    }
+  };
+
+  // 4. MARKETING CALENDAR RENDERER & LOGIC
+  window.renderMarketingCalendar = function() {
+    try {
+      const grid = document.getElementById("calendarGrid");
+      const monthText = document.getElementById("calMonthText");
+      const yearVal = document.getElementById("calYearVal");
+      if (!grid) return;
+
+      const d = LState.calDate;
+      const year = d.getFullYear();
+      const month = d.getMonth();
+
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      if (monthText) monthText.textContent = months[month];
+      if (yearVal) yearVal.textContent = String(year);
+
+      // Day of week headers
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      let calHtml = days.map(day => `
+        <div style="text-align: center; font-weight: 700; font-size: 0.8rem; color: var(--muted); padding: 8px 0;">${day}</div>
+      `).join("");
+
+      // Days calculation
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+
+      // Empty lead days
+      for (let i = 0; i < firstDay; i++) {
+        calHtml += `<div style="background: rgba(255,255,255,0.01); border-radius: 8px; min-height: 85px; opacity: 0.2;"></div>`;
+      }
+
+      // Calendar days
+      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+        const isToday = (today.getFullYear() === year && today.getMonth() === month && today.getDate() === dayNum);
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+        const dayEvents = LState.calEvents.filter(ev => ev.date === dateStr);
+
+        calHtml += `
+          <div class="cal-day-cell" style="background: var(--surface); border: 1px solid ${isToday ? 'var(--orange)' : 'var(--border)'}; border-radius: 8px; min-height: 85px; padding: 8px; display: flex; flex-direction: column; gap: 4px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem; font-weight: ${isToday ? '800' : '600'}; color: ${isToday ? 'var(--orange)' : 'var(--text)'};">${dayNum}</span>
+              ${isToday ? '<span style="font-size: 0.65rem; background: var(--orange); color: white; padding: 1px 5px; border-radius: 4px;">Today</span>' : ''}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; overflow-y: auto; max-height: 55px;">
+              ${dayEvents.map(ev => `
+                <div style="font-size: 0.7rem; background: rgba(255,85,0,0.12); color: var(--orange); padding: 2px 5px; border-radius: 4px; border-left: 2px solid var(--orange); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ev.title} (${ev.platform} at ${ev.time})">
+                  <strong>${ev.time}</strong> ${ev.title}
+                </div>
+              `).join("")}
+            </div>
+          </div>`;
+      }
+
+      grid.innerHTML = calHtml;
+    } catch (e) {
+      console.error("[Calendar Render Error]:", e);
+    }
+  };
+
+  window.calPrevMonth = function() {
+    LState.calDate.setMonth(LState.calDate.getMonth() - 1);
+    window.renderMarketingCalendar();
+  };
+
+  window.calNextMonth = function() {
+    LState.calDate.setMonth(LState.calDate.getMonth() + 1);
+    window.renderMarketingCalendar();
+  };
+
+  // 5. NOTIFICATIONS RENDERER
+  window.renderNotifications = function() {
+    try {
+      const list = document.getElementById("notifsStage");
+      const unreadBadge = document.getElementById("unreadCountText");
+      if (!list) return;
+
+      const unreadCount = LState.notifications.filter(n => !n.read).length;
+      if (unreadBadge) unreadBadge.textContent = `${unreadCount} Unread`;
+
+      let notifHtml = `
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 1.4rem; color: var(--text);">Notifications & Agency Alerts</h2>
+            <p style="font-size: 0.85rem; color: var(--muted);">Real-time status of renders, workflows, and social publishing.</p>
+          </div>
+          <button class="primary-btn" id="markAllReadBtn" onclick="window.markAllNotifsRead()" type="button" style="padding: 8px 18px; border-radius: 8px;">Mark All Read</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+          ${LState.notifications.map(n => `
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: var(--text); font-size: 0.95rem;">${n.title}</strong>
+                <p style="font-size: 0.85rem; color: var(--muted); margin-top: 4px;">${n.desc}</p>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--muted);">${n.time}</span>
+            </div>
+          `).join("")}
+        </div>`;
+      
+      list.innerHTML = notifHtml;
+    } catch (e) {
+      console.error("[Notifications Render Error]:", e);
+    }
+  };
+
+  window.markAllNotifsRead = function() {
+    LState.notifications.forEach(n => n.read = true);
+    window.renderNotifications();
+  };
+
+  // 6. CONNECTORS & SOCIAL STAGE RENDERER
+  window.renderConnectorsStage = function() {
+    try {
+      const integrationsPane = document.getElementById("socialIntegrationsTab");
+      if (integrationsPane) {
+        integrationsPane.style.display = "block";
+      }
+    } catch(e) {
+      console.error("[Connectors Render Error]:", e);
+    }
+  };
+
+  // 7. CHAT HISTORY PANEL TOGGLE & RENDERER
+  window.toggleHistory = function(forceOpen) {
+    try {
+      const panel = document.getElementById("historyPanel");
+      const dash = document.getElementById("dashboardView");
+      if (!panel) return;
+
+      if (typeof forceOpen === "boolean") {
+        if (forceOpen) {
+          panel.classList.add("is-open");
+          panel.style.display = "flex";
+          dash?.classList.remove("history-closed");
+        } else {
+          panel.classList.remove("is-open");
+          panel.style.display = "none";
+          dash?.classList.add("history-closed");
+        }
+      } else {
+        const isOpen = panel.classList.toggle("is-open");
+        panel.style.display = isOpen ? "flex" : "none";
+        if (isOpen) dash?.classList.remove("history-closed");
+        else dash?.classList.add("history-closed");
+      }
+    } catch (e) {
+      console.error("[History Toggle Error]:", e);
+    }
+  };
+
+  // 8. UNLOCK ALL BUTTONS & BIND EVENT LISTENERS
+  function bindAllInteractiveButtons() {
+    // Navigation Links
+    document.getElementById("navHomeBtn")?.addEventListener("click", () => window.switchMainView("home"));
+    document.getElementById("navAssetsBtn")?.addEventListener("click", () => window.switchMainView("assets"));
+    document.getElementById("navCalendarBtn")?.addEventListener("click", () => window.switchMainView("calendar"));
+    document.getElementById("navNotifsBtn")?.addEventListener("click", () => window.switchMainView("notifs"));
+    document.getElementById("navConnectorsBtn")?.addEventListener("click", () => window.switchMainView("connectors"));
+
+    // History Buttons
+    document.getElementById("historyOpenBtn")?.addEventListener("click", () => window.toggleHistory(true));
+    document.getElementById("historyCloseBtn")?.addEventListener("click", () => window.toggleHistory(false));
+    document.getElementById("newChatBtn")?.addEventListener("click", () => {
+      const feed = document.getElementById("chatFeed");
+      if (feed) feed.innerHTML = "";
+      window.switchMainView("home");
+      document.getElementById("promptInput")?.focus();
+    });
+
+    // Calendar Navigation
+    document.getElementById("calPrevBtn")?.addEventListener("click", () => window.calPrevMonth());
+    document.getElementById("calNextBtn")?.addEventListener("click", () => window.calNextMonth());
+
+    // Assets Actions
+    document.getElementById("createFolderBtn")?.addEventListener("click", () => {
+      const name = prompt("Enter new folder name:");
+      if (name && !LState.assetFolders.includes(name)) {
+        LState.assetFolders.push(name);
+        window.renderBrandAssets();
+      }
+    });
+
+    document.getElementById("addAssetBtn")?.addEventListener("click", () => {
+      document.getElementById("assetFileInput")?.click();
+    });
+
+    document.getElementById("assetFileInput")?.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      files.forEach(f => {
+        LState.assets.unshift({
+          id: "ast_" + Date.now(),
+          name: f.name,
+          type: "image",
+          folder: LState.currentAssetFolder === "root" ? "Brand Logos" : LState.currentAssetFolder,
+          size: `${(f.size / 1024).toFixed(1)} KB`,
+          date: "Just now",
+          url: URL.createObjectURL(f)
+        });
+      });
+      window.renderBrandAssets();
+    });
+
+    console.log("[Luminary] All interactive buttons unlocked and event listeners successfully attached.");
+  }
+
+  // Bind on DOM ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindAllInteractiveButtons);
+  } else {
+    bindAllInteractiveButtons();
+  }
+})();
+</script>
+
+</body>
           </html>
         `);
         doc.close();
@@ -8659,5 +9032,378 @@
       </div>
     </div>
 
-  </body>
+  
+<script>
+// ============================================================================
+// LUMINARY MASTER STAGE & INTERACTIVITY CONTROLLER (GUARANTEED FUNCTIONALITY)
+// ============================================================================
+(function() {
+  console.log("[Luminary] Initializing Master Stage & Interactivity Controller...");
+
+  // 1. GLOBAL STATE INITIALIZATION
+  window.LuminaryState = window.LuminaryState || {
+    currentView: "home",
+    calDate: new Date(),
+    currentAssetFolder: "root",
+    assetFolders: ["Brand Logos", "Product Photos", "Campaign Graphics", "Typography"],
+    assets: [
+      { id: "ast_1", name: "Luminary Logo Dark.png", type: "image", folder: "Brand Logos", size: "34 KB", date: "Today", url: "logo.png" },
+      { id: "ast_2", name: "Luminary Logo Orange.png", type: "image", folder: "Brand Logos", size: "34 KB", date: "Today", url: "logo_orange.png" },
+      { id: "ast_3", name: "Autumn Campaign Banner.jpg", type: "image", folder: "Campaign Graphics", size: "1.2 MB", date: "Yesterday", url: "logo_orange.png" }
+    ],
+    calEvents: [
+      { id: "ev_1", title: "Instagram Product Drop", date: new Date().toISOString().split('T')[0], platform: "Instagram", time: "14:00", type: "Post" },
+      { id: "ev_2", title: "LinkedIn Thought Leadership", date: new Date().toISOString().split('T')[0], platform: "LinkedIn", time: "09:30", type: "Article" }
+    ],
+    notifications: [
+      { id: "nt_1", title: "Campaign Render Complete", desc: "4K Product Advert has been rendered at 300 DPI.", time: "10m ago", read: false },
+      { id: "nt_2", title: "SEO Optimization Finished", desc: "Metadata generated for Autumn collection.", time: "1h ago", read: false }
+    ]
+  };
+
+  const LState = window.LuminaryState;
+
+  // 2. STAGE SWITCHING (MASTER ROUTER)
+  window.switchMainView = function(viewName) {
+    try {
+      console.log("[Luminary Router] Switching to:", viewName);
+      LState.currentView = viewName;
+
+      // Ensure dashboard container is visible
+      const landingView = document.getElementById("landingView");
+      const authView = document.getElementById("authView");
+      const dashboardView = document.getElementById("dashboardView");
+
+      if (landingView) landingView.style.display = "none";
+      if (authView) authView.style.display = "none";
+      if (dashboardView) dashboardView.style.display = "grid";
+
+      // Update sidebar active states
+      document.querySelectorAll('.side-link').forEach(btn => btn.classList.remove('active'));
+      const navBtnMap = {
+        home: "navHomeBtn",
+        assets: "navAssetsBtn",
+        calendar: "navCalendarBtn",
+        notifs: "navNotifsBtn",
+        connectors: "navConnectorsBtn"
+      };
+      if (navBtnMap[viewName]) {
+        document.getElementById(navBtnMap[viewName])?.classList.add("active");
+      }
+
+      // Hide all stages first
+      const stages = {
+        home: document.querySelector(".chat-stage"),
+        assets: document.getElementById("assetsStage"),
+        calendar: document.getElementById("calendarStage"),
+        notifs: document.getElementById("notifsStage"),
+        connectors: document.getElementById("connectorsStage")
+      };
+
+      Object.values(stages).forEach(stg => {
+        if (stg) stg.style.display = "none";
+      });
+
+      // Show target stage
+      if (viewName === "home") {
+        if (stages.home) stages.home.style.display = "flex";
+        dashboardView?.classList.remove("no-history");
+      } else {
+        dashboardView?.classList.add("no-history");
+        if (stages[viewName]) {
+          stages[viewName].style.display = "flex";
+        }
+      }
+
+      // Trigger specific stage renderers
+      if (viewName === "assets") window.renderBrandAssets();
+      if (viewName === "calendar") window.renderMarketingCalendar();
+      if (viewName === "notifs") window.renderNotifications();
+      if (viewName === "connectors") window.renderConnectorsStage();
+
+    } catch (err) {
+      console.error("[Luminary Router Error]:", err);
+    }
+  };
+
+  // 3. BRAND ASSETS STAGE RENDERER & LOGIC
+  window.renderBrandAssets = function() {
+    try {
+      const grid = document.getElementById("assetsGrid");
+      const tabs = document.getElementById("assetTabs");
+      if (!grid) return;
+
+      // Render Folder Tabs
+      if (tabs) {
+        let tabsHtml = `<button class="asset-tab ${LState.currentAssetFolder === 'root' ? 'active' : ''}" onclick="window.setAssetFolder('root')">All Assets</button>`;
+        LState.assetFolders.forEach(folder => {
+          tabsHtml += `<button class="asset-tab ${LState.currentAssetFolder === folder ? 'active' : ''}" onclick="window.setAssetFolder('${folder}')">${folder}</button>`;
+        });
+        tabs.innerHTML = tabsHtml;
+      }
+
+      // Filter Assets by Folder
+      const visibleAssets = LState.currentAssetFolder === "root" 
+        ? LState.assets 
+        : LState.assets.filter(a => a.folder === LState.currentAssetFolder);
+
+      if (visibleAssets.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--muted);">
+            <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.4;"></i>
+            <h3>No assets in this folder</h3>
+            <p style="font-size: 0.9rem; margin-top: 6px;">Click "Add Asset" above to upload images, logos, or brand guides.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = visibleAssets.map(asset => `
+        <div class="asset-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s, border-color 0.2s;">
+          <div style="width: 100%; height: 130px; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+            <img src="${asset.url}" alt="${asset.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <strong style="font-size: 0.9rem; color: var(--text); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">${asset.name}</strong>
+              <span style="font-size: 0.75rem; color: var(--muted);">${asset.folder} • ${asset.size}</span>
+            </div>
+            <button type="button" onclick="window.useAssetInChat('${asset.name}')" class="primary-btn" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;" title="Reference in Chat">Use</button>
+          </div>
+        </div>
+      `).join("");
+    } catch(e) {
+      console.error("[Assets Render Error]:", e);
+    }
+  };
+
+  window.setAssetFolder = function(folder) {
+    LState.currentAssetFolder = folder;
+    window.renderBrandAssets();
+  };
+
+  window.useAssetInChat = function(assetName) {
+    const input = document.getElementById("promptInput");
+    if (input) {
+      input.value = (input.value ? input.value + " " : "") + `[Referencing Asset: ${assetName}]`;
+      window.switchMainView("home");
+      input.focus();
+    }
+  };
+
+  // 4. MARKETING CALENDAR RENDERER & LOGIC
+  window.renderMarketingCalendar = function() {
+    try {
+      const grid = document.getElementById("calendarGrid");
+      const monthText = document.getElementById("calMonthText");
+      const yearVal = document.getElementById("calYearVal");
+      if (!grid) return;
+
+      const d = LState.calDate;
+      const year = d.getFullYear();
+      const month = d.getMonth();
+
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      if (monthText) monthText.textContent = months[month];
+      if (yearVal) yearVal.textContent = String(year);
+
+      // Day of week headers
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      let calHtml = days.map(day => `
+        <div style="text-align: center; font-weight: 700; font-size: 0.8rem; color: var(--muted); padding: 8px 0;">${day}</div>
+      `).join("");
+
+      // Days calculation
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+
+      // Empty lead days
+      for (let i = 0; i < firstDay; i++) {
+        calHtml += `<div style="background: rgba(255,255,255,0.01); border-radius: 8px; min-height: 85px; opacity: 0.2;"></div>`;
+      }
+
+      // Calendar days
+      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+        const isToday = (today.getFullYear() === year && today.getMonth() === month && today.getDate() === dayNum);
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+        const dayEvents = LState.calEvents.filter(ev => ev.date === dateStr);
+
+        calHtml += `
+          <div class="cal-day-cell" style="background: var(--surface); border: 1px solid ${isToday ? 'var(--orange)' : 'var(--border)'}; border-radius: 8px; min-height: 85px; padding: 8px; display: flex; flex-direction: column; gap: 4px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem; font-weight: ${isToday ? '800' : '600'}; color: ${isToday ? 'var(--orange)' : 'var(--text)'};">${dayNum}</span>
+              ${isToday ? '<span style="font-size: 0.65rem; background: var(--orange); color: white; padding: 1px 5px; border-radius: 4px;">Today</span>' : ''}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px; overflow-y: auto; max-height: 55px;">
+              ${dayEvents.map(ev => `
+                <div style="font-size: 0.7rem; background: rgba(255,85,0,0.12); color: var(--orange); padding: 2px 5px; border-radius: 4px; border-left: 2px solid var(--orange); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ev.title} (${ev.platform} at ${ev.time})">
+                  <strong>${ev.time}</strong> ${ev.title}
+                </div>
+              `).join("")}
+            </div>
+          </div>`;
+      }
+
+      grid.innerHTML = calHtml;
+    } catch (e) {
+      console.error("[Calendar Render Error]:", e);
+    }
+  };
+
+  window.calPrevMonth = function() {
+    LState.calDate.setMonth(LState.calDate.getMonth() - 1);
+    window.renderMarketingCalendar();
+  };
+
+  window.calNextMonth = function() {
+    LState.calDate.setMonth(LState.calDate.getMonth() + 1);
+    window.renderMarketingCalendar();
+  };
+
+  // 5. NOTIFICATIONS RENDERER
+  window.renderNotifications = function() {
+    try {
+      const list = document.getElementById("notifsStage");
+      const unreadBadge = document.getElementById("unreadCountText");
+      if (!list) return;
+
+      const unreadCount = LState.notifications.filter(n => !n.read).length;
+      if (unreadBadge) unreadBadge.textContent = `${unreadCount} Unread`;
+
+      let notifHtml = `
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 1.4rem; color: var(--text);">Notifications & Agency Alerts</h2>
+            <p style="font-size: 0.85rem; color: var(--muted);">Real-time status of renders, workflows, and social publishing.</p>
+          </div>
+          <button class="primary-btn" id="markAllReadBtn" onclick="window.markAllNotifsRead()" type="button" style="padding: 8px 18px; border-radius: 8px;">Mark All Read</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+          ${LState.notifications.map(n => `
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: var(--text); font-size: 0.95rem;">${n.title}</strong>
+                <p style="font-size: 0.85rem; color: var(--muted); margin-top: 4px;">${n.desc}</p>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--muted);">${n.time}</span>
+            </div>
+          `).join("")}
+        </div>`;
+      
+      list.innerHTML = notifHtml;
+    } catch (e) {
+      console.error("[Notifications Render Error]:", e);
+    }
+  };
+
+  window.markAllNotifsRead = function() {
+    LState.notifications.forEach(n => n.read = true);
+    window.renderNotifications();
+  };
+
+  // 6. CONNECTORS & SOCIAL STAGE RENDERER
+  window.renderConnectorsStage = function() {
+    try {
+      const integrationsPane = document.getElementById("socialIntegrationsTab");
+      if (integrationsPane) {
+        integrationsPane.style.display = "block";
+      }
+    } catch(e) {
+      console.error("[Connectors Render Error]:", e);
+    }
+  };
+
+  // 7. CHAT HISTORY PANEL TOGGLE & RENDERER
+  window.toggleHistory = function(forceOpen) {
+    try {
+      const panel = document.getElementById("historyPanel");
+      const dash = document.getElementById("dashboardView");
+      if (!panel) return;
+
+      if (typeof forceOpen === "boolean") {
+        if (forceOpen) {
+          panel.classList.add("is-open");
+          panel.style.display = "flex";
+          dash?.classList.remove("history-closed");
+        } else {
+          panel.classList.remove("is-open");
+          panel.style.display = "none";
+          dash?.classList.add("history-closed");
+        }
+      } else {
+        const isOpen = panel.classList.toggle("is-open");
+        panel.style.display = isOpen ? "flex" : "none";
+        if (isOpen) dash?.classList.remove("history-closed");
+        else dash?.classList.add("history-closed");
+      }
+    } catch (e) {
+      console.error("[History Toggle Error]:", e);
+    }
+  };
+
+  // 8. UNLOCK ALL BUTTONS & BIND EVENT LISTENERS
+  function bindAllInteractiveButtons() {
+    // Navigation Links
+    document.getElementById("navHomeBtn")?.addEventListener("click", () => window.switchMainView("home"));
+    document.getElementById("navAssetsBtn")?.addEventListener("click", () => window.switchMainView("assets"));
+    document.getElementById("navCalendarBtn")?.addEventListener("click", () => window.switchMainView("calendar"));
+    document.getElementById("navNotifsBtn")?.addEventListener("click", () => window.switchMainView("notifs"));
+    document.getElementById("navConnectorsBtn")?.addEventListener("click", () => window.switchMainView("connectors"));
+
+    // History Buttons
+    document.getElementById("historyOpenBtn")?.addEventListener("click", () => window.toggleHistory(true));
+    document.getElementById("historyCloseBtn")?.addEventListener("click", () => window.toggleHistory(false));
+    document.getElementById("newChatBtn")?.addEventListener("click", () => {
+      const feed = document.getElementById("chatFeed");
+      if (feed) feed.innerHTML = "";
+      window.switchMainView("home");
+      document.getElementById("promptInput")?.focus();
+    });
+
+    // Calendar Navigation
+    document.getElementById("calPrevBtn")?.addEventListener("click", () => window.calPrevMonth());
+    document.getElementById("calNextBtn")?.addEventListener("click", () => window.calNextMonth());
+
+    // Assets Actions
+    document.getElementById("createFolderBtn")?.addEventListener("click", () => {
+      const name = prompt("Enter new folder name:");
+      if (name && !LState.assetFolders.includes(name)) {
+        LState.assetFolders.push(name);
+        window.renderBrandAssets();
+      }
+    });
+
+    document.getElementById("addAssetBtn")?.addEventListener("click", () => {
+      document.getElementById("assetFileInput")?.click();
+    });
+
+    document.getElementById("assetFileInput")?.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      files.forEach(f => {
+        LState.assets.unshift({
+          id: "ast_" + Date.now(),
+          name: f.name,
+          type: "image",
+          folder: LState.currentAssetFolder === "root" ? "Brand Logos" : LState.currentAssetFolder,
+          size: `${(f.size / 1024).toFixed(1)} KB`,
+          date: "Just now",
+          url: URL.createObjectURL(f)
+        });
+      });
+      window.renderBrandAssets();
+    });
+
+    console.log("[Luminary] All interactive buttons unlocked and event listeners successfully attached.");
+  }
+
+  // Bind on DOM ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindAllInteractiveButtons);
+  } else {
+    bindAllInteractiveButtons();
+  }
+})();
+</script>
+
+</body>
 </html>
