@@ -1,3 +1,4 @@
+import luminary_image_engine
 import luminary_auth
 import json
 import social_api
@@ -422,232 +423,76 @@ def _run_image_qa_check(img_url: str, prompt: str, specs: dict) -> list:
     return issues
 
 
-def post_process_image(file_path):
-    """
-    Applies high-end post-processing sharpening and contrast enhancements to generated images.
-    Compensates for typical model softness without user intervention.
-    """
-    try:
-        from PIL import Image, ImageEnhance
-        img = Image.open(file_path)
-        
-        # Micro-sharpening pass (1.6x enhancement for agency crispness)
-        sharper = ImageEnhance.Sharpness(img).enhance(1.6)
-        
-        # Micro-contrast boost (1.15x enhancement for vivid depth)
-        final_img = ImageEnhance.Contrast(sharper).enhance(1.15)
-        
-        final_img.save(file_path, "JPEG", quality=95)
-        print(f"[Luminary Post-Processor] Applied premium sharpening & contrast boost to {file_path.name}")
-    except Exception as err:
-        print("[Luminary Post-Processor] Error in post-processing:", err)
+def post_process_image(file_path, prompt="", category="", is_print=False):
+    profile = luminary_image_engine.detect_post_process_profile(prompt, category)
+    luminary_image_engine.apply_subject_aware_post_processing(Path(file_path), profile, is_print=is_print)
 
-def generate_jpeg_graphic(prompt, width=1920, height=1080, negative_prompt="", bypass_refinement=False):
-    import urllib.request
-    import urllib.parse
+
+def generate_jpeg_graphic(
+    prompt: str,
+    width: int = 1920,
+    height: int = 1080,
+    negative_prompt: str = "",
+    bypass_refinement: bool = True,
+    reference_image_path: Optional[str] = None,
+    category: str = "product"
+) -> str:
+    """
+    Generates production-grade agency image assets.
+    - Preserves all prompt punctuation, weights, and quotes.
+    - Resolves 4K / 300 DPI print formats.
+    - Supports real product image conditioning & compositing.
+    - Applies subject-aware post-processing.
+    - Never delivers broken placeholder graphics with burned-in error text.
+    """
     import time
     filename = f"gen_{int(time.time())}.jpg"
     out_dir = APP_ROOT / "generated"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / filename
 
-    # ── Ultra-strict resolution spec parsing ──────────────────────────────────
-    # Override caller-supplied width/height if the prompt explicitly names a size
-    p_lower = prompt.lower()
-    if "4k" in p_lower or "3840" in p_lower:
-        width, height = 3840, 2160
-    elif "2k" in p_lower or "2560" in p_lower or "1440" in p_lower:
-        width, height = 2560, 1440
-    elif "1080p" in p_lower or "1920" in p_lower or "full hd" in p_lower:
-        width, height = 1920, 1080
-    elif "720p" in p_lower or "hd" in p_lower:
-        width, height = 1280, 720
-    elif "square" in p_lower or "1:1" in p_lower:
-        width, height = 1080, 1080
-    elif "story" in p_lower or "portrait" in p_lower or "9:16" in p_lower:
-        width, height = 1080, 1920
-    elif "landscape" in p_lower or "16:9" in p_lower or "banner" in p_lower:
-        width, height = 1920, 1080
-    elif "4:3" in p_lower:
-        width, height = 1440, 1080
-    # Parse explicit NxM notation e.g. "800x600"
-    explicit_res = re.search(r'(\d{3,4})\s*[x×]\s*(\d{3,4})', prompt, re.IGNORECASE)
-    if explicit_res:
-        width, height = int(explicit_res.group(1)), int(explicit_res.group(2))
-    # Cap at sensible limits to avoid API rejections
-    width = min(width, 2560)
-    height = min(height, 2560)
-    # ─────────────────────────────────────────────────────────────────────────
-
-    # Attempt to fetch high-quality image from public free AI generator (Pollinations AI / Flux)
-    try:
-        # Clean prompt for ollama
-        clean_prompt = re.sub(r"\[.*?\]", "", prompt).strip()
-
-        if bypass_refinement:
-            refined_prompt = clean_prompt
-        else:
-            # Use local LLM to expand prompt as a Senior Creative Director/Photographer
-            creative_director_prompt = (
-                "You are an elite, world-class Prompt Engineer and Senior Art Director specialized in text-to-image prompting frameworks (based on the dair-ai Prompt Engineering Guide).\n"
-                "Your objective is to execute FEW-SHOT EXPANSION and ROLE PROMPTING to translate a simple client brief into a highly descriptive, cinematic, high-fidelity prompt.\n\n"
-                "### CORE PROMPTING RULES:\n"
-                "1. STRICT FIDELITY: Maintain the absolute core intent. If the client asks for an office, describe a stunning office. Never hallucinate unrelated subjects (e.g., cars, unless requested).\n"
-                "2. LAYERED COMPOSITION: Explicitly outline the layer blocks:\n"
-                "   - Subject Detail: Hyper-focused characteristics, specific textures, and clothing/material behaviors.\n"
-                "   - Environment: Exact geographical details, background architecture, weather, and landmarks (e.g., Paris requires Haussmann facade, Eiffel Tower visibility).\n"
-                "   - Technical Spec: Camera body (Sony A7R V, Hasselblad H6D), specific lens (e.g., 35mm f/1.4, 85mm portrait lens), volumetric lighting (warm sunset rays, studio softbox, cinematic rim lighting), volumetric haze, rendering styles (8k, octane render, Raytraced, photorealistic).\n"
-                "3. DELIMITERS: Keep the output completely flat without labels or conversational prefixes. Do not say 'Here is your prompt:'. Just output the descriptive paragraph.\n"
-                "4. CONTROL COMMAND COMPREHENSION: Recognize and obey natural client control commands like 'start', 'start working', 'continue', 'continue working', or 'stop' seamlessly without generating extraneous conversational text.\n\n"
-                "### FEW-SHOT EXAMPLES:\n"
-                "Example 1 Input: 'a modern office space in Paris'\n"
-                "Example 1 Output: 'A modern sleek open-plan office space featuring minimalist glass desks, ergonomic black chairs, and soft green plants. In the background, floor-to-ceiling windows look out onto classic Parisian Haussmann-style architecture with the Eiffel Tower standing elegantly under a warm sunset sky. Volumetric golden hour light streams in, casting long soft shadows. Shot on Hasselblad H6D, 85mm f/1.8 lens, cinematic lighting, photorealistic, 8k resolution, macro-textures of polished metal and oak wood grain, masterpiece.'\n\n"
-                "Example 2 Input: 'shoes for running'\n"
-                "Example 2 Output: 'A pair of high-performance neon-accented running shoes suspended in mid-air above a dark textured athletic track, dynamic water splash exploding from below. Dramatic studio side lighting highlighting the synthetic knit fibers, rubber traction patterns, and cushion soles. Cinematic rim light framing the silhouette. Shot on Sony A7R V, 35mm macro lens, ultra-high definition, hyper-realistic rendering, highly detailed rubber and carbon fiber textures, octane render, masterpiece.'\n\n"
-                f"### Client Brief: {clean_prompt}\n"
-                "### Output expanded visual prompt:"
-            )
-            available_models = discover_all_ollama_models()
-            routed_model = route_model("reasoning", available_models)
-            refined_prompt = query_ollama(creative_director_prompt, timeout=300, model_name=routed_model)
-            
-            if not refined_prompt or len(refined_prompt) < 5 or "Error" in refined_prompt:
-                refined_prompt = clean_prompt.lower()
-                if "car" in refined_prompt and "sports" in refined_prompt:
-                    refined_prompt += ", professional car photography, high-end automotive editorial, dynamic composition, dramatic lighting, shot on 35mm"
-                    
-            # Inject mandatory agency-quality baseline if not present
-            agency_baseline = "shot on Hasselblad H6D, insanely detailed, 8k resolution, ultra-high definition 1080p, photorealistic, cinematic lighting, masterpiece, hyper-detailed environment"
-            if "illustration" not in refined_prompt and "vector" not in refined_prompt and "art" not in refined_prompt:
-                refined_prompt = f"{refined_prompt}, {agency_baseline}"
-
-        # Check for style tags
-        style_suffix = ""
-        if "[REALISTIC]" in prompt.upper():
-            style_suffix = ", hyper-realistic, 8k resolution, cinematic lighting, photorealistic, highly detailed"
-        elif "[ANIMATED]" in prompt.upper():
-            style_suffix = ", high quality digital illustration, studio animation style, vibrant colors, 2d vector art"
-        
-        # Append style suffix
-        refined_prompt += style_suffix
-
-        # TRUNCATE PROMPT to avoid 404 / 414 URI Too Long errors
-        refined_prompt = refined_prompt[:900]
-
-        # AGGRESSIVE SANITIZATION to prevent 404 URL path routing errors
-        refined_prompt = re.sub(r'[^a-zA-Z0-9 ,-]', ' ', refined_prompt)
-        refined_prompt = re.sub(r'\s+', ' ', refined_prompt).strip()
-
-        encoded_prompt = urllib.parse.quote(refined_prompt)
-        
-        # Encode negative prompt if provided
-        neg_param = ""
-        if negative_prompt:
-            encoded_neg = urllib.parse.quote(negative_prompt)
-            neg_param = f"&negative_prompt={encoded_neg}"
-        
-        import random
-        attempts = 0
-        last_error = ""
-        while True:
-            # Generate a new random seed for every attempt to bust remote caches completely
-            seed = random.randint(100000, 999999)
-            
-            # Always use high-definition Flux model for commercial photorealism (do not fallback to low-res turbo)
-            model_param = "&model=flux"
-            
-            poll_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true&private=true&enhance=true&safe=true&seed={seed}{model_param}{neg_param}"
-            
-            # Brief delay to allow high-resolution Flux diffusion steps to resolve completely
-            time.sleep(1.5)
-            
-            req = urllib.request.Request(poll_url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.5",
-                "Connection": "keep-alive",
-                "Upgrade-Insecure-Requests": "1"
-            })
-            
-            try:
-                with urllib.request.urlopen(req, timeout=300) as resp:
-                    image_data = resp.read()
-                    if image_data:
-                        out_file.write_bytes(image_data)
-                        
-                        # Apply premium sharpening & contrast enhancement post-processing
-                        post_process_image(out_file)
-                        
-                        # Apply Subtitles/Captions directly on the graphic using PIL overlay banner
-                        if any(kw in prompt.lower() for kw in ["subtitle", "caption", "text overlay", "subtitles"]):
-                            try:
-                                from PIL import Image, ImageDraw
-                                pil_img = Image.open(out_file)
-                                draw = ImageDraw.Draw(pil_img)
-                                w, h = pil_img.size
-                                subtitle_text = ""
-                                quotes = re.findall(r'"([^"]*)"', prompt)
-                                if quotes:
-                                    subtitle_text = quotes[0]
-                                else:
-                                    subtitle_text = clean_prompt
-                                    
-                                banner_h = int(h * 0.15)
-                                draw.rectangle([(0, h - banner_h), (w, h)], fill=(0, 0, 0, 180))
-                                draw.text((w // 2, h - banner_h // 2), subtitle_text.upper(), fill=(255, 255, 255), anchor="mm")
-                                pil_img.save(out_file, "JPEG", quality=92)
-                            except Exception as overlay_err:
-                                print("Overlay subtitle failed:", overlay_err)
-                                
-                        return f"/generated/{filename}?v={int(time.time())}"
-            except Exception as e:
-                last_error = str(e)
-                is_retriable = "timeout" in str(e).lower() or "timed out" in str(e).lower() or getattr(e, "code", 500) >= 400
-                if is_retriable and attempts < 5:
-                    attempts += 1
-                    # Exponential backoff: 2s, 4s, 8s, 16s, 32s
-                    sleep_time = 2 ** attempts
-                    print(f"Image generation failed/timed out ({e}). Retrying in {sleep_time} seconds... (Attempt {attempts}/5)")
-                    time.sleep(sleep_time)
-                    continue
-                raise e
-    except Exception as e:
-        last_error = str(e)
-        print(f"Pollinations AI image generation failed/offline ({e}). Switching to local image generator...")
-        try:
-            import local_image_generator
-            local_url = local_image_generator.generate_local_image(prompt, width, height)
-            if local_url:
-                return local_url
-        except Exception as local_err:
-            print("Local image generator error:", local_err)
-
-    # Fallback to local PIL graphic if network and local AI are offline
-    from PIL import Image, ImageDraw
-    topic = extract_topic(prompt)
-    clean_title = re.sub(r"[^a-zA-Z0-9 ]", "", topic)[:30] or "Luminary AI"
-
-    img = Image.new("RGB", (width, height), color=(12, 10, 16))
-    draw = ImageDraw.Draw(img)
-
-    for r in range(min(width, height) // 2, 0, -10):
-        color_val = int(255 * (r / (min(width, height) / 2)))
-        draw.ellipse(
-            (width // 2 - r, height // 2 - r, width // 2 + r, height // 2 + r),
-            outline=(min(255, 255 - color_val // 2), max(0, 85 - color_val // 3), 0)
-        )
-
-    cx, cy = width // 2, height // 2 - 20
-    draw.polygon([(cx, cy - 60), (cx + 50, cy + 30), (cx - 50, cy + 30)], fill=(255, 85, 0))
-    draw.text((cx, cy + 70), clean_title.upper(), fill=(250, 248, 245), anchor="ms")
-    draw.text((cx, cy + 100), "LUMINARY AI GENERATED GRAPHIC", fill=(255, 140, 64), anchor="ms")
+    # 1. Parse high-precision target resolution and print requirements
+    w, h, is_print = luminary_image_engine.parse_target_resolution(prompt, (width, height))
     
-    # Print the exact error on the image for debugging
-    error_text = f"API Error: {last_error}"[:60]
-    draw.text((cx, cy + 130), error_text, fill=(255, 0, 0), anchor="ms")
+    # 2. Clean prompt without destructive character stripping
+    clean_prompt = prompt.strip()
+    
+    # 3. Check for uploaded real product photo reference
+    ref_path_obj = Path(reference_image_path) if reference_image_path and Path(reference_image_path).exists() else None
 
-    img.save(out_file, "JPEG", quality=92)
-    return f"/generated/{filename}?v={int(time.time())}"
+    # 4. Generate image via Production Image Engine
+    try:
+        image_bytes, metadata = luminary_image_engine.engine.generate_image(
+            prompt=clean_prompt,
+            width=w,
+            height=h,
+            negative_prompt=negative_prompt,
+            reference_image_path=ref_path_obj,
+            category=category,
+            is_print=is_print
+        )
+        
+        out_file.write_bytes(image_bytes)
+        
+        # 5. If reference product image was provided, composite real product into scene
+        if ref_path_obj:
+            luminary_image_engine.composite_real_product_into_scene(
+                product_image_path=ref_path_obj,
+                scene_background_path=out_file,
+                output_path=out_file,
+                position="center_bottom"
+            )
+            
+        # 6. Apply subject-aware post-processing (calibrated per category)
+        profile_name = luminary_image_engine.detect_post_process_profile(clean_prompt, category)
+        luminary_image_engine.apply_subject_aware_post_processing(out_file, profile_name, is_print=is_print)
+        
+        return f"/generated/{filename}?v={int(time.time())}"
+
+    except Exception as e:
+        print(f"[ImageEngine Error] Generation failed: {e}")
+        # Clean failure handling: Log error and raise structured exception or return None
+        raise RuntimeError(f"Image generation failed: {str(e)}")
 
 
 def generate_downloadable_file(file_type, topic, content_text):
