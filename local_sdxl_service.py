@@ -1,3 +1,4 @@
+import luminary_safety
 """
 local_sdxl_service.py — Persistent Local SDXL Inference Engine for Luminary AI
 =============================================================================
@@ -232,8 +233,15 @@ class LocalSDXLService:
 
                     # Handle IP-Adapter reference product image
                     if reference_image_path and Path(reference_image_path).exists():
+                        ref_img = Image.open(reference_image_path).convert("RGB")
+                        
+                        # Screen reference product image through safety classifier before conditioning
+                        ref_safety = luminary_safety.classify_image_safety(ref_img)
+                        if not ref_safety.safe:
+                            raise ValueError(f"Uploaded reference product image rejected by Content Safety Gate: {ref_safety.reason}")
+                        
                         self.load_ip_adapter(scale=0.75)
-                        ref_img = Image.open(reference_image_path).convert("RGB").resize((1024, 1024))
+                        ref_img = ref_img.resize((1024, 1024))
                         output = self.pipeline(
                             prompt=prompt,
                             negative_prompt=negative_prompt,
@@ -256,6 +264,10 @@ class LocalSDXLService:
                         )
 
                     gen_img = output.images[0]
+                    # Post-Generation Safety Screen
+                    safety_res = luminary_safety.classify_image_safety(gen_img)
+                    if not safety_res.safe:
+                        raise ValueError(f"Generated image blocked by Content Safety Gate: {safety_res.reason}")
                     duration = time.time() - start_time
                     logger.info(f"[SDXL Service] Generation finished successfully in {duration:.2f}s")
                     return gen_img

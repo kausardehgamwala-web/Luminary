@@ -1,190 +1,94 @@
-from typing import Optional, List, Dict, Any, Tuple, Union
-import luminary_image_engine
-import luminary_auth
-import json
-import social_api
-import mimetypes
-import re
-import time
+import os
 import sys
+import logging
+import json
+import threading
+import collections
 import urllib.request
 import urllib.parse
+import mimetypes
+import re
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from typing import Dict, Any, List, Optional, Tuple
+
+import luminary_auth
+import luminary_safety
+import luminary_intelligence
+import luminary_image_engine
 import file_generator
+import social_api
 
-# Core Intelligence, Memory & Safety Modules
-try:
-    import luminary_intelligence
-    import luminary_memory
-    import luminary_examples
-    import luminary_safety
-    import luminary_qc_engine
-    import luminary_security_engine
-    import luminary_skill_router as _skill_router_module
-    import luminary_agency_orchestrator as _cd_orchestrator  # V14: Universal Creative Director
-except ImportError as e:
-    print("Warning: Core intelligence modules not fully loaded, using mock fallbacks:", e)
-    class MockIntell:
-        @staticmethod
-        def parse_prompt_specs(p): return {"objective": p, "output_type": "text", "resolution": (1080, 1080), "quantity": 1, "subjects": [], "style": "realistic", "colors": [], "negative": [], "deliverable": "content", "purpose": "general", "audience": "general audience", "platform": "general", "quality_level": "standard", "implied_requirements": [], "is_follow_up": False, "change_only_mode": False, "completeness_score": 75, "brand_name": "", "content_text": [], "restrictions": []}
-        @staticmethod
-        def build_quality_score(o, s): return {"total": 90, "pass": True, "issues": []}
-        @staticmethod
-        def build_planning_prompt(p, s, c): return f"{c}\nUser: {p}"
-        @staticmethod
-        def build_image_prompt(p, s, w=""): return {"positive": p, "negative": ""}
-        @staticmethod
-        def should_run_evaluator(p, r): return len(r.split()) > 100
-        @staticmethod
-        def generate_smart_clarification(p, s): return None
-        @staticmethod
-        def extract_clarification_question(p, s): return None
-        @staticmethod
-        def check_requirement_compliance(o, s): return {"passed": True, "failures": []}
-        @staticmethod
-        def classify_prompt_completeness(s): return "COMPLETE"
-        @staticmethod
-        def detect_follow_up_type(p, s): return "NEW_TASK"
-        @staticmethod
-        def generate_smart_suggestions(p, s, ot): return []
-    class MockMem:
-        @staticmethod
-        def get_memory_context(): return ""
-        @staticmethod
-        def log_interaction(t, o): pass
-        @staticmethod
-        def log_feedback(o, r, c): pass
-        @staticmethod
-        def update_brand(b): pass
-        @staticmethod
-        def update_preference(k, v): pass
-        @staticmethod
-        def cache_research(q, r): pass
-        @staticmethod
-        def get_cached_research(q): return None
-    class MockEx:
-        @staticmethod
-        def get_relevant_examples(p, max_examples=2): return ""
-    class MockSkillRouter:
-        @staticmethod
-        def build_creative_brief(p, s): return {}
-        @staticmethod
-        def get_platform_content_strategy(pl, pu="general"): return {}
-    luminary_intelligence = MockIntell
-    luminary_memory = MockMem
-    luminary_examples = MockEx
-    _skill_router_module = MockSkillRouter
-    # Mock fallback for agency orchestrator
-    class MockCDOrchestrator:
-        @staticmethod
-        def orchestrate_task(p, s, h=None, b="", m=""): 
-            from types import SimpleNamespace
-            brief = SimpleNamespace(
-                task_type="text", deliverable="Content", needs_image=False, needs_text=True,
-                image_ai_instructions="", text_ai_instructions="", template_id=None,
-                template_zones=[], quality_level="standard", qc_requirements=[], cta=""
-            )
-            return brief
-        @staticmethod
-        def run_creative_qc(o, b, pass_num=1): return {"passed": True, "score": 80, "failures": [], "warnings": []}
-        @staticmethod
-        def build_revision_prompt(p, o, qc): return p
-        @staticmethod
-        def run_agency_workflow(p, b, fn, max_revisions=2): return fn(p), {"passed": True, "score": 80}
-    _cd_orchestrator = MockCDOrchestrator
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logger = logging.getLogger("luminary_server")
 
-SKILL_RUNTIME = Path(__file__).resolve().parent / "skill_runtime"
-if str(SKILL_RUNTIME) not in sys.path:
-    sys.path.insert(0, str(SKILL_RUNTIME))
+# ── Environment Configurable Endpoints ──────────────────────────────────────
+OLLAMA_BASE_URL = os.getenv("OLLAMA_HOST", os.getenv("OLLAMA_URL", "http://localhost:11434")).rstrip("/")
+SERVER_HOST = os.getenv("LUMINARY_HOST", "0.0.0.0")
+SERVER_PORT = int(os.getenv("LUMINARY_PORT", os.getenv("PORT", "8000")))
 
-try:
-    from luminary_skill_context import requires_approval, select_skill_context
-except ImportError:
-    def requires_approval(prompt): return False
-    def select_skill_context(prompt): return ""
+# ── Thread-Safe Per-Session Isolated Context Store ───────────────────────────
+_SESSION_CONTEXT_LOCK = threading.Lock()
+_PER_SESSION_CONTEXT = collections.defaultdict(lambda: {
+    "last_prompt": "",
+    "last_brief": {},
+    "last_specs": {},
+    "last_image_url": "",
+    "last_output_type": "text",
+    "last_platform": "general",
+    "last_brand": "",
+})
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+def get_session_context(session_id: str = "default") -> dict:
+    with _SESSION_CONTEXT_LOCK:
+        return dict(_PER_SESSION_CONTEXT[session_id])
+
+def update_session_context(session_id: str, updates: dict):
+    with _SESSION_CONTEXT_LOCK:
+        _PER_SESSION_CONTEXT[session_id].update(updates)
+
+class _SessionContextProxy(dict):
+    def __getitem__(self, key):
+        return get_session_context("default").get(key, "")
+    def __setitem__(self, key, value):
+        update_session_context("default", {key: value})
+    def get(self, key, default=None):
+        return get_session_context("default").get(key, default)
+    def update(self, d):
+        update_session_context("default", d)
+
+LUMINARY_SESSION_CONTEXT = _SessionContextProxy()
+
+
+APP_ROOT = Path(__file__).resolve().parent
+APP_FILE = APP_ROOT / "luminary.html"
 
 def discover_ollama_model():
-    import urllib.request
-    import json
+    models_to_check = [
+        "qwen2.5-coder:7b",
+        "deepseek-coder:6.7b",
+        "codellama:7b",
+        "qwen2.5:7b",
+        "qwen2.5:3b",
+        "mistral:7b",
+        "llama3:8b",
+        "phi3:medium",
+        "phi3:mini",
+        "qwen2.5-coder:1.5b",
+    ]
     try:
-        req = urllib.request.Request("http://localhost:11434/api/tags")
+        req = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            models = data.get("models", [])
-            if models:
-                # Prioritize primary text engine Qwen3.5
-                for m in models:
-                    if "qwen3.5" in m["name"].lower():
-                        return m["name"]
-                for m in models:
-                    if "qwen2.5" in m["name"].lower() or "llama3" in m["name"].lower():
-                        return m["name"]
-                return models[0]["name"]
+            installed = [m.get("name", "") for m in data.get("models", [])]
+            for candidate in models_to_check:
+                if any(candidate in m for m in installed):
+                    return candidate
+            if installed:
+                return installed[0].split(":")[0]
     except Exception:
         pass
-    return "qwen3.5:27b" # Default safe fallback
-
-def discover_all_ollama_models():
-    import urllib.request
-    import json
-    try:
-        req = urllib.request.Request("http://localhost:11434/api/tags", timeout=3)
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return [m["name"] for m in data.get("models", [])]
-    except Exception:
-        return []
-
-def route_model(task_type, available_models):
-    if not available_models:
-        return MODEL_NAME
-    
-    # 1. Complex reasoning / strategy / planning / audit
-    if task_type == "reasoning":
-        for m in available_models:
-            if "qwen3.5" in m.lower():
-                return m
-        for m in available_models:
-            if "deepseek-r1" in m.lower():
-                return m
-        for m in available_models:
-            if "deepseek-coder" in m.lower():
-                return m
-        for m in available_models:
-            if "qwen" in m.lower() or "llama3" in m.lower():
-                return m
-        return available_models[0]
-        
-    # 2. Coding / debugging / HTML / Website generation
-    elif task_type in ["coding", "website"]:
-        for m in available_models:
-            if "qwen2.5-coder" in m.lower():
-                return m
-        for m in available_models:
-            if "deepseek-coder" in m.lower():
-                return m
-        for m in available_models:
-            if "qwen" in m.lower():
-                return m
-        return available_models[0]
-        
-    # 3. Creative writing / copywriting / general text / email
-    elif task_type == "writing":
-        for m in available_models:
-            if "qwen3.5" in m.lower():
-                return m
-        for m in available_models:
-            if "qwen2.5" in m.lower():
-                return m
-        for m in available_models:
-            if "llama3" in m.lower():
-                return m
-        return available_models[0]
-        
-    return MODEL_NAME
+    return os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
 
 MODEL_NAME = discover_ollama_model()
 APP_ROOT = Path(__file__).resolve().parent
@@ -219,7 +123,7 @@ SKILL_SYSTEM_INSTRUCTION = (
     "     - Key Takeaway: [High-impact summary statement]\n"
     "     - Data Point: [Specific statistics, metrics, or factual dates to increase depth]\n"
     "     - Strategic Execution: [Actionable implementation step]\n"
-    "     - Visual: ![Image Description](https://image.pollinations.ai/prompt/[Detailed, professional SFW design prompt including color palette and lighting]?nologo=true&safe=true)\n"
+    "     - Visual: ![Image Description](/generated/image_[id].png)\n"
     "   - DOCUMENTS (Docs/Word): Margins consistent, logical headings, Executive Summary on first page, structured table timelines. No blank lines or overflow.\n"
     "   - SPREADSHEETS (Excel/Sheets): Frozen headers, bold formatting, specific column widths, currency/percentage number formatting, formula calculations (SUM, AVERAGE), summary dashboard.\n"
     "5. UNIVERSAL CREATIVE AGENCY QUALITY STANDARD (V14 MANDATORY):\n"
@@ -276,8 +180,16 @@ IMAGE_SKILL_SYSTEM_INSTRUCTION = (
 
 
 def fetch_url_content(url):
+    if not url:
+        return "", ""
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
+        
+    # SSRF Protection Check
+    is_safe, reason = luminary_auth.is_safe_public_url(url)
+    if not is_safe:
+        return "Blocked by Security Filter", f"SSRF Protection Error: Access to {url} is blocked ({reason})"
+
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -702,9 +614,25 @@ class LuminaryHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
+        try:
+            body = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
+        except Exception as e:
+            self._json(400)
+            self.wfile.write(json.dumps({"detail": f"Invalid JSON payload: {str(e)}"}).encode("utf-8"))
+            return
 
-        if social_api.handle_post(self, body):
+        # Enforce Authentication on all mutating / data-returning API endpoints
+        session = luminary_auth.get_authenticated_session(self)
+        if not session:
+            self._json(401)
+            self.wfile.write(json.dumps({"detail": "Unauthorized: Valid session token or authentication required"}).encode("utf-8"))
+            return
+
+        # Securely derive tenant boundary from authenticated session (not trusted from client body)
+        self.authenticated_client_id = str(session.get("client_id", "1"))
+        self.authenticated_user_id = str(session.get("user_id", "usr_1"))
+
+        if social_api.handle_post(self, body, session=session):
             return
 
         if self.path == "/chat":
@@ -1324,6 +1252,13 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"detail": "URL is required"}).encode("utf-8"))
             return
 
+        # SSRF Protection Check
+        is_safe, reason = luminary_auth.is_safe_public_url(url)
+        if not is_safe:
+            self._json(403)
+            self.wfile.write(json.dumps({"detail": f"SSRF Blocked: {reason}"}).encode("utf-8"))
+            return
+
         import urllib.request
         from bs4 import BeautifulSoup # bs4 might not be installed, let's use standard library or fallback
         
@@ -1423,7 +1358,18 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({"image_url": img_url, "status": "success"}).encode("utf-8"))
 
     def handle_audit(self, body):
-        url = body.get("url", "")
+        url = body.get("url", "").strip()
+        if not url:
+            self._json(400)
+            self.wfile.write(json.dumps({"detail": "URL is required"}).encode("utf-8"))
+            return
+
+        is_safe, reason = luminary_auth.is_safe_public_url(url)
+        if not is_safe:
+            self._json(403)
+            self.wfile.write(json.dumps({"detail": f"SSRF Blocked: {reason}"}).encode("utf-8"))
+            return
+
         title, page_text = fetch_url_content(url)
         prompt = f"""
 You are Luminary AI performing a practical website and SEO audit.

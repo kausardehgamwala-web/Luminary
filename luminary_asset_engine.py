@@ -1,3 +1,4 @@
+import luminary_safety
 """
 luminary_asset_engine.py  —  Luminary V13 Intelligent Asset Analysis Engine
 =============================================================================

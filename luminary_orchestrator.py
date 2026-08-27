@@ -1,3 +1,4 @@
+import luminary_memory
 """
 luminary_orchestrator.py — Central Agency Workflow Orchestrator
 ==============================================================
@@ -70,7 +71,14 @@ class LuminaryOrchestrator:
         
         # ── Step 1: Understand Client Request & Build Strategic Brief ─────────
         state.current_stage = "understanding"
-        spec = self.prompt_engine.parse_and_understand(prompt, client_context)
+        
+        # Inject persistent client memory & brand preferences into context
+        memory_ctx = luminary_memory.get_memory_context(user_id=state.client_context.get("user_id", "default_client"))
+        merged_context = dict(state.client_context)
+        if memory_ctx:
+            merged_context["brand_memory"] = memory_ctx
+
+        spec = self.prompt_engine.parse_and_understand(prompt, merged_context)
         state.spec = spec
         
         # ── Step 2: Ambiguity Gate ───────────────────────────────────────────

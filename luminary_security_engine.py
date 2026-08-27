@@ -84,18 +84,30 @@ def _call_gpt_oss_safeguard(prompt: str, is_output: bool = False) -> SecurityRes
                     severity=severity,
                     reason=f"Safeguard evaluation flagged category: {category}" if not is_safe else ""
                 )
-    except Exception:
-        pass
+    except Exception as ex:
+        # Fail closed (Block + Alert) when semantic security engine is unreachable or times out
+        error_msg = f"Semantic security safeguard unreachable/timeout ({str(ex)})"
+        print(f"[SECURITY ALERT - FAIL CLOSED]: {error_msg}")
+        
+        # Check rule check first
+        rule_res = luminary_safety.inspect_output(prompt) if is_output else luminary_safety.inspect_prompt(prompt)
+        if not rule_res.safe:
+            return SecurityResult(
+                safe=False,
+                category=rule_res.category,
+                severity=rule_res.severity,
+                reason=rule_res.reason,
+                safe_alternative=rule_res.safe_alternative
+            )
 
-    # High-conviction rule check fallback
-    rule_res = luminary_safety.inspect_output(prompt) if is_output else luminary_safety.inspect_prompt(prompt)
-    return SecurityResult(
-        safe=rule_res.safe,
-        category=rule_res.category,
-        severity=rule_res.severity,
-        reason=rule_res.reason,
-        safe_alternative=rule_res.safe_alternative
-    )
+        # If rule check did not flag it but semantic AI guard is down, fail closed for security integrity
+        return SecurityResult(
+            safe=False,
+            category="safeguard_timeout_fail_closed",
+            severity="high",
+            reason=f"Security safeguard check failed closed due to AI service timeout/error: {str(ex)}",
+            safe_alternative="The security verification service is momentarily unavailable. Please try your request again shortly."
+        )
 
 # ─── 2. MAIN SECURITY ENTRYPOINTS ─────────────────────────────────────────────
 

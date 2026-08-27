@@ -60,7 +60,21 @@ def init_db():
     columns = [row["name"] for row in cursor.fetchall()]
     if "socapi_brand_id" not in columns:
         cursor.execute("ALTER TABLE social_connections ADD COLUMN socapi_brand_id TEXT")
-        conn.commit()
+        
+    # Persistent Security & Content Safety Audit Logs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS security_audit_logs (
+        id TEXT PRIMARY KEY,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        client_id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        reason TEXT NOT NULL,
+        blocked_content TEXT
+    );
+    """)
+
+    conn.commit()
 
     # Cached/normalized metrics
     cursor.execute("""
@@ -112,3 +126,44 @@ def init_db():
 if __name__ == "__main__":
     init_db()
     print("Database initialized successfully.")
+
+
+def log_security_audit(client_id: str, category: str, severity: str, reason: str, blocked_content: str = "") -> str:
+    """Persistently records a blocked security/safety event into SQLite."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        log_id = f"sec_log_{uuid.uuid4().hex[:12]}"
+        cursor.execute(
+            """
+            INSERT INTO security_audit_logs (id, client_id, category, severity, reason, blocked_content)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (log_id, str(client_id or "anonymous"), str(category), str(severity), str(reason), str(blocked_content)[:1500])
+        )
+        conn.commit()
+        conn.close()
+        return log_id
+    except Exception as ex:
+        print(f"[Audit Log Error]: Failed to write security audit to SQLite: {ex}")
+        return ""
+
+def get_security_audit_logs(limit: int = 50, client_id: str = None) -> list:
+    """Fetches recent security audit logs from SQLite."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        if client_id:
+            cursor.execute(
+                "SELECT * FROM security_audit_logs WHERE client_id = ? ORDER BY timestamp DESC LIMIT ?",
+                (str(client_id), limit)
+            )
+        else:
+            cursor.execute("SELECT * FROM security_audit_logs ORDER BY timestamp DESC LIMIT ?", (limit,))
+        rows = cursor.fetchall()
+        logs = [dict(r) for r in rows]
+        conn.close()
+        return logs
+    except Exception as ex:
+        print(f"[Audit Log Fetch Error]: {ex}")
+        return []

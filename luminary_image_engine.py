@@ -1,3 +1,4 @@
+import luminary_safety
 """
 luminary_image_engine.py — Production-Grade Agency Image Generation Engine
 ===========================================================================
@@ -203,6 +204,16 @@ def composite_real_product_into_scene(
     position: str = "center_bottom",
     scale_factor: float = 0.65
 ) -> bool:
+    # ── Reference Image Safety Screening ──
+    try:
+        import luminary_safety
+        ref_safety = luminary_safety.classify_image_safety(str(product_image_path))
+        if not ref_safety.safe:
+            raise ValueError(f"Uploaded product reference image blocked by Safety Gate: {ref_safety.reason}")
+    except ValueError:
+        raise
+    except Exception as ex:
+        pass
     """
     Composites an actual uploaded product photo into a generated commercial background,
     preserving the real product pixel-for-pixel while generating realistic contact shadow & lighting.
@@ -530,42 +541,21 @@ class ProductionImageEngine:
 
     def _generate_flux_direct(self, prompt: str, width: int, height: int, negative_prompt: str, seed: Optional[int]) -> Tuple[bytes, dict]:
         """
-        High-Definition Flux generation without prompt-destroying regex filters.
-        Preserves all colons, aspect ratios, quotes, and punctuation.
+        Local SDXL High-Definition Generation. Pure local pipeline, zero external cloud dependencies.
         """
-        import random
-        # Clean prompt for URL transmission while preserving punctuation
-        # Only replace newlines with spaces; do NOT strip punctuation or aspect ratios
-        single_line_prompt = re.sub(r'[\r\n]+', ' ', prompt).strip()
-        encoded_prompt = urllib.parse.quote(single_line_prompt, safe=",-:()\"'/")
-        
-        neg_param = ""
-        if negative_prompt:
-            encoded_neg = urllib.parse.quote(re.sub(r'[\r\n]+', ' ', negative_prompt).strip())
-            neg_param = f"&negative_prompt={encoded_neg}"
-            
-        actual_seed = seed if seed is not None else random.randint(100000, 999999)
-        
-        # Build query URL using Flux model
-        url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&model=flux&nologo=true&private=true&enhance=false&seed={actual_seed}{neg_param}"
-        
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "Accept": "image/jpeg,image/png,image/*"
-        })
-        
-        # Attempt request with retry logic
-        for attempt in range(3):
-            try:
-                with urllib.request.urlopen(req, timeout=120) as resp:
-                    data = resp.read()
-                    if data and len(data) > 5000:
-                        return data, {"provider": "flux_hd_direct", "seed": actual_seed}
-            except Exception as e:
-                logger.warning(f"Flux direct attempt {attempt+1} failed: {e}")
-                time.sleep(2)
-                
-        raise RuntimeError("Image generation failed across all attempts. Please check network connectivity or provide an API key.")
+        import io
+        import local_sdxl_service
+        img = local_sdxl_service.sdxl_service.generate(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            width=width,
+            height=height,
+            seed=seed
+        )
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=95)
+        return buf.getvalue(), {"provider": "local_sdxl_service", "seed": seed or 42}
+
 
 
 # Global engine singleton

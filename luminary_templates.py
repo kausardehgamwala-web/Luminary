@@ -1,3 +1,55 @@
+
+# ── Real 12-Column Layout Engine & Zone Specification ───────────────────────
+
+LAYOUT_PRESETS = {
+    "editorial_split": {
+        "grid": {"columns": 12, "gutter": "24px", "margin": "48px", "type": "asymmetric_split"},
+        "zones": [
+            {"id": "visual_hero", "col_start": 1, "col_span": 7, "row_start": 1, "row_span": 12, "type": "media", "aspect_ratio": "4:5", "object_fit": "cover"},
+            {"id": "brand_header", "col_start": 8, "col_span": 5, "row_start": 1, "row_span": 2, "type": "brand_lockup", "alignment": "left"},
+            {"id": "headline_zone", "col_start": 8, "col_span": 5, "row_start": 3, "row_span": 4, "type": "typography", "slot": "display_heading"},
+            {"id": "body_narrative", "col_start": 8, "col_span": 5, "row_start": 7, "row_span": 3, "type": "typography", "slot": "body"},
+            {"id": "action_footer", "col_start": 8, "col_span": 4, "row_start": 10, "row_span": 2, "type": "cta_container", "slot": "primary_button"}
+        ],
+        "typography_slots": {
+            "display_heading": {"family": "'Playfair Display', serif", "size": "48px", "weight": "700", "line_height": "1.1", "letter_spacing": "-0.02em"},
+            "body": {"family": "'Outfit', sans-serif", "size": "16px", "weight": "400", "line_height": "1.6", "letter_spacing": "0.01em"},
+            "caption": {"family": "'Outfit', sans-serif", "size": "12px", "weight": "600", "letter_spacing": "0.08em", "transform": "uppercase"}
+        },
+        "color_slots": {
+            "background": "--bg",
+            "surface": "--surface",
+            "primary": "--orange",
+            "text_primary": "--text",
+            "text_secondary": "--muted",
+            "border": "--border"
+        }
+    },
+    "tech_dashboard": {
+        "grid": {"columns": 12, "gutter": "20px", "margin": "32px", "type": "modular_grid"},
+        "zones": [
+            {"id": "metric_card_1", "col_start": 1, "col_span": 4, "row_start": 1, "row_span": 3, "type": "metric", "slot": "kpi_1"},
+            {"id": "metric_card_2", "col_start": 5, "col_span": 4, "row_start": 1, "row_span": 3, "type": "metric", "slot": "kpi_2"},
+            {"id": "metric_card_3", "col_start": 9, "col_span": 4, "row_start": 1, "row_span": 3, "type": "metric", "slot": "kpi_3"},
+            {"id": "chart_main", "col_start": 1, "col_span": 8, "row_start": 4, "row_span": 6, "type": "visualization", "slot": "timeseries_chart"},
+            {"id": "feed_sidebar", "col_start": 9, "col_span": 4, "row_start": 4, "row_span": 6, "type": "list_feed", "slot": "activity_stream"}
+        ],
+        "typography_slots": {
+            "display_heading": {"family": "'Space Grotesk', sans-serif", "size": "36px", "weight": "700", "line_height": "1.15"},
+            "body": {"family": "'Outfit', sans-serif", "size": "14px", "weight": "400", "line_height": "1.5"},
+            "code": {"family": "'Fira Code', monospace", "size": "13px", "weight": "500"}
+        },
+        "color_slots": {
+            "background": "#08070b",
+            "surface": "#111014",
+            "primary": "#00f0ff",
+            "accent": "#ff5500",
+            "text_primary": "#faf8f5",
+            "text_secondary": "rgba(250,248,245,0.6)"
+        }
+    }
+}
+
 """
 luminary_templates.py
 ========================
@@ -76,7 +128,8 @@ def _generate_templates() -> Dict[str, List[Dict[str, Any]]]:
                 "typography": mapping["fonts"],
                 "color_suite": mapping["colors"],
                 "animations": mapping["animations"],
-                "layout": f"{ds_ref}_slide_layout_{i}"
+                "layout": f"{ds_ref}_slide_layout_{i}",
+                "layout_spec": LAYOUT_PRESETS.get("tech_dashboard" if "tech" in cat_id else "editorial_split")
             })
             global_id += 1
             
@@ -89,7 +142,8 @@ def _generate_templates() -> Dict[str, List[Dict[str, Any]]]:
                 "design_system": ds_ref,
                 "typography": mapping["fonts"],
                 "color_suite": mapping["colors"],
-                "layout": f"{ds_ref}_doc_layout_{i}"
+                "layout": f"{ds_ref}_doc_layout_{i}",
+                "layout_spec": LAYOUT_PRESETS.get("tech_dashboard" if "tech" in cat_id else "editorial_split")
             })
             global_id += 1
             
@@ -102,7 +156,8 @@ def _generate_templates() -> Dict[str, List[Dict[str, Any]]]:
                 "design_system": ds_ref,
                 "typography": mapping["fonts"],
                 "color_suite": mapping["colors"],
-                "layout": f"{ds_ref}_sheet_layout_{i}"
+                "layout": f"{ds_ref}_sheet_layout_{i}",
+                "layout_spec": LAYOUT_PRESETS.get("tech_dashboard" if "tech" in cat_id else "editorial_split")
             })
             global_id += 1
             
@@ -115,7 +170,8 @@ def _generate_templates() -> Dict[str, List[Dict[str, Any]]]:
                 "design_system": ds_ref,
                 "typography": mapping["fonts"],
                 "color_suite": mapping["colors"],
-                "layout": f"{ds_ref}_image_layout_{i}"
+                "layout": f"{ds_ref}_image_layout_{i}",
+                "layout_spec": LAYOUT_PRESETS.get("tech_dashboard" if "tech" in cat_id else "editorial_split")
             })
             global_id += 1
 

@@ -350,11 +350,15 @@ try:
 except Exception as e:
     print("Warning: failed to init DB on load:", e)
 
-def handle_post(handler, body):
+def handle_post(handler, body, session=None):
+    if not session:
+        session = luminary_auth.get_authenticated_session(handler)
+    client_id = str(session.get('client_id', '1')).strip() if session else '1'
     path = handler.path
 
     if path == "/api/social/init_brand":
-        client_id = str(body.get("client_id", "1")).strip()
+        # client_id derived from authenticated session
+        pass
         brand_name_input = str(body.get("brand_name") or f"Client {client_id} Brand").strip()
 
         if not client_id or not brand_name_input:
@@ -412,7 +416,8 @@ def handle_post(handler, body):
         return True
 
     if path == "/api/social/connect":
-        client_id = str(body.get("client_id", "1")).strip()
+        # client_id derived from authenticated session
+        pass
         platform = body.get("platform")
         brand_name_input = str(body.get("brand_name") or body.get("account_name") or f"Client {client_id} Brand").strip()
         
