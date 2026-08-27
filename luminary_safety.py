@@ -89,7 +89,9 @@ GORE_TERMS = {
 WEAPON_TERMS = {
     "pipe bomb", "molotov cocktail", "improvised explosive", "ied", "suicide bomb",
     "assault rifle", "landmine", "grenade launcher", "sarin gas", "mustard gas",
-    "weaponize", "homemade explosive", "ghost gun", "untraceable firearm"
+    "weaponize", "homemade explosive", "ghost gun", "untraceable firearm",
+    "automatic firearm", "silencer build", "3d printed gun", "submachine gun",
+    "cluster bomb", "dirty bomb", "biological weapon", "chemical warhead"
 }
 
 # High-conviction Self-Harm & Suicide terms
