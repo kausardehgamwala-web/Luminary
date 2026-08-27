@@ -595,6 +595,30 @@ def run_creative_qc(output: str, brief: CreativeProductionBrief, pass_num: int =
     score = max(0, min(100, score))
     passed = len(failures) == 0 and score >= 70
 
+    # ── Continuous Feedback Loop: Log QC Patterns to Database ─────────────────
+    try:
+        import db
+        for f in failures:
+            db.record_qc_pattern_feedback(
+                template_id=getattr(brief, "template_id", "UNKNOWN"),
+                deliverable_type=getattr(brief, "task_type", "text"),
+                issue_category="critical_defect",
+                issue_detail=f,
+                qc_score=score,
+                client_id=getattr(brief, "brand_name", "system") or "system"
+            )
+        for w in warnings:
+            db.record_qc_pattern_feedback(
+                template_id=getattr(brief, "template_id", "UNKNOWN"),
+                deliverable_type=getattr(brief, "task_type", "text"),
+                issue_category="adjustment_warning",
+                issue_detail=w,
+                qc_score=score,
+                client_id=getattr(brief, "brand_name", "system") or "system"
+            )
+    except Exception as log_err:
+        pass
+
     print(f"[CD QC Pass {pass_num}] score={score}/100 | passed={passed} | "
           f"failures={len(failures)} | warnings={len(warnings)}")
 
@@ -663,6 +687,8 @@ def run_agency_workflow(
     Returns:
         (final_output: str, qc_report: Dict)
     """
+    import time
+    start_time = time.time()
     current_prompt = prompt
     best_output = ""
     best_score = 0
@@ -686,6 +712,22 @@ def run_agency_workflow(
 
         if qc_report["passed"]:
             print(f"[Agency Workflow] QC PASSED on attempt {attempt} with score {qc_report['score']}/100")
+            # Log generation metrics to persistent SQLite
+            try:
+                import db
+                duration = time.time() - start_time
+                db.log_generation_metric(
+                    client_id=getattr(brief, "brand_name", "client") or "client",
+                    deliverable_type=getattr(brief, "task_type", "text"),
+                    template_id=getattr(brief, "template_id", "TEXT-001"),
+                    model_name="agency_orchestrator",
+                    duration_seconds=duration,
+                    qc_score=best_score,
+                    qc_passed_first_attempt=(attempt == 1),
+                    revisions_count=attempt - 1
+                )
+            except Exception:
+                pass
             return best_output, final_qc
 
         if attempt <= max_revisions:
@@ -693,6 +735,21 @@ def run_agency_workflow(
             current_prompt = build_revision_prompt(prompt, output, qc_report)
         else:
             print(f"[Agency Workflow] Max revisions reached. Delivering best result (score {best_score}/100)")
+            try:
+                import db
+                duration = time.time() - start_time
+                db.log_generation_metric(
+                    client_id=getattr(brief, "brand_name", "client") or "client",
+                    deliverable_type=getattr(brief, "task_type", "text"),
+                    template_id=getattr(brief, "template_id", "TEXT-001"),
+                    model_name="agency_orchestrator",
+                    duration_seconds=duration,
+                    qc_score=best_score,
+                    qc_passed_first_attempt=False,
+                    revisions_count=attempt - 1
+                )
+            except Exception:
+                pass
 
     return best_output, final_qc
 

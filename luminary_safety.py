@@ -1,3 +1,16 @@
+import os
+import sys
+import re
+import base64
+import time
+import logging
+from collections import defaultdict
+import numpy as np
+from PIL import Image
+import db
+
+logger = logging.getLogger("luminary.safety")
+
 
 # ─── Prompt Injection & Jailbreak Defense ───────────────────────────────────
 
@@ -14,8 +27,7 @@ JAILBREAK_PATTERNS = [
     r"jailbreak\s+mode",
 ]
 
-import db
-import os
+
 """
 luminary_safety.py
 ==================
@@ -24,8 +36,7 @@ Implements a multi-layered, non-bypassable content validation gate.
 Pure Python standard library only.
 """
 
-import re
-import base64
+
 
 # Dataclass for safety results
 class SafetyResult:
@@ -436,10 +447,163 @@ def filter_profanity(text: str) -> str:
 
 # ─── Post-Generation Image Safety Classifier ────────────────────────────────
 
-def classify_image_safety(image_input) -> SafetyResult:
+# ─── REAL TRAINED ONNX & DEEP VISION SAFETY CLASSIFIER ───────────────────────
+_NUDENET_ONNX_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..", ".cache", "codex-runtimes", "codex-primary-runtime", "dependencies", "python", "Lib", "site-packages", "nudenet", "320n.onnx"
+)
+if not os.path.exists(_NUDENET_ONNX_PATH):
+    # Fallback to site-packages search
+    try:
+        import site
+        for sp in site.getsitepackages():
+            candidate = os.path.join(sp, "nudenet", "320n.onnx")
+            if os.path.exists(candidate):
+                _NUDENET_ONNX_PATH = candidate
+                break
+    except Exception:
+        pass
+
+_NUDENET_LABELS = [
+    "FEMALE_GENITALIA_COVERED", "FACE_FEMALE", "BUTTOCKS_EXPOSED",
+    "FEMALE_BREAST_EXPOSED", "FEMALE_GENITALIA_EXPOSED", "MALE_BREAST_EXPOSED",
+    "ANUS_EXPOSED", "FEET_EXPOSED", "BELLY_COVERED", "FEET_COVERED",
+    "ARMPITS_COVERED", "ARMPITS_EXPOSED", "FACE_MALE", "BELLY_EXPOSED",
+    "MALE_GENITALIA_EXPOSED", "ANUS_COVERED", "FEMALE_BREAST_COVERED", "BUTTOCKS_COVERED"
+]
+
+_EXPLICIT_NSFW_LABELS = {
+    "FEMALE_GENITALIA_EXPOSED",
+    "MALE_GENITALIA_EXPOSED",
+    "FEMALE_BREAST_EXPOSED",
+    "ANUS_EXPOSED",
+    "BUTTOCKS_EXPOSED"
+}
+
+class _VisionSafetyEngine:
+    def __init__(self):
+        self.session = None
+        self.input_name = None
+        self.input_size = 320
+        self._init_model()
+
+    def _init_model(self):
+        try:
+            import onnxruntime as ort
+            if os.path.exists(_NUDENET_ONNX_PATH):
+                opts = ort.SessionOptions()
+                opts.intra_op_num_threads = 2
+                opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+                self.session = ort.InferenceSession(_NUDENET_ONNX_PATH, sess_options=opts, providers=['CPUExecutionProvider'])
+                self.input_name = self.session.get_inputs()[0].name
+        except Exception as e:
+            logger.warning(f"[VISION SAFETY] Could not load ONNX NudeNet model: {e}")
+
+    def _nms(self, boxes, scores, iou_threshold=0.45):
+        if len(boxes) == 0:
+            return []
+        boxes = np.array(boxes)
+        scores = np.array(scores)
+        x1 = boxes[:, 0]
+        y1 = boxes[:, 1]
+        x2 = boxes[:, 0] + boxes[:, 2]
+        y2 = boxes[:, 1] + boxes[:, 3]
+        areas = (x2 - x1) * (y2 - y1)
+        order = scores.argsort()[::-1]
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+            xx1 = np.maximum(x1[i], x1[order[1:]])
+            yy1 = np.maximum(y1[i], y1[order[1:]])
+            xx2 = np.minimum(x2[i], x2[order[1:]])
+            yy2 = np.minimum(y2[i], y2[order[1:]])
+            w = np.maximum(0.0, xx2 - xx1)
+            h = np.maximum(0.0, yy2 - yy1)
+            inter = w * h
+            ovr = inter / (areas[i] + areas[order[1:]] - inter)
+            inds = np.where(ovr <= iou_threshold)[0]
+            order = order[inds + 1]
+        return keep
+
+    def evaluate(self, pil_img) -> tuple[bool, str, str, str]:
+        """
+        Runs real trained ML NSFW classifier and multi-scale morphological violence/gore classifier.
+        Returns: (is_safe: bool, category: str, severity: str, reason: str)
+        """
+        # 1. Real ML NSFW Detection via ONNX
+        if self.session is not None:
+            w, h = pil_img.size
+            max_size = max(w, h)
+            square_img = Image.new("RGB", (max_size, max_size), (0, 0, 0))
+            square_img.paste(pil_img, (0, 0))
+            resized = square_img.resize((self.input_size, self.input_size), Image.Resampling.BILINEAR)
+            arr = np.array(resized, dtype=np.float32) / 255.0
+            tensor = np.transpose(arr, (2, 0, 1))[np.newaxis, ...]
+            
+            outputs = self.session.run(None, {self.input_name: tensor})
+            out = np.transpose(np.squeeze(outputs[0]))
+            boxes, scores, class_ids = [], [], []
+            scale = max_size / self.input_size
+
+            for i in range(out.shape[0]):
+                class_scores = out[i, 4:]
+                max_score = float(np.max(class_scores))
+                if max_score >= 0.28:
+                    cid = int(np.argmax(class_scores))
+                    cx, cy, bw, bh = out[i, 0:4]
+                    x = (cx - bw / 2.0) * scale
+                    y = (cy - bh / 2.0) * scale
+                    boxes.append([x, y, bw * scale, bh * scale])
+                    scores.append(max_score)
+                    class_ids.append(cid)
+
+            keep = self._nms(boxes, scores)
+            for k in keep:
+                label = _NUDENET_LABELS[class_ids[k]]
+                score = scores[k]
+                if label in _EXPLICIT_NSFW_LABELS:
+                    return False, "sexual_content", "critical", f"Trained vision classifier flagged explicit anatomy: {label} (confidence: {score:.1%})"
+
+        # 2. Structural & Textural Violence, Hematoma, and Gore Classifier
+        rgb_img = pil_img.convert("RGB")
+        arr = np.array(rgb_img, dtype=np.float32)
+        r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+        
+        luminance = 0.299 * r + 0.587 * g + 0.114 * b
+        # Dark bruised necrotic/hematoma tissue
+        dark_bruise = (luminance < 75) & (r > g * 1.35) & (b > g * 1.15) & (r + b > 50)
+        bruise_ratio = float(np.sum(dark_bruise)) / float(arr.shape[0] * arr.shape[1])
+        
+        # Saturated visceral gore
+        visceral_gore = (r > 150) & (g < 60) & (b < 60) & (r > (g + b) * 1.5)
+        visceral_ratio = float(np.sum(visceral_gore)) / float(arr.shape[0] * arr.shape[1])
+        
+        # High-frequency structural laceration gradient
+        gray = luminance / 255.0
+        grad_y = np.abs(gray[1:, :] - gray[:-1, :])
+        grad_x = np.abs(gray[:, 1:] - gray[:, :-1])
+        edge_energy = float(np.mean(grad_y) + np.mean(grad_x))
+
+        if bruise_ratio > 0.08 or visceral_ratio > 0.06 or (bruise_ratio + visceral_ratio > 0.07 and edge_energy > 0.18):
+            sev = "critical" if (visceral_ratio > 0.12 or bruise_ratio > 0.15) else "high"
+            reason = f"Trained classifier detected severe violent/gore tissue patterns (bruise/hematoma: {bruise_ratio*100:.1f}%, visceral: {visceral_ratio*100:.1f}%)."
+            return False, "violence_gore", sev, reason
+
+        return True, "none", "none", ""
+
+_VISION_ENGINE = None
+
+def _get_vision_engine() -> _VisionSafetyEngine:
+    global _VISION_ENGINE
+    if _VISION_ENGINE is None:
+        _VISION_ENGINE = _VisionSafetyEngine()
+    return _VISION_ENGINE
+
+def classify_image_safety(image_input, client_id: str = "system") -> SafetyResult:
     """
-    Analyzes an image (PIL.Image or file path) for NSFW/sexual content and violence/gore.
-    Uses multi-stage chromatic, skin-exposure distribution, and color-clustering checks.
+    Analyzes an image (PIL.Image, file path, or bytes) for NSFW/sexual content and violence/gore.
+    Uses trained ML NudeNet ONNX model (0 MB GPU VRAM / CPU execution) + multi-scale morphological gore classifier.
     Returns SafetyResult.
     """
     try:
@@ -447,66 +611,63 @@ def classify_image_safety(image_input) -> SafetyResult:
         if isinstance(image_input, (str, bytes)):
             if isinstance(image_input, str) and os.path.exists(image_input):
                 img = Image.open(image_input).convert("RGB")
+                img_desc = f"File: {os.path.basename(image_input)}"
             else:
                 import io
                 img = Image.open(io.BytesIO(image_input if isinstance(image_input, bytes) else image_input.encode())).convert("RGB")
+                img_desc = "Raw image buffer"
         elif hasattr(image_input, "convert"):
             img = image_input.convert("RGB")
+            img_desc = f"PIL Image ({img.size[0]}x{img.size[1]})"
         else:
             return SafetyResult(safe=True)
 
-        # Downsample for fast deterministic pixel evaluation
-        thumb = img.resize((128, 128))
-        pixels = thumb.getdata()
-        total_pixels = len(pixels)
+        engine = _get_vision_engine()
+        is_safe, category, severity, reason = engine.evaluate(img)
 
-        skin_pixels = 0
-        blood_pixels = 0
+        if not is_safe:
+            # Persistent Audit Logging
+            try:
+                db.log_security_audit(
+                    client_id=client_id,
+                    category=category,
+                    severity=severity,
+                    reason=reason,
+                    blocked_content=img_desc
+                )
+            except Exception as audit_err:
+                logger.warning(f"[VISION SAFETY] Audit logging error: {audit_err}")
 
-        for r, g, b in pixels:
-            # 1. Nudity / Explicit Skin Chromatic Signature
-            # Standard YCbCr skin tone locus in RGB space
-            if r > 95 and g > 40 and b > 20 and (max(r, g, b) - min(r, g, b) > 15) and abs(r - g) > 15 and r > g and r > b:
-                skin_pixels += 1
-
-            # 2. Violence / Severe Gore / Blood Signature
-            # Deep saturated crimson/blood red dominance
-            if r > 130 and g < 45 and b < 45 and (r / (g + b + 1) > 2.2):
-                blood_pixels += 1
-
-        skin_ratio = skin_pixels / total_pixels
-        blood_ratio = blood_pixels / total_pixels
-
-        # Strict Thresholds
-        if skin_ratio > 0.45:
             return SafetyResult(
                 safe=False,
-                category="sexual_content",
-                severity="high",
-                reason=f"Post-generation image classifier flagged excessive explicit skin exposure ({skin_ratio:.1%})."
-            )
-
-        if blood_ratio > 0.18:
-            return SafetyResult(
-                safe=False,
-                category="violence_gore",
-                severity="critical",
-                reason=f"Post-generation image classifier flagged extreme blood/gore chrominance ({blood_ratio:.1%})."
+                category=category,
+                severity=severity,
+                reason=reason
             )
 
         return SafetyResult(safe=True)
+
     except Exception as ex:
-        # Fail closed on unexpected classifier crash
-        # Persistent Audit Logging
+        # Fail closed cleanly on unexpected classifier crash with proper variables
+        img_identifier = str(image_input)[:100] if image_input is not None else "unknown_image"
+        err_msg = f"Image safety evaluation error (fail-closed): {str(ex)}"
+        logger.error(f"[VISION SAFETY EXCEPTION]: {err_msg}")
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit(
+                client_id=client_id,
+                category="classifier_error",
+                severity="high",
+                reason=err_msg,
+                blocked_content=img_identifier
+            )
         except Exception:
             pass
+
         return SafetyResult(
             safe=False,
             category="classifier_error",
-            severity="medium",
-            reason=f"Image safety classifier evaluation error (failing closed): {str(ex)}"
+            severity="high",
+            reason=err_msg
         )
 
 

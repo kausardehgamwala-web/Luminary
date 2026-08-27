@@ -91,6 +91,21 @@ def init_db():
     ''')
     conn.commit()
 
+    # Recurring QC Pattern Feedback Table for continuous template/prompt improvement
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS qc_pattern_feedback (
+        id TEXT PRIMARY KEY,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        template_id TEXT,
+        deliverable_type TEXT,
+        issue_category TEXT NOT NULL,
+        issue_detail TEXT NOT NULL,
+        qc_score REAL,
+        client_id TEXT
+    );
+    """)
+    conn.commit()
+
     # Cached/normalized metrics
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS social_metrics_cache (
@@ -138,6 +153,15 @@ def init_db():
 
     conn.close()
 
+_db_initialized = False
+def ensure_db_initialized():
+    global _db_initialized
+    if not _db_initialized:
+        init_db()
+        _db_initialized = True
+
+ensure_db_initialized()
+
 if __name__ == "__main__":
     init_db()
     print("Database initialized successfully.")
@@ -181,6 +205,60 @@ def get_security_audit_logs(limit: int = 50, client_id: str = None) -> list:
         return logs
     except Exception as ex:
         print(f"[Audit Log Fetch Error]: {ex}")
+        return []
+
+
+def record_qc_pattern_feedback(template_id: str, deliverable_type: str, issue_category: str, issue_detail: str, qc_score: float = 0.0, client_id: str = "system") -> str:
+    """Logs a recurring QC issue/failure to identify template or prompt weaknesses over time."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        feedback_id = f"qc_pat_{uuid.uuid4().hex[:10]}"
+        cursor.execute(
+            """
+            INSERT INTO qc_pattern_feedback (id, template_id, deliverable_type, issue_category, issue_detail, qc_score, client_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (feedback_id, str(template_id or "UNKNOWN"), str(deliverable_type or "text"), str(issue_category), str(issue_detail)[:500], float(qc_score), str(client_id))
+        )
+        conn.commit()
+        conn.close()
+        return feedback_id
+    except Exception as ex:
+        print(f"[QC Pattern Log Error]: {ex}")
+        return ""
+
+
+def get_recurring_qc_patterns(min_occurrences: int = 1) -> list:
+    """Aggregates logged QC issues across templates to surface recurring weaknesses."""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT template_id, deliverable_type, issue_category, COUNT(*) as occurrence_count, AVG(qc_score) as avg_score, GROUP_CONCAT(DISTINCT issue_detail) as sample_issues
+            FROM qc_pattern_feedback
+            GROUP BY template_id, deliverable_type, issue_category
+            HAVING COUNT(*) >= ?
+            ORDER BY occurrence_count DESC
+            """,
+            (min_occurrences,)
+        )
+        rows = cursor.fetchall()
+        patterns = []
+        for r in rows:
+            patterns.append({
+                "template_id": r["template_id"],
+                "deliverable_type": r["deliverable_type"],
+                "issue_category": r["issue_category"],
+                "occurrence_count": r["occurrence_count"],
+                "avg_score": round(r["avg_score"] or 0, 1),
+                "sample_issues": r["sample_issues"]
+            })
+        conn.close()
+        return patterns
+    except Exception as ex:
+        print(f"[QC Pattern Fetch Error]: {ex}")
         return []
 
 
@@ -231,3 +309,65 @@ def get_generation_metrics_summary(limit: int = 50) -> dict:
             "first_pass_success_rate": round((first_pass_count or 0) / max(total or 1, 1) * 100, 1),
             "recent_runs": recent
         }
+
+
+def get_quality_dashboard_summary() -> dict:
+    """
+    Returns aggregated quality dashboard metrics:
+    - Block rate over time & by category from security_audit_logs
+    - Average QC score and revision frequency by deliverable type
+    - Generation duration trends across pipelines (e.g. SDXL vs Text)
+    - Recurring QC failure patterns
+    """
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # 1. Safety Block Stats by Category
+        cursor.execute("SELECT category, COUNT(*) as count FROM security_audit_logs GROUP BY category ORDER BY count DESC")
+        block_by_cat = {r["category"]: r["count"] for r in cursor.fetchall()}
+        total_blocks = sum(block_by_cat.values())
+        
+        # 2. QC Performance by Deliverable Type
+        cursor.execute("""
+            SELECT deliverable_type, COUNT(*) as count, AVG(qc_score) as avg_score, AVG(revisions_count) as avg_revisions, AVG(duration_seconds) as avg_duration
+            FROM generation_metrics
+            GROUP BY deliverable_type
+        """)
+        deliverable_stats = []
+        for r in cursor.fetchall():
+            deliverable_stats.append({
+                "deliverable_type": r["deliverable_type"],
+                "total_runs": r["count"],
+                "avg_qc_score": round(r["avg_score"] or 0, 1),
+                "avg_revisions": round(r["avg_revisions"] or 0, 2),
+                "avg_duration_seconds": round(r["avg_duration"] or 0, 2)
+            })
+            
+        # 3. Overall Pipeline Performance
+        cursor.execute("SELECT COUNT(*), AVG(duration_seconds), AVG(qc_score), AVG(revisions_count) FROM generation_metrics")
+        total_gen, avg_dur, avg_qc, avg_rev = cursor.fetchone()
+        
+        # 4. Recurring QC Issue Patterns
+        recurring_patterns = get_recurring_qc_patterns(min_occurrences=1)
+        
+        conn.close()
+        return {
+            "total_blocks": total_blocks,
+            "blocks_by_category": block_by_cat,
+            "total_generations": total_gen or 0,
+            "overall_avg_duration_seconds": round(avg_dur or 0, 2),
+            "overall_avg_qc_score": round(avg_qc or 0, 1),
+            "overall_avg_revisions": round(avg_rev or 0, 2),
+            "deliverable_breakdown": deliverable_stats,
+            "recurring_qc_patterns": recurring_patterns
+        }
+    except Exception as ex:
+        print(f"[Quality Dashboard Error]: {ex}")
+        return {
+            "total_blocks": 0, "blocks_by_category": {}, "total_generations": 0,
+            "overall_avg_duration_seconds": 0.0, "overall_avg_qc_score": 0.0,
+            "overall_avg_revisions": 0.0, "deliverable_breakdown": [],
+            "recurring_qc_patterns": []
+        }
+
