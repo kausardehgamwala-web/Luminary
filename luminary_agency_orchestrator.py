@@ -391,6 +391,16 @@ def orchestrate_task(
     brief = CreativeProductionBrief()
     if specs is None:
         specs = {}
+    
+    # ── Returning Client Continuity Injection ──
+    brand_mem = specs.get("brand_memory", {})
+    if isinstance(brand_mem, dict) and brand_mem:
+        if "tone" in brand_mem and not specs.get("brand_tone"):
+            specs["brand_tone"] = brand_mem.get("tone")
+        if "brand_name" in brand_mem and not specs.get("brand_name"):
+            specs["brand_name"] = brand_mem.get("brand_name")
+        if "palette" in brand_mem and not specs.get("brand_palette"):
+            specs["brand_palette"] = brand_mem.get("palette")
     lowered = prompt.lower()
 
     # ── Step 1: Understand the Task ───────────────────────────────────────────
@@ -599,28 +609,39 @@ def run_creative_qc(output: str, brief: CreativeProductionBrief, pass_num: int =
 
 def build_revision_prompt(original_prompt: str, output: str, qc_report: Dict) -> str:
     """
-    Builds a specific, actionable revision prompt based on QC failures.
-    The Creative Director tells the AI exactly what to fix, not just 'make it better'.
+    Builds a surgical, targeted delta revision instruction based on QC failures.
+    Instructs the generator to perform targeted surgery on specific identified flaws
+    without discarding valid approved sections.
     """
-    failure_list = "\n".join(f"  - {f}" for f in qc_report["failures"])
-    warning_list = "\n".join(f"  - {w}" for w in qc_report["warnings"])
+    failures = qc_report.get("failures", [])
+    warnings = qc_report.get("warnings", [])
+    
+    failure_lines = [f"  [CRITICAL DEFECT] {f}" for f in failures]
+    failure_list = chr(10).join(failure_lines) if failure_lines else "  None"
+    
+    warning_lines = [f"  [TARGETED ADJUSTMENT] {w}" for w in warnings]
+    warning_list = chr(10).join(warning_lines) if warning_lines else "  None"
 
+    pass_num = qc_report.get("pass_num", 1) + 1
+    score = qc_report.get("score", 0)
+
+    n = chr(10)
     revision_prompt = (
-        f"### CREATIVE DIRECTOR — REVISION INSTRUCTION (Pass {qc_report['pass_num'] + 1})\n\n"
-        f"Your previous output failed quality control with a score of {qc_report['score']}/100.\n\n"
-        f"CRITICAL FAILURES TO FIX:\n{failure_list or '  None'}\n\n"
-        f"IMPROVEMENTS REQUIRED:\n{warning_list or '  None'}\n\n"
-        f"PREVIOUS OUTPUT:\n{output}\n\n"
-        f"REVISION REQUIREMENTS:\n"
-        f"  1. Fix ALL listed failures — they are non-negotiable\n"
-        f"  2. Eliminate any AI-sounding phrases — write like a senior agency copywriter\n"
-        f"  3. Ensure the output is production-ready, not a draft\n"
-        f"  4. Do NOT add meta-commentary about the revision — just output the improved content\n\n"
-        f"ORIGINAL CLIENT REQUEST: {original_prompt}\n\n"
-        f"### REVISED OUTPUT:"
+        f"### CREATIVE DIRECTOR — SURGICAL REVISION DIRECTIVE (Iteration {pass_num}){n}{n}"
+        f"The deliverable failed quality control (Score: {score}/100).{n}{n}"
+        f"SPECIFIC FLAWS IDENTIFIED FOR TARGETED FIX:{n}"
+        f"{failure_list}{n}{n}"
+        f"REFINEMENTS REQUIRED:{n}"
+        f"{warning_list}{n}{n}"
+        f"CURRENT DELIVERABLE BASE:{n}"
+        f"{output}{n}{n}"
+        f"ITERATIVE SURGERY RULES:{n}"
+        f"  1. Retain all approved sections and valid copy intact — do NOT regenerate from scratch.{n}"
+        f"  2. Surgically replace/refine ONLY the specific failing components identified above.{n}"
+        f"  3. Strictly enforce character limits, design tokens, and brand color palette.{n}{n}"
+        f"Deliver the surgically revised output now:"
     )
     return revision_prompt
-
 
 def run_agency_workflow(
     prompt: str,

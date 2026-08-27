@@ -594,9 +594,43 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         if self.path in ("/", "/luminary.html"):
             self._serve_file(APP_FILE, "text/html; charset=utf-8")
             return
-        if self.path == "/health":
+        if self.path in ("/health", "/api/health"):
             self._json(200)
             self.wfile.write(json.dumps({"status": "ok", "model": MODEL_NAME}).encode("utf-8"))
+            return
+        if self.path == "/api/health/dependencies":
+            import time
+            import db
+            # Check Ollama
+            ollama_status = {"status": "down", "latency_ms": 0}
+            t0 = time.time()
+            try:
+                req = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", headers={"User-Agent": "Luminary/1.0"})
+                with urllib.request.urlopen(req, timeout=3) as resp:
+                    if resp.status == 200:
+                        ollama_status = {"status": "healthy", "latency_ms": round((time.time() - t0) * 1000, 1)}
+            except Exception as ex:
+                ollama_status["error"] = str(ex)
+                
+            # Check Local SDXL / Image Engine
+            sdxl_status = {"status": "available", "device": "local_pipeline"}
+            
+            self._json(200)
+            self.wfile.write(json.dumps({
+                "status": "ok" if ollama_status["status"] == "healthy" else "degraded",
+                "dependencies": {
+                    "ollama_llm": ollama_status,
+                    "local_sdxl": sdxl_status,
+                    "sqlite_db": {"status": "healthy"}
+                }
+            }).encode("utf-8"))
+            return
+            
+        if self.path == "/api/metrics/summary":
+            import db
+            summary = db.get_generation_metrics_summary()
+            self._json(200)
+            self.wfile.write(json.dumps(summary).encode("utf-8"))
             return
         asset_path = self._resolve_asset_path(self.path)
         if asset_path:

@@ -225,3 +225,78 @@ def list_templates_summary() -> str:
 
 if __name__ == "__main__":
     print(list_templates_summary())
+
+
+# ── Industry-Differentiated Geometric Layout Presets ────────────────────────
+
+LAYOUT_PRESETS.update({
+    "luxury_showcase": {
+        "grid": {"columns": 12, "gutter": "32px", "margin": "64px", "type": "minimal_luxury"},
+        "zones": [
+            {"id": "hero_visual", "col_start": 2, "col_span": 10, "row_start": 1, "row_span": 8, "type": "media", "aspect_ratio": "16:9", "object_fit": "cover"},
+            {"id": "brand_monogram", "col_start": 5, "col_span": 4, "row_start": 9, "row_span": 1, "type": "brand_logo", "alignment": "center"},
+            {"id": "editorial_headline", "col_start": 3, "col_span": 8, "row_start": 10, "row_span": 2, "type": "typography", "slot": "display_heading", "alignment": "center"},
+            {"id": "curated_narrative", "col_start": 4, "col_span": 6, "row_start": 12, "row_span": 2, "type": "typography", "slot": "body", "alignment": "center"}
+        ],
+        "typography_slots": {
+            "display_heading": {"family": "'Playfair Display', serif", "size": "44px", "weight": "600", "line_height": "1.15"},
+            "body": {"family": "'Outfit', sans-serif", "size": "15px", "weight": "300", "line_height": "1.7"}
+        },
+        "color_slots": {"background": "#050406", "surface": "#0d0c0e", "primary": "#c5a880", "text_primary": "#f5f3f0", "text_secondary": "rgba(245,243,240,0.55)"}
+    },
+    "ecommerce_grid_3col": {
+        "grid": {"columns": 12, "gutter": "16px", "margin": "24px", "type": "product_grid"},
+        "zones": [
+            {"id": "product_card_1", "col_start": 1, "col_span": 4, "row_start": 1, "row_span": 6, "type": "product_cell", "slot": "item_1"},
+            {"id": "product_card_2", "col_start": 5, "col_span": 4, "row_start": 1, "row_span": 6, "type": "product_cell", "slot": "item_2"},
+            {"id": "product_card_3", "col_start": 9, "col_span": 4, "row_start": 1, "row_span": 6, "type": "product_cell", "slot": "item_3"},
+            {"id": "promo_banner", "col_start": 1, "col_span": 12, "row_start": 7, "row_span": 2, "type": "callout", "slot": "discount_banner"}
+        ],
+        "typography_slots": {
+            "display_heading": {"family": "'Outfit', sans-serif", "size": "28px", "weight": "700"},
+            "body": {"family": "'Outfit', sans-serif", "size": "14px", "weight": "400"}
+        },
+        "color_slots": {"background": "#ffffff", "surface": "#f8f9fa", "primary": "#ff5500", "text_primary": "#111111", "text_secondary": "#666666"}
+    },
+    "culinary_moodboard": {
+        "grid": {"columns": 12, "gutter": "20px", "margin": "40px", "type": "organic_masonry"},
+        "zones": [
+            {"id": "dish_hero", "col_start": 1, "col_span": 6, "row_start": 1, "row_span": 10, "type": "media", "aspect_ratio": "4:5"},
+            {"id": "ingredient_detail", "col_start": 7, "col_span": 6, "row_start": 1, "row_span": 5, "type": "media", "aspect_ratio": "16:9"},
+            {"id": "menu_description", "col_start": 7, "col_span": 6, "row_start": 6, "row_span": 5, "type": "typography", "slot": "culinary_notes"}
+        ],
+        "typography_slots": {
+            "display_heading": {"family": "'Lora', serif", "size": "38px", "weight": "600"},
+            "body": {"family": "'Outfit', sans-serif", "size": "15px", "weight": "400"}
+        },
+        "color_slots": {"background": "#120f0e", "surface": "#1d1917", "primary": "#e07a5f", "text_primary": "#f6f3f0", "text_secondary": "rgba(246,243,240,0.55)"}
+    }
+})
+
+# ── Template Quality Feedback Loop ──────────────────────────────────────────
+from collections import defaultdict
+import threading
+
+_TEMPLATE_DEFECTS_LOCK = threading.Lock()
+_TEMPLATE_DEFECTS = defaultdict(list) # template_id -> list of defect strings
+
+def record_template_defect(template_id: str, issue_type: str, details: str = ""):
+    """Records a structural QC defect against a template for adaptive improvement."""
+    with _TEMPLATE_DEFECTS_LOCK:
+        _TEMPLATE_DEFECTS[str(template_id)].append({
+            "issue_type": issue_type,
+            "details": details,
+            "timestamp": time.time() if "time" in globals() else 0
+        })
+
+def get_template_health_report() -> dict:
+    """Returns health metrics and recurring defect warnings across all templates."""
+    with _TEMPLATE_DEFECTS_LOCK:
+        report = {}
+        for tid, defects in _TEMPLATE_DEFECTS.items():
+            report[tid] = {
+                "total_defects": len(defects),
+                "recurring_issues": [d["issue_type"] for d in defects[-5:]],
+                "status": "needs_revision" if len(defects) >= 3 else "healthy"
+            }
+        return report

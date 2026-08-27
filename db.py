@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import sqlite3
 import uuid
 import json
@@ -74,6 +75,20 @@ def init_db():
     );
     """)
 
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS generation_metrics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        client_id TEXT NOT NULL,
+        deliverable_type TEXT NOT NULL,
+        template_id TEXT,
+        model_name TEXT,
+        duration_seconds REAL,
+        qc_score REAL,
+        qc_passed_first_attempt INTEGER,
+        revisions_count INTEGER
+    );
+    ''')
     conn.commit()
 
     # Cached/normalized metrics
@@ -167,3 +182,52 @@ def get_security_audit_logs(limit: int = 50, client_id: str = None) -> list:
     except Exception as ex:
         print(f"[Audit Log Fetch Error]: {ex}")
         return []
+
+
+def log_generation_metric(client_id: str, deliverable_type: str, template_id: str, model_name: str, duration_seconds: float, qc_score: float, qc_passed_first_attempt: bool, revisions_count: int = 0):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            '''
+            INSERT INTO generation_metrics 
+            (timestamp, client_id, deliverable_type, template_id, model_name, duration_seconds, qc_score, qc_passed_first_attempt, revisions_count)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                datetime.now(timezone.utc).isoformat(),
+                str(client_id),
+                str(deliverable_type),
+                str(template_id),
+                str(model_name),
+                float(duration_seconds),
+                float(qc_score),
+                1 if qc_passed_first_attempt else 0,
+                int(revisions_count)
+            )
+        )
+        conn.commit()
+
+def get_generation_metrics_summary(limit: int = 50) -> dict:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*), AVG(duration_seconds), AVG(qc_score), SUM(qc_passed_first_attempt) FROM generation_metrics")
+        total, avg_dur, avg_score, first_pass_count = cursor.fetchone()
+        
+        cursor.execute("SELECT id, timestamp, client_id, deliverable_type, template_id, model_name, duration_seconds, qc_score, qc_passed_first_attempt, revisions_count FROM generation_metrics ORDER BY id DESC LIMIT ?", (limit,))
+        rows = cursor.fetchall()
+        
+        recent = []
+        for r in rows:
+            recent.append({
+                "id": r[0], "timestamp": r[1], "client_id": r[2], "deliverable_type": r[3],
+                "template_id": r[4], "model_name": r[5], "duration_seconds": r[6], "qc_score": r[7],
+                "qc_passed_first_attempt": bool(r[8]), "revisions_count": r[9]
+            })
+            
+        return {
+            "total_generations": total or 0,
+            "avg_duration_seconds": round(avg_dur or 0, 2),
+            "avg_qc_score": round(avg_score or 0, 2),
+            "first_pass_success_rate": round((first_pass_count or 0) / max(total or 1, 1) * 100, 1),
+            "recent_runs": recent
+        }

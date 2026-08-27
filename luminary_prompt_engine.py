@@ -189,12 +189,16 @@ class PromptEngine:
         is_ambiguous = False
         clarifying_questions = []
         
-        if len(words) <= 2 or pl in ["help", "make something", "do something", "create something", "market my business", "promote"]:
+        vague_intents = ["help", "make something", "do something", "create something", "market my business", "promote", "make it pop", "something nice", "grow my brand", "need ads", "make a post"]
+        is_too_short = len(words) < 4 and not has_explicit_deliverable
+        is_vague = any(pl == v or pl.startswith(v + " ") for v in vague_intents)
+        
+        if is_too_short or is_vague:
             is_ambiguous = True
             clarifying_questions = [
-                "Which marketing deliverable would you like to create? (e.g. Slide Deck, Instagram Post, Email Campaign, Web Page)",
-                "What is the name of your brand or product?",
-                "Who is your target audience for this campaign?"
+                "1. Format & Channel: What deliverable are we building? (e.g., 10-Slide Pitch Deck, Instagram Carousel, Responsive Landing Page, Email Drip Sequence)",
+                "2. Target Audience: Who is the ideal customer persona (ICP) and what is their primary pain point?",
+                "3. Brand Voice & Objective: What is your primary conversion goal (e.g., immediate sales, investor funding, brand authority) and desired tone?"
             ]
 
         # Infer Tone

@@ -389,3 +389,59 @@ if __name__ == "__main__":
     print("\nTreatment DON'T rules for LOGO:")
     for rule in TREATMENT_LIBRARY["logo"]["dont"]:
         print(f"  ✗ {rule}")
+
+
+def derive_brand_palette_from_assets(asset_path_or_bytes) -> dict:
+    """
+    Dynamically extracts a complete 5-token brand color palette (primary, secondary, background, surface, text)
+    from an uploaded brand image/logo without relying on hardcoded brand dictionaries.
+    """
+    try:
+        from PIL import Image
+        import io
+        if isinstance(asset_path_or_bytes, (str, os.PathLike)) and os.path.exists(str(asset_path_or_bytes)):
+            img = Image.open(str(asset_path_or_bytes)).convert("RGB")
+        elif isinstance(asset_path_or_bytes, bytes):
+            img = Image.open(io.BytesIO(asset_path_or_bytes)).convert("RGB")
+        elif hasattr(asset_path_or_bytes, "convert"):
+            img = asset_path_or_bytes.convert("RGB")
+        else:
+            return {
+                "primary": "#ff5500", "secondary": "#894fff", "background": "#08070b",
+                "surface": "#111014", "text": "#faf8f5", "extracted_palette": ["#ff5500", "#894fff", "#08070b", "#111014", "#faf8f5"]
+            }
+
+        # Downsample and get dominant colors via getcolors or mediancut
+        thumb = img.resize((150, 150))
+        colors_count = thumb.getcolors(maxcolors=22500)
+        extracted = []
+        if colors_count:
+            # Sort by frequency descending
+            sorted_colors = sorted(colors_count, key=lambda x: x[0], reverse=True)
+            for count, (r, g, b) in sorted_colors[:8]:
+                extracted.append(f"#{r:02x}{g:02x}{b:02x}")
+                
+        if not extracted:
+            quantized = thumb.quantize(colors=8)
+            raw_pal = quantized.getpalette() or []
+            for i in range(min(8, len(raw_pal) // 3)):
+                r, g, b = raw_pal[i*3], raw_pal[i*3+1], raw_pal[i*3+2]
+                extracted.append(f"#{r:02x}{g:02x}{b:02x}")
+
+        primary = extracted[0] if len(extracted) > 0 else "#ff5500"
+        secondary = extracted[1] if len(extracted) > 1 else "#894fff"
+        
+        return {
+            "primary": primary,
+            "secondary": secondary,
+            "background": "#08070b",
+            "surface": "#111014",
+            "text": "#faf8f5",
+            "extracted_palette": extracted or [primary, secondary],
+            "source": "dynamic_asset_quantization"
+        }
+    except Exception as ex:
+        return {
+            "primary": "#ff5500", "secondary": "#894fff", "background": "#08070b",
+            "surface": "#111014", "text": "#faf8f5", "extracted_palette": ["#ff5500", "#894fff"], "error": str(ex)
+        }
