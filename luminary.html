@@ -370,6 +370,44 @@
       transition: all var(--transition);
     }
 
+
+    /* Analytics Month & Year Dropdown Styling */
+    .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #000000 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      padding: 6px 14px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      height: 34px;
+    }
+    .analytics-select option {
+      background: #111015 !important;
+      color: #ffffff !important;
+      font-weight: 600;
+    }
+    body.light-mode .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      font-weight: 700;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      height: 34px;
+    }
+    body.light-mode .analytics-select option {
+      background: #ffffff !important;
+      color: #1a1a1a !important;
+      font-weight: 600;
+    }
+
 </style>');
         }
       } catch(e){}
@@ -4810,6 +4848,44 @@ body.light-mode .history-item.active {
       transition: all var(--transition);
     }
 
+
+    /* Analytics Month & Year Dropdown Styling */
+    .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #000000 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      padding: 6px 14px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      height: 34px;
+    }
+    .analytics-select option {
+      background: #111015 !important;
+      color: #ffffff !important;
+      font-weight: 600;
+    }
+    body.light-mode .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      font-weight: 700;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      height: 34px;
+    }
+    body.light-mode .analytics-select option {
+      background: #ffffff !important;
+      color: #1a1a1a !important;
+      font-weight: 600;
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -5109,6 +5185,7 @@ body.light-mode .history-item.active {
     window.renderAnalyticsChart = function(data) {
       const svg = document.getElementById("analyticsSvg");
       if (!svg) return;
+      const isLight = document.body.classList.contains("light-mode");
 
       const defaultDataset = {
         analytics: {
@@ -5135,9 +5212,10 @@ body.light-mode .history-item.active {
           }
         }
       };
-      if (!data || !data.analytics || !Object.keys(data.analytics).length) {
-        data = defaultDataset;
-      }
+      const hasValidData = data && data.analytics && Object.values(data.analytics).some(p => p && p.dates && p.dates.length > 0 && (p.views || p.followers));
+    if (!hasValidData) {
+      data = defaultDataset;
+    }
       const legend = document.getElementById("chartLegendContainer");
       const tooltip = document.getElementById("chartTooltip");
       if (!svg) return;
@@ -6700,6 +6778,44 @@ body.light-mode .history-item.active {
       min-height: 0;
       overflow-y: auto;
       transition: all var(--transition);
+    }
+
+
+    /* Analytics Month & Year Dropdown Styling */
+    .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #000000 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      padding: 6px 14px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      height: 34px;
+    }
+    .analytics-select option {
+      background: #111015 !important;
+      color: #ffffff !important;
+      font-weight: 600;
+    }
+    body.light-mode .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      font-weight: 700;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      height: 34px;
+    }
+    body.light-mode .analytics-select option {
+      background: #ffffff !important;
+      color: #1a1a1a !important;
+      font-weight: 600;
     }
 
 </style>
@@ -9931,6 +10047,7 @@ body.light-mode .history-item.active {
     window.renderAnalyticsChart = function(data) {
       const svg = document.getElementById("analyticsSvg");
       if (!svg) return;
+      const isLight = document.body.classList.contains("light-mode");
 
       const defaultDataset = {
         analytics: {
@@ -9957,9 +10074,10 @@ body.light-mode .history-item.active {
           }
         }
       };
-      if (!data || !data.analytics || !Object.keys(data.analytics).length) {
-        data = defaultDataset;
-      }
+      const hasValidData = data && data.analytics && Object.values(data.analytics).some(p => p && p.dates && p.dates.length > 0 && (p.views || p.followers));
+    if (!hasValidData) {
+      data = defaultDataset;
+    }
       const legend = document.getElementById("chartLegendContainer");
       const tooltip = document.getElementById("chartTooltip");
       if (!svg) return;
@@ -10031,8 +10149,8 @@ body.light-mode .history-item.active {
       const getY = (val) => padTop + chartH - (val / maxVal) * chartH;
 
       const isLight = document.body.classList.contains("light-mode");
-      const gridStroke = isLight ? "rgba(255, 85, 0, 0.15)" : "rgba(255, 255, 255, 0.06)";
-      const axisTextFill = isLight ? "#1a1a1a" : "rgba(255, 255, 255, 0.6)";
+      const gridStroke = isLight ? "rgba(0, 0, 0, 0.18)" : "rgba(255, 255, 255, 0.15)";
+      const axisTextFill = isLight ? "#1a1a1a" : "#ffffff";
       const tickStroke = isLight ? "rgba(255, 85, 0, 0.25)" : "rgba(255, 255, 255, 0.15)";
       const pointStroke = isLight ? "#ffffff" : "#08070b";
 
