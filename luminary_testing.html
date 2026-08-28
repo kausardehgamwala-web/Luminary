@@ -314,6 +314,29 @@
       stroke: rgba(0, 0, 0, 0.18) !important;
     }
 
+
+    /* Analytics Zero Scroll & High-Contrast Graph Visibility */
+    #socialAnalyticsTab {
+      overflow: hidden !important;
+    }
+    .analytics-panel {
+      overflow: hidden !important;
+    }
+    #analyticsSvg text {
+      fill: #ffffff !important;
+      font-weight: 600 !important;
+    }
+    #analyticsSvg line.grid-line {
+      stroke: rgba(255, 255, 255, 0.15) !important;
+    }
+    body.light-mode #analyticsSvg text {
+      fill: #1a1a1a !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode #analyticsSvg line.grid-line {
+      stroke: rgba(0, 0, 0, 0.2) !important;
+    }
+
 </style>');
         }
       } catch(e){}
@@ -4698,6 +4721,29 @@ body.light-mode .history-item.active {
       stroke: rgba(0, 0, 0, 0.18) !important;
     }
 
+
+    /* Analytics Zero Scroll & High-Contrast Graph Visibility */
+    #socialAnalyticsTab {
+      overflow: hidden !important;
+    }
+    .analytics-panel {
+      overflow: hidden !important;
+    }
+    #analyticsSvg text {
+      fill: #ffffff !important;
+      font-weight: 600 !important;
+    }
+    #analyticsSvg line.grid-line {
+      stroke: rgba(255, 255, 255, 0.15) !important;
+    }
+    body.light-mode #analyticsSvg text {
+      fill: #1a1a1a !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode #analyticsSvg line.grid-line {
+      stroke: rgba(0, 0, 0, 0.2) !important;
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -6534,6 +6580,29 @@ body.light-mode .history-item.active {
       stroke: rgba(0, 0, 0, 0.18) !important;
     }
 
+
+    /* Analytics Zero Scroll & High-Contrast Graph Visibility */
+    #socialAnalyticsTab {
+      overflow: hidden !important;
+    }
+    .analytics-panel {
+      overflow: hidden !important;
+    }
+    #analyticsSvg text {
+      fill: #ffffff !important;
+      font-weight: 600 !important;
+    }
+    #analyticsSvg line.grid-line {
+      stroke: rgba(255, 255, 255, 0.15) !important;
+    }
+    body.light-mode #analyticsSvg text {
+      fill: #1a1a1a !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode #analyticsSvg line.grid-line {
+      stroke: rgba(0, 0, 0, 0.2) !important;
+    }
+
 </style>
 
 
@@ -7380,8 +7449,8 @@ body.light-mode .history-item.active {
             </div>
 
             <!-- Analytics Tab (Fits 100% inside viewport, no scrolling) -->
-            <div id="socialAnalyticsTab" class="social-tab-pane" style="display:none; flex:1; width:100%; min-height:500px; padding-bottom:20px;">
-              <div class="analytics-panel" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.05); border-radius:20px; padding:18px 24px; position:relative; box-sizing:border-box; display:flex; flex-direction:column;">
+            <div id="socialAnalyticsTab" class="social-tab-pane" style="display:none; flex:1; width:100%; height:100%; max-height:calc(100vh - 140px); overflow:hidden; box-sizing:border-box; padding-bottom:0;">
+              <div class="analytics-panel" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.05); border-radius:20px; padding:16px 20px; position:relative; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; height:100%; width:100%; overflow:hidden;">
                 
                 <!-- Filters Header Bar -->
                 <div class="analytics-filters" style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:12px; width:100%; flex-wrap:wrap;">
@@ -7441,7 +7510,7 @@ body.light-mode .history-item.active {
                 </div>
 
                 <!-- SVG Graph Container -->
-                <div class="chart-container" style="position:relative; width:100%; min-height:360px !important; height:360px !important; margin-top:5px;">
+                <div class="chart-container" style="position:relative; width:100%; flex:1; min-height:280px; height:100% !important; max-height:360px; margin-top:4px; overflow:hidden;">
                   <svg id="analyticsSvg" viewBox="0 0 800 450" style="width:100%; height:380px !important; display:block; overflow:visible;"></svg>
                   <!-- Tooltip -->
                   <div id="chartTooltip" style="position: absolute; display: none; background: rgba(8, 7, 11, 0.95); border: 1px solid rgba(255,255,255,0.12); padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; color: white; pointer-events: none; z-index: 50; min-width: 140px;">
@@ -8012,7 +8081,7 @@ body.light-mode .history-item.active {
               timerHtml = message.date ? `<div class="message-time" style="font-size:0.7rem; color:var(--muted); margin-top:4px; text-align:right;">${escapeHtml(message.date)}</div>` : '';
           }
           
-          return `<article class="chat-message ${roleClass}"><div class="bubble">${meta}<div class="bubble-text">${bubbleTextHtml}</div>${workingHtml}${timerHtml}</div>${actionsHtml}</article>`;
+          return `<article class="chat-message ${roleClass}"><div class="bubble">${meta}<div class="bubble-text">${bubbleTextHtml}</div>${workingHtml}</div>${actionsHtml}</article>`;
         }).join("");
         elements.chatFeed.scrollTop = elements.chatFeed.scrollHeight;
       }
