@@ -371,11 +371,11 @@
     }
 
 
-    /* Analytics Month & Year Dropdown Styling */
+    /* Analytics Month & Year Dropdowns */
     .analytics-select {
       background: var(--orange) !important;
       background-color: #ff5500 !important;
-      color: #000000 !important;
+      color: #ffffff !important;
       border: 1px solid var(--orange) !important;
       border-radius: 10px !important;
       padding: 6px 14px;
@@ -406,6 +406,70 @@
       background: #ffffff !important;
       color: #1a1a1a !important;
       font-weight: 600;
+    }
+
+
+    /* Solid Color Metric Buttons in Both Dark and Light Modes */
+    .metric-filter-btn {
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--muted);
+    }
+    body.light-mode .metric-filter-btn {
+      background: #f0f0f0;
+      border: 1px solid #e0e0e0;
+      color: #666;
+    }
+    .metric-filter-btn.active[data-metric="views"],
+    body.light-mode .metric-filter-btn.active[data-metric="views"] {
+      background: #ff5500 !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border-color: #ff5500 !important;
+      box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="comments"],
+    body.light-mode .metric-filter-btn.active[data-metric="comments"] {
+      background: #3b82f6 !important;
+      background-color: #3b82f6 !important;
+      color: #ffffff !important;
+      border-color: #3b82f6 !important;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="followers"],
+    body.light-mode .metric-filter-btn.active[data-metric="followers"] {
+      background: #10b981 !important;
+      background-color: #10b981 !important;
+      color: #ffffff !important;
+      border-color: #10b981 !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="likes"],
+    body.light-mode .metric-filter-btn.active[data-metric="likes"] {
+      background: #8e44ad !important;
+      background-color: #8e44ad !important;
+      color: #ffffff !important;
+      border-color: #8e44ad !important;
+      box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3) !important;
+    }
+
+
+    /* Layout Stability Fix - Prevent Shift Down */
+    #socialAnalyticsTab {
+      margin: 0 !important;
+      padding-top: 0 !important;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+    }
+    .analytics-panel {
+      margin-top: 0 !important;
+      align-self: flex-start !important;
     }
 
 </style>');
@@ -4849,11 +4913,11 @@ body.light-mode .history-item.active {
     }
 
 
-    /* Analytics Month & Year Dropdown Styling */
+    /* Analytics Month & Year Dropdowns */
     .analytics-select {
       background: var(--orange) !important;
       background-color: #ff5500 !important;
-      color: #000000 !important;
+      color: #ffffff !important;
       border: 1px solid var(--orange) !important;
       border-radius: 10px !important;
       padding: 6px 14px;
@@ -4884,6 +4948,70 @@ body.light-mode .history-item.active {
       background: #ffffff !important;
       color: #1a1a1a !important;
       font-weight: 600;
+    }
+
+
+    /* Solid Color Metric Buttons in Both Dark and Light Modes */
+    .metric-filter-btn {
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--muted);
+    }
+    body.light-mode .metric-filter-btn {
+      background: #f0f0f0;
+      border: 1px solid #e0e0e0;
+      color: #666;
+    }
+    .metric-filter-btn.active[data-metric="views"],
+    body.light-mode .metric-filter-btn.active[data-metric="views"] {
+      background: #ff5500 !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border-color: #ff5500 !important;
+      box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="comments"],
+    body.light-mode .metric-filter-btn.active[data-metric="comments"] {
+      background: #3b82f6 !important;
+      background-color: #3b82f6 !important;
+      color: #ffffff !important;
+      border-color: #3b82f6 !important;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="followers"],
+    body.light-mode .metric-filter-btn.active[data-metric="followers"] {
+      background: #10b981 !important;
+      background-color: #10b981 !important;
+      color: #ffffff !important;
+      border-color: #10b981 !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="likes"],
+    body.light-mode .metric-filter-btn.active[data-metric="likes"] {
+      background: #8e44ad !important;
+      background-color: #8e44ad !important;
+      color: #ffffff !important;
+      border-color: #8e44ad !important;
+      box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3) !important;
+    }
+
+
+    /* Layout Stability Fix - Prevent Shift Down */
+    #socialAnalyticsTab {
+      margin: 0 !important;
+      padding-top: 0 !important;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+    }
+    .analytics-panel {
+      margin-top: 0 !important;
+      align-self: flex-start !important;
     }
 
 </style>
@@ -6781,11 +6909,11 @@ body.light-mode .history-item.active {
     }
 
 
-    /* Analytics Month & Year Dropdown Styling */
+    /* Analytics Month & Year Dropdowns */
     .analytics-select {
       background: var(--orange) !important;
       background-color: #ff5500 !important;
-      color: #000000 !important;
+      color: #ffffff !important;
       border: 1px solid var(--orange) !important;
       border-radius: 10px !important;
       padding: 6px 14px;
@@ -6816,6 +6944,70 @@ body.light-mode .history-item.active {
       background: #ffffff !important;
       color: #1a1a1a !important;
       font-weight: 600;
+    }
+
+
+    /* Solid Color Metric Buttons in Both Dark and Light Modes */
+    .metric-filter-btn {
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--muted);
+    }
+    body.light-mode .metric-filter-btn {
+      background: #f0f0f0;
+      border: 1px solid #e0e0e0;
+      color: #666;
+    }
+    .metric-filter-btn.active[data-metric="views"],
+    body.light-mode .metric-filter-btn.active[data-metric="views"] {
+      background: #ff5500 !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border-color: #ff5500 !important;
+      box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="comments"],
+    body.light-mode .metric-filter-btn.active[data-metric="comments"] {
+      background: #3b82f6 !important;
+      background-color: #3b82f6 !important;
+      color: #ffffff !important;
+      border-color: #3b82f6 !important;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="followers"],
+    body.light-mode .metric-filter-btn.active[data-metric="followers"] {
+      background: #10b981 !important;
+      background-color: #10b981 !important;
+      color: #ffffff !important;
+      border-color: #10b981 !important;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+    .metric-filter-btn.active[data-metric="likes"],
+    body.light-mode .metric-filter-btn.active[data-metric="likes"] {
+      background: #8e44ad !important;
+      background-color: #8e44ad !important;
+      color: #ffffff !important;
+      border-color: #8e44ad !important;
+      box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3) !important;
+    }
+
+
+    /* Layout Stability Fix - Prevent Shift Down */
+    #socialAnalyticsTab {
+      margin: 0 !important;
+      padding-top: 0 !important;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+    }
+    .analytics-panel {
+      margin-top: 0 !important;
+      align-self: flex-start !important;
     }
 
 </style>
@@ -10338,7 +10530,7 @@ body.light-mode .history-item.active {
           await window.fetchAnalyticsData();
           setTimeout(() => {
             syncBtn.disabled = false;
-            syncBtn.innerHTML = 'Refresh Live Data Stream';
+            syncBtn.innerHTML = '<i class="fa-solid fa-rotate-right" style="color:#ffffff !important;"></i>';
           }, 600);
         });
       }
