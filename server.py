@@ -720,26 +720,23 @@ class LuminaryHandler(BaseHTTPRequestHandler):
 
         if self.path == "/api/feedback":
             try:
-                import json, luminary_memory
-                data = json.loads(body) if body else {}
+                data = body if isinstance(body, dict) else (json.loads(body) if body else {})
                 rating = data.get("rating", "positive")
                 context_str = data.get("context", "No context")
                 out_type = data.get("output_type", "message")
                 
                 try:
+                    import luminary_memory
                     luminary_memory.log_feedback(out_type, rating, context_str)
                     print(f"[Feedback] Logged {rating} feedback for {out_type}")
                 except Exception as e:
                     print(f"[Feedback] Error logging memory: {e}")
                 
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(b'{"status":"success"}')
+                self._json(200)
+                self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
             except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(f'{{"error":"{str(e)}"}}\n'.encode('utf-8'))
+                self._json(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
             return
 
         if self.path == "/chat":
