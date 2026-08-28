@@ -1,0 +1,74 @@
+{
+  "name": "10x-canva-skills",
+  "version": "1.0.0",
+  "description": "Comprehensive Claude Code plugin for Canva API and local file editing (PDF, PPTX, DOCX, XLSX). 3-mode workflow: Plan, Clarify, Implement. Local files are NEVER modified - always works on copies.",
+  "author": "Anit",
+  "repository": "",
+  "license": "MIT",
+  "keywords": [
+    "canva",
+    "design",
+    "api",
+    "pdf",
+    "pptx",
+    "docx",
+    "xlsx",
+    "local-editing",
+    "presentations",
+    "documents"
+  ],
+  "skills": [
+    ".claude/skills/canva-manager",
+    ".claude/skills/canva-explorer",
+    ".claude/skills/canva-image-editor",
+    ".claude/skills/canva-presentation",
+    ".claude/skills/canva-video",
+    ".claude/skills/canva-export",
+    ".claude/skills/canva-content-generator",
+    ".claude/skills/canva-design-terminology",
+    ".claude/skills/canva-folder-organizer",
+    ".claude/skills/canva-asset-manager",
+    ".claude/skills/canva-brand-kit",
+    ".claude/skills/local-file-manager",
+    ".claude/skills/local-pdf-editor",
+    ".claude/skills/local-pptx-editor",
+    ".claude/skills/local-docx-editor",
+    ".claude/skills/local-xlsx-editor"
+  ],
+  "agents": [
+    ".claude/agents/canva-planner.md",
+    ".claude/agents/canva-analyzer.md",
+    ".claude/agents/canva-executor.md"
+  ],
+  "commands": [
+    ".claude/commands/canva.md"
+  ],
+  "hooks": [],
+  "requires": {
+    "python": ">=3.9",
+    "packages": [
+      "requests",
+      "python-dotenv",
+      "Pillow",
+      "rich",
+      "PyPDF2",
+      "pdfplumber",
+      "python-pptx",
+      "python-docx",
+      "openpyxl"
+    ]
+  },
+  "setup": {
+    "command": "pip install -r requirements.txt",
+    "description": "Install Python dependencies before using skills"
+  },
+  "env": {
+    "required": [],
+    "optional": [
+      "CANVA_CLIENT_ID",
+      "CANVA_CLIENT_SECRET",
+      "CANVA_ACCESS_TOKEN",
+      "CANVA_REFRESH_TOKEN"
+    ]
+  }
+}

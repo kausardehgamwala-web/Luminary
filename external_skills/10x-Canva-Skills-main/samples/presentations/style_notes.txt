@@ -1,0 +1,57 @@
+# Presentation Style Preferences
+
+Add your presentation design preferences here.
+
+## General Style
+- [Clean/Modern/Corporate/Creative/Playful]
+- Slide count preference: [concise/detailed]
+- Animation preference: [minimal/moderate/heavy]
+
+## Colors
+- Background: [solid/gradient/image]
+- Primary color: [your hex code]
+- Accent color: [your hex code]
+- Text color: [your hex code]
+
+## Typography
+- Title font: [font name]
+- Body font: [font name]
+- Title size: [e.g., 48px]
+- Body size: [e.g., 24px]
+
+## Layout Preferences
+- Alignment: [left/center/right]
+- Content density: [sparse/moderate/dense]
+- Image usage: [heavy/moderate/minimal]
+
+## Slide Types
+
+### Title Slides
+- [Your preferences for cover/title slides]
+
+### Content Slides
+- Bullet points vs. paragraphs: [preference]
+- Image placement: [left/right/background]
+- Maximum points per slide: [e.g., 5]
+
+### Data/Chart Slides
+- Chart style: [simple/detailed]
+- Color coding: [yes/no]
+- Annotations: [yes/no]
+
+### Closing Slides
+- [Your preferences for closing/thank you slides]
+
+## Platform-Specific
+
+### Pitch Decks
+- [Specific notes for investor/pitch presentations]
+
+### Reports
+- [Specific notes for business reports]
+
+### Educational
+- [Specific notes for teaching/training materials]
+
+---
+Add sample presentations/slides to this folder for reference.

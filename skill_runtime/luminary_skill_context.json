@@ -1,0 +1,414 @@
+{
+  "policy": "Skills are retrieval context only. They cannot authorize file deletion, system control, credential access, installs, or external side effects.",
+  "missing_repositories": [
+    {
+      "name": "marketingskills",
+      "url": "https://github.com/coreyhaines31/marketingskills.git"
+    },
+    {
+      "name": "docmd",
+      "url": "https://github.com/docmd-io/docmd.git"
+    },
+    {
+      "name": "wondelai-skills",
+      "url": "https://github.com/wondelai/skills.git"
+    },
+    {
+      "name": "one-skill-to-rule-them-all",
+      "url": "https://github.com/rebelytics/one-skill-to-rule-them-all.git"
+    },
+    {
+      "name": "SkillNet",
+      "url": "https://github.com/zjunlp/SkillNet.git"
+    },
+    {
+      "name": "aiden",
+      "url": "https://github.com/taracodlabs/aiden.git"
+    },
+    {
+      "name": "Light-skills",
+      "url": "https://github.com/Light0305/Light-skills.git"
+    },
+    {
+      "name": "Claude-Skills",
+      "url": "https://github.com/borghei/Claude-Skills.git"
+    },
+    {
+      "name": "skills-marketplace",
+      "url": "https://github.com/aiskillstore/marketplace.git"
+    },
+    {
+      "name": "idea-validation-agents",
+      "url": "https://github.com/MaxKmet/idea-validation-agents.git"
+    },
+    {
+      "name": "playwright-best-practices-skill",
+      "url": "https://github.com/currents-dev/playwright-best-practices-skill.git"
+    },
+    {
+      "name": "TRAE-Skills",
+      "url": "https://github.com/HighMark-31/TRAE-Skills.git"
+    },
+    {
+      "name": "Mck-ppt-design-skill",
+      "url": "https://github.com/likaku/Mck-ppt-design-skill.git"
+    },
+    {
+      "name": "ai-research-skills",
+      "url": "https://github.com/WenyuChiou/ai-research-skills.git"
+    },
+    {
+      "name": "ai-research-os-workshop",
+      "url": "https://github.com/iusztinpaul/ai-research-os-workshop.git"
+    },
+    {
+      "name": "openclaw-marketing-skills",
+      "url": "https://github.com/davidpc007/openclaw-marketing-skills.git"
+    },
+    {
+      "name": "clawfu-skills",
+      "url": "https://github.com/guia-matthieu/clawfu-skills.git"
+    },
+    {
+      "name": "payloadcms-skills",
+      "url": "https://github.com/payloadcms/skills.git"
+    },
+    {
+      "name": "awesome-claude-corporate-skills",
+      "url": "https://github.com/w95/awesome-claude-corporate-skills.git"
+    },
+    {
+      "name": "generateblocks-skills",
+      "url": "https://github.com/wpgaurav/generateblocks-skills.git"
+    },
+    {
+      "name": "video-skills-toolkit",
+      "url": "https://github.com/bozhouDev/video-skills-toolkit.git"
+    },
+    {
+      "name": "sales-skills",
+      "url": "https://github.com/sales-skills/sales.git"
+    },
+    {
+      "name": "claude-marketing",
+      "url": "https://github.com/thatrebeccarae/claude-marketing.git"
+    },
+    {
+      "name": "agent-skills",
+      "url": "https://github.com/dash0hq/agent-skills.git"
+    },
+    {
+      "name": "kc_ai_skills",
+      "url": "https://github.com/KerberosClaw/kc_ai_skills.git"
+    },
+    {
+      "name": "presidio",
+      "url": "https://github.com/microsoft/presidio.git"
+    },
+    {
+      "name": "guardrails_pii",
+      "url": "https://github.com/guardrails-ai/guardrails_pii.git"
+    },
+    {
+      "name": "agentic-skills-top-10",
+      "url": "https://github.com/OWASP/www-project-agentic-skills-top-10.git"
+    },
+    {
+      "name": "OpenDocuments",
+      "url": "https://github.com/joungminsung/OpenDocuments.git"
+    },
+    {
+      "name": "chroma",
+      "url": "https://github.com/chroma-core/chroma.git"
+    },
+    {
+      "name": "rag-web-ui",
+      "url": "https://github.com/rag-web-ui/rag-web-ui.git"
+    },
+    {
+      "name": "FlashRAG",
+      "url": "https://github.com/RUC-NLPIR/FlashRAG.git"
+    },
+    {
+      "name": "youtube-shorts-pipeline",
+      "url": "https://github.com/rushindrasinha/youtube-shorts-pipeline.git"
+    },
+    {
+      "name": "ai-creator-academy",
+      "url": "https://github.com/Anil-matcha/ai-creator-academy.git"
+    },
+    {
+      "name": "nano-banana-pro-prompts-recommend-skill",
+      "url": "https://github.com/YouMind-OpenLab/nano-banana-pro-prompts-recommend-skill.git"
+    },
+    {
+      "name": "claude-blog",
+      "url": "https://github.com/AgriciDaniel/claude-blog.git"
+    },
+    {
+      "name": "lime",
+      "url": "https://github.com/limecloud/lime.git"
+    },
+    {
+      "name": "smart-illustrator",
+      "url": "https://github.com/axtonliu/smart-illustrator.git"
+    },
+    {
+      "name": "newtype-os",
+      "url": "https://github.com/newtype-01/newtype-os.git"
+    },
+    {
+      "name": "linkedin-skills",
+      "url": "https://github.com/sergebulaev/linkedin-skills.git"
+    },
+    {
+      "name": "social-media-skills",
+      "url": "https://github.com/blacktwist/social-media-skills.git"
+    },
+    {
+      "name": "Nomi",
+      "url": "https://github.com/aqm857886159/Nomi.git"
+    },
+    {
+      "name": "self-media-content-workflow",
+      "url": "https://github.com/yanhua1010/self-media-content-workflow.git"
+    },
+    {
+      "name": "claude-youtube",
+      "url": "https://github.com/AgriciDaniel/claude-youtube.git"
+    },
+    {
+      "name": "content-pipeline",
+      "url": "https://github.com/OrangeViolin/content-pipeline.git"
+    },
+    {
+      "name": "timeline-studio",
+      "url": "https://github.com/chatman-media/timeline-studio.git"
+    },
+    {
+      "name": "awesome-chatgpt-content-creation-prompts",
+      "url": "https://github.com/aminblm/awesome-chatgpt-content-creation-prompts.git"
+    },
+    {
+      "name": "YiShu-Workbench",
+      "url": "https://github.com/YiShu5/YiShu-Workbench.git"
+    },
+    {
+      "name": "powerpoint-skill",
+      "url": "https://github.com/Noi1r/powerpoint-skill.git"
+    },
+    {
+      "name": "presentation-skill",
+      "url": "https://github.com/sirilsengolraj-source/presentation-skill.git"
+    },
+    {
+      "name": "seo-audit-skill",
+      "url": "https://github.com/seo-skills/seo-audit-skill.git"
+    },
+    {
+      "name": "Agentic-SEO-Skill",
+      "url": "https://github.com/Bhanunamikaze/Agentic-SEO-Skill.git"
+    },
+    {
+      "name": "sciwrite",
+      "url": "https://github.com/labarba/sciwrite.git"
+    },
+    {
+      "name": "ai-research-skill",
+      "url": "https://github.com/toadoum/ai-research-skill.git"
+    },
+    {
+      "name": "agent-skills-datalayer",
+      "url": "https://github.com/datalayer/agent-skills.git"
+    },
+    {
+      "name": "jwynia-agent-skills",
+      "url": "https://github.com/jwynia/agent-skills.git"
+    },
+    {
+      "name": "openclaw-skills",
+      "url": "https://github.com/openclaw/skills.git"
+    },
+    {
+      "name": "NVIDIA-skills",
+      "url": "https://github.com/NVIDIA/skills.git"
+    },
+    {
+      "name": "mem0",
+      "url": "https://github.com/mem0ai/mem0.git"
+    }
+  ],
+  "restricted_repositories": [],
+  "skills": [
+    {
+      "name": "anthropic_reasoning_framework",
+      "category": "core_intelligence",
+      "description": "Advanced AI agent reasoning guidelines for quality, accuracy and verification.",
+      "default_use": "All tasks — always active",
+      "excerpts": [
+        {"path": "core/reasoning.md", "text": "UNDERSTAND the request fully before acting. PLAN the approach. EXECUTE step by step. VERIFY the output before delivering. For large outputs: outline first, then build section by section. Include a final verification step on every non-trivial task (fact-check, math check, format check)."},
+        {"path": "core/quality.md", "text": "Never deliver a first draft as the final output. Always self-review: Did I answer the actual question? Did I follow every constraint? Is the format correct? Is anything missing or unnecessary? Improve before delivering."}
+      ]
+    },
+    {
+      "name": "canva_design_system",
+      "category": "design",
+      "description": "Professional design principles — hierarchy, balance, contrast, alignment, proximity, whitespace.",
+      "default_use": "Any design, image, or presentation task",
+      "excerpts": [
+        {"path": "design/principles.md", "text": "Apply: Hierarchy (most important = largest/boldest), Balance (visual weight distribution), Contrast (make key elements stand out), Alignment (never random placement), Repetition (consistent styles), Proximity (related items grouped), White Space (breathing room — not emptiness). WCAG contrast minimum 4.5:1 for text."},
+        {"path": "design/color.md", "text": "60-30-10 color rule: 60% dominant background, 30% secondary elements, 10% accent/CTA. For brand work, never invent colors — research and use exact official hex values. RGB for screens, CMYK for print."}
+      ]
+    },
+    {
+      "name": "chain_of_thought_reasoning",
+      "category": "core_intelligence",
+      "description": "Forces structured UNDERSTAND → PLAN → RESEARCH → EXECUTE → VALIDATE → IMPROVE → DELIVER workflow.",
+      "default_use": "Complex tasks, multi-step requests, documents, presentations, strategies",
+      "excerpts": [
+        {"path": "cot/workflow.md", "text": "Step 1 UNDERSTAND: Parse every constraint — quantity, resolution, subjects, style, format, negatives. Step 2 PLAN: Outline the approach before writing. Step 3 RESEARCH: Pull web data for brands/stats/current info. Step 4 EXECUTE: Build the output following the plan. Step 5 VALIDATE: Check every requirement is met. Step 6 IMPROVE: Fix any gaps. Step 7 DELIVER: Only then output the final result."},
+        {"path": "cot/decomposition.md", "text": "Decompose complex tasks: break into subtasks, handle each in sequence, verify each subtask before moving to next. For long documents: generate outline → get confirmation (if ambiguous) → write section by section → final review."}
+      ]
+    },
+    {
+      "name": "requirement_extraction",
+      "category": "core_intelligence",
+      "description": "Ultra-precise parsing of user prompts into structured specs: quantity, resolution, subjects, style, negatives.",
+      "default_use": "Every request — always parse before generating",
+      "excerpts": [
+        {"path": "extraction/specs.md", "text": "Extract from every prompt: QUANTITY (two=2, three=3, four=4, five=5, ten=10 — exact, never approximate), RESOLUTION (1080p=1920x1080, 2K=2560x1440, 4K=3840x2160, square=1080x1080, story=1080x1920), SUBJECTS (all named objects, brands, people, vehicles), STYLE (realistic/cinematic/animated/3D/luxury), NEGATIVES (no X, without X, remove X, exclude X)."},
+        {"path": "extraction/compliance.md", "text": "Before delivering ANY output, run compliance check: Did I include all named subjects? Is the quantity exactly right? Is the format correct? Did I exclude everything in the negatives list? If any check fails: fix and regenerate before delivering. Compliance is not optional."}
+      ]
+    },
+    {
+      "name": "image_prompt_engineering",
+      "category": "image",
+      "description": "Expert image prompt construction using professional photography and art direction terminology.",
+      "default_use": "Any image generation, visual creative, or graphic design task",
+      "excerpts": [
+        {"path": "image/prompt_formula.md", "text": "Structure: [SUBJECT] + [STYLE] + [LIGHTING] + [CAMERA/LENS] + [COMPOSITION] + [QUALITY MODIFIERS] + [NEGATIVE]. Example: 'Red Ferrari SF90, photorealistic, golden hour lighting, Canon EOS R5 70-200mm f/2.8, low hero angle, rule of thirds, 8K ultra-realistic, NO watermark, NO text overlay'."},
+        {"path": "image/lighting.md", "text": "Lighting setups: golden hour (warm orange, long shadows), studio 3-point (softbox key + fill + rim), Rembrandt (shadow triangle under eye), hard directional (sharp dramatic shadows), volumetric (visible light rays through atmosphere), blue hour (cool tones, dusk/dawn), neon (colorful artificial light reflections)."}
+      ]
+    },
+    {
+      "name": "professional_writing",
+      "category": "text",
+      "description": "Agency-level writing standards for marketing copy, reports, strategies, and business documents.",
+      "default_use": "Any writing, content creation, copywriting, or documentation task",
+      "excerpts": [
+        {"path": "writing/frameworks.md", "text": "AIDA framework: Attention (hook the reader) → Interest (build curiosity) → Desire (create want) → Action (clear CTA). PAS framework: Problem → Agitate → Solution. For reports: Executive Summary first (busy executives read only this), then Supporting Detail. Always lead with the conclusion, then support it."},
+        {"path": "writing/quality.md", "text": "Agency writing standards: Every sentence earns its place (no filler). Use active voice. Specific > vague ('23% revenue increase' > 'significant growth'). Short paragraphs (2-4 lines max). Subheadings every 250-300 words. Never use: 'very', 'really', 'quite', 'basically', 'in order to', 'as per'. Open with strongest point."}
+      ]
+    },
+    {
+      "name": "presentation_design",
+      "category": "presentations",
+      "description": "McKinsey/BCG-level presentation design: one idea per slide, pyramid principle, visual storytelling.",
+      "default_use": "Any presentation, pitch deck, slides, or PowerPoint task",
+      "excerpts": [
+        {"path": "ppt/structure.md", "text": "Pyramid Principle: start with conclusion/recommendation, then supporting arguments, then evidence. Narrative arc: Problem → Insight → Solution → Evidence → Call to Action. Investor deck order: Problem → Solution → Market Size (TAM/SAM/SOM) → Traction → Business Model → Team → Ask. ONE idea per slide — if a slide needs scrolling, split it."},
+        {"path": "ppt/design_rules.md", "text": "Typography: Title max 40pt, Body max 24pt, Data labels min 16pt. Color: max 3 colors (60-30-10 rule). NEVER: text walls, more than 6 bullet points, clip art, random fonts, overcrowded slides, tiny text. ALWAYS: consistent slide layout, high-quality images, relevant data, clear visual hierarchy, strong title that tells the story."}
+      ]
+    },
+    {
+      "name": "marketing_frameworks",
+      "category": "marketing",
+      "description": "Professional marketing strategy frameworks: SWOT, AIDA, Porter's 5 Forces, RACE, PESO, 7Ps.",
+      "default_use": "Any marketing strategy, campaign planning, or business analysis task",
+      "excerpts": [
+        {"path": "marketing/frameworks.md", "text": "SWOT: Strengths (internal advantages), Weaknesses (internal gaps), Opportunities (external trends to exploit), Threats (external risks). Porter's 5 Forces: Supplier power, Buyer power, Competitive rivalry, Threat of substitution, Threat of new entry. RACE Framework: Reach → Act → Convert → Engage. Always anchor with real data."},
+        {"path": "marketing/kpis.md", "text": "Key marketing KPIs: CAC (Customer Acquisition Cost), LTV (Lifetime Value), ROAS (Return on Ad Spend), CTR (Click-Through Rate), Conversion Rate, Organic Traffic, Social Reach/Impressions, Email Open Rate (avg 21%), Bounce Rate (target <40%). Always include KPIs in any marketing strategy."}
+      ]
+    },
+    {
+      "name": "brand_identity_system",
+      "category": "design",
+      "description": "Brand voice, color psychology, visual consistency, and brand identity extraction from briefs.",
+      "default_use": "Brand development, visual identity, brand consistency, design systems",
+      "excerpts": [
+        {"path": "brand/color_psychology.md", "text": "Color psychology: Red=energy, urgency, passion (Ferrari, Coca-Cola). Blue=trust, technology, stability (IBM, Facebook). Black=luxury, premium, sophistication (Chanel, Apple). Gold=wealth, premium (Rolex, Versace). Orange=creativity, energy, approachable (Luminary). White=clean, minimal, modern (Apple, Tesla). Always research official brand hex codes — never approximate."},
+        {"path": "brand/voice.md", "text": "Brand voice tones: Luxury=understated, precise, no exclamation, long-form (e.g. Hermès). Authoritative=data-driven, definitive statements (e.g. McKinsey). Playful=conversational, witty, inclusive (e.g. Innocent Drinks). Tech=concise, innovative, forward-looking (e.g. Apple). Match every output to the client's established voice."}
+      ]
+    },
+    {
+      "name": "seo_optimization",
+      "category": "text",
+      "description": "SEO best practices for content: keyword research, title optimization, meta descriptions, heading structure.",
+      "default_use": "Any blog, article, web copy, or SEO-related task",
+      "excerpts": [
+        {"path": "seo/on_page.md", "text": "On-page SEO checklist: H1 contains primary keyword (once only). Primary keyword in first 100 words. Meta description 150-160 chars with CTA. Title tag 50-60 chars, keyword first. H2/H3 contain secondary keywords naturally. Internal links to related content. Image alt text. Paragraph length under 150 words (readability signal). Minimum 1500 words for competitive topics."},
+        {"path": "seo/content.md", "text": "Content quality signals Google rewards: Expertise (author credentials, depth), Authoritativeness (citations, external links to authoritative sources), Trustworthiness (accurate facts, no clickbait). Structure for featured snippets: FAQ sections with Q&A format, numbered lists for processes, tables for comparisons. Update dates matter — add publish date."}
+      ]
+    },
+    {
+      "name": "spreadsheet_analysis",
+      "category": "spreadsheets",
+      "description": "Professional business spreadsheet design with formulas, dashboards, and data modeling.",
+      "default_use": "Any spreadsheet, Excel, data analysis, financial model, or reporting task",
+      "excerpts": [
+        {"path": "xlsx/structure.md", "text": "Professional spreadsheet structure: Row 1 = styled headers (bold, colored background). Freeze Row 1. Auto-filter on headers. Consistent number formats: currency=$#,##0.00, percentages=0.00%, large numbers=#,##0. Summary/Total row at bottom with SUM formulas. Conditional formatting: green for positive, red for negative (for financial data). Max column width 50, min 10."},
+        {"path": "xlsx/formulas.md", "text": "Essential formulas: SUM(range), AVERAGE(range), COUNT(range), MAX/MIN(range), IF(condition,true,false), COUNTIF(range,criteria), VLOOKUP(lookup,table,col,false), INDEX-MATCH for flexible lookups, IFERROR to handle errors gracefully. Dashboard KPI cards: use large fonts, colored backgrounds, bold numbers. Trend indicators: arrows (▲▼) or % change."}
+      ]
+    },
+    {
+      "name": "web_research_strategy",
+      "category": "research",
+      "description": "Strategic web research: when to search, how to search, source evaluation, and fact extraction.",
+      "default_use": "Any task requiring current info, brand data, stats, market research, competitor analysis",
+      "excerpts": [
+        {"path": "research/when.md", "text": "ALWAYS search for: brand-specific info (colors, history, products), current statistics and market data, competitor information, current prices or trends, anything that might have changed in the last year, legal/regulatory info, official documentation. NEVER search for: general knowledge you're confident about, stable historical facts, basic definitions. Smart query: '[brand] official brand colors hex 2025' outperforms '[brand] colors'."},
+        {"path": "research/evaluation.md", "text": "Source credibility tiers: Tier 1 (always trust) = official brand websites, government data (.gov), academic papers, Wikipedia for non-controversial facts. Tier 2 (verify) = major news outlets, industry publications, established research firms. Tier 3 (cross-check) = blogs, social media, press releases. Cross-reference any critical claim across 2+ Tier 1-2 sources."}
+      ]
+    },
+    {
+      "name": "social_media_strategy",
+      "category": "marketing",
+      "description": "Platform-specific social media content strategy, dimensions, and best practices.",
+      "default_use": "Instagram, Pinterest, LinkedIn, TikTok, YouTube, Twitter/X, Facebook posts or strategies",
+      "excerpts": [
+        {"path": "social/platforms.md", "text": "Platform specs: Instagram Feed=1080x1080 (max 2200 char caption, 30 hashtags), Story/Reel=1080x1920. Pinterest=1000x1500 (keyword-rich descriptions, 500 char max, vertical always wins). LinkedIn=1200x627 (professional tone, 3000 char, 3-5 hashtags). Twitter/X=1200x675 (280 char, 1-2 hashtags). TikTok=1080x1920 (hook in first 2 seconds, trending audio). YouTube Thumbnail=1280x720."},
+        {"path": "social/content_strategy.md", "text": "4-1-1 content rule: 4 value/educational posts, 1 soft sell (case study/testimonial), 1 hard sell (offer/product). Hook formula: Question OR Bold Statement OR Statistic in first line (stops scroll). Hashtag strategy: 3-5 niche hashtags outperform 30 random ones. Best posting times: Instagram 6-9pm, LinkedIn Tue-Thu 8-10am, Pinterest Sat-Sun 8-11pm."}
+      ]
+    },
+    {
+      "name": "copywriting_frameworks",
+      "category": "text",
+      "description": "Professional copywriting: hooks, CTAs, headlines, email subjects, ad copy frameworks.",
+      "default_use": "Ad copy, email, landing page, headline, social caption, CTA writing",
+      "excerpts": [
+        {"path": "copy/hooks.md", "text": "Proven hook types: 1) Question ('Are you making this costly mistake?') 2) Bold statement ('Most marketing advice is wrong.') 3) Statistic ('73% of buyers decide in 7 seconds.') 4) Story opening ('In 2019, a single decision changed everything.') 5) Controversy ('Everyone says X. Here's why they're wrong.'). First line must stop the scroll — it's either clicked or ignored."},
+        {"path": "copy/cta.md", "text": "CTA formula: Specific action + Value proposition + Urgency. Weak: 'Click here'. Strong: 'Get your free brand audit — limited to 10 per week'. Headline formulas: 'How to [achieve result] without [pain point]', 'The [number] secrets [audience] need to know about [topic]', '[Big result] in [timeframe]: A step-by-step guide'. Test CTAs: button copy, color, placement all affect conversion."}
+      ]
+    },
+    {
+      "name": "quality_evaluation",
+      "category": "core_intelligence",
+      "description": "Quality scoring system: accuracy, completeness, professionalism, creativity, technical correctness, usability.",
+      "default_use": "Before delivering any complex output — always score and validate",
+      "excerpts": [
+        {"path": "qa/scoring.md", "text": "Quality dimensions: Accuracy=20% (followed all instructions?), Completeness=15% (included everything required?), Visual Quality=20% (professionally produced?), Professionalism=15% (agency-level?), Creativity=10% (original/compelling?), Technical Correctness=10% (right format/dims/formulas?), Usability=10% (immediately usable?). TARGET: 85+ standard, 90+ for critical outputs. Below threshold: iterate."},
+        {"path": "qa/loop.md", "text": "Quality loop: GENERATE → INSPECT (does it meet every spec?) → COMPARE vs requirements → IDENTIFY gaps → FIX → REGENERATE → SCORE → if score<85: repeat. Never stop at first acceptable output. Best achievable, not first acceptable. Weak phrases that auto-fail: 'as an AI', 'I cannot', 'I apologize', 'Unfortunately I don't'. These are immediate professionalism failures."}
+      ]
+    },
+    {
+      "name": "luxury_brand_design",
+      "category": "design",
+      "description": "Luxury brand visual principles: restraint, white space, material quality, precision typography.",
+      "default_use": "High-end brand work, luxury products, premium positioning, automotive brands",
+      "excerpts": [
+        {"path": "luxury/visual.md", "text": "Luxury visual principles: Less is more (restraint signals confidence). Generous white space (breathing room = expensive). Premium materials shown (leather, carbon fiber, brushed metal, crystal). Precise typography — never mix more than 2 font families. Image quality must be flawless (8K, no artifacts). Luxury palettes: black+gold, navy+silver, burgundy+cream, all-white+single accent."},
+        {"path": "luxury/typography.md", "text": "Luxury typography: Heritage brands use serifs (Garamond, Didot, Bodoni — classical, timeless). Modern luxury uses refined sans-serif (Futura, Helvetica Neue, Akzidenz-Grotesk — clean, confident). Never use: Comic Sans, Papyrus, Impact, random display fonts. Typography destroys luxury perception faster than anything else — it's the single most important design decision."}
+      ]
+    },
+    {
+      "name": "data_visualization",
+      "category": "spreadsheets",
+      "description": "Chart selection, data labeling, color principles, and dashboard design for professional data presentation.",
+      "default_use": "Charts, dashboards, data analysis, financial reporting, KPI visualization",
+      "excerpts": [
+        {"path": "dataviz/chart_selection.md", "text": "Chart selection guide: Comparison=Bar/Column chart. Trend over time=Line chart. Part of whole=Pie (max 5 segments only) or Donut. Correlation=Scatter plot. Distribution=Histogram. Hierarchical=Treemap. Geographic=Map. Never use 3D charts (distort data perception). Always start Y-axis at zero (unless explicitly showing small variation). Sort bar charts by value, not alphabetically."},
+        {"path": "dataviz/design.md", "text": "Data visualization design: One chart title that states the insight ('Revenue grew 47% in Q3' not 'Revenue by Quarter'). Data labels on bars if fewer than 8 bars. Legend only if necessary — direct labels preferred. Color for meaning only: sequential (light=low, dark=high), diverging (blue=positive, red=negative), categorical (distinct hues, colorblind-safe). Gridlines: light grey, horizontal only."}
+      ]
+    }
+  ]
+}

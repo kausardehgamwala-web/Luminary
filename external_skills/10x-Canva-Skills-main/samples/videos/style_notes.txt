@@ -1,0 +1,54 @@
+# Video Design Style Preferences
+
+Add your video and animation preferences here.
+
+## General Style
+- Overall aesthetic: [modern/cinematic/playful/corporate]
+- Pacing: [fast/moderate/slow]
+- Mood: [energetic/calm/professional]
+
+## Visual Elements
+
+### Colors
+- Primary brand color: [hex code]
+- Text colors: [hex codes]
+- Background preference: [solid/gradient/video]
+
+### Typography
+- Font for titles: [font name]
+- Font for captions: [font name]
+- Text animation style: [fade/slide/pop/typewriter]
+
+### Transitions
+- Preferred transitions: [cut/fade/slide/zoom]
+- Transition speed: [fast/medium/slow]
+
+## Audio Preferences
+- Music style: [upbeat/ambient/corporate/none]
+- Music volume: [background/prominent]
+- Voiceover: [yes/no/sometimes]
+
+## Platform-Specific
+
+### Reels/TikTok
+- Typical duration: [e.g., 15-30 seconds]
+- Hook style: [text/visual/question]
+- CTA placement: [end/throughout]
+
+### Ads
+- Duration: [e.g., 15 seconds]
+- Format: [square/vertical/horizontal]
+- Key message timing: [front-loaded/end]
+
+### Intros/Outros
+- Duration: [e.g., 3-5 seconds]
+- Logo animation: [simple/elaborate]
+- Sound effect: [yes/no]
+
+## Animation Preferences
+- Element animations: [subtle/noticeable]
+- Text timing: [appear together/sequential]
+- Loop considerations: [seamless/distinct]
+
+---
+Add sample video frames/thumbnails to this folder for reference.

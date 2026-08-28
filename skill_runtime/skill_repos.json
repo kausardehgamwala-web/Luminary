@@ -1,0 +1,468 @@
+{
+  "clone_root": "work/skill_runtime/repos",
+  "index_output": "outputs/luminary_skill_context.json",
+  "repositories": [
+    {
+      "name": "marketingskills",
+      "url": "https://github.com/coreyhaines31/marketingskills.git",
+      "category": "marketing",
+      "trust": "review_required",
+      "default_use": "Use for campaign strategy, positioning, funnels, content planning, and growth questions."
+    },
+    {
+      "name": "docmd",
+      "url": "https://github.com/docmd-io/docmd.git",
+      "category": "documents",
+      "trust": "review_required",
+      "default_use": "Use for document creation workflows, document structure, and formatting guidance."
+    },
+    {
+      "name": "wondelai-skills",
+      "url": "https://github.com/wondelai/skills.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill."
+    },
+    {
+      "name": "one-skill-to-rule-them-all",
+      "url": "https://github.com/rebelytics/one-skill-to-rule-them-all.git",
+      "category": "meta_skills",
+      "trust": "review_required",
+      "default_use": "Use for skill-routing patterns only after audit."
+    },
+    {
+      "name": "SkillNet",
+      "url": "https://github.com/zjunlp/SkillNet.git",
+      "category": "research",
+      "trust": "review_required",
+      "default_use": "Use for skill taxonomy and research context only after audit."
+    },
+    {
+      "name": "aiden",
+      "url": "https://github.com/taracodlabs/aiden.git",
+      "category": "computer_access",
+      "trust": "restricted",
+      "default_use": "Do not execute. Use only for conceptual planning unless the user explicitly approves a specific non-destructive action."
+    },
+    {
+      "name": "Light-skills",
+      "url": "https://github.com/Light0305/Light-skills.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill."
+    },
+    {
+      "name": "Claude-Skills",
+      "url": "https://github.com/borghei/Claude-Skills.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill."
+    },
+    {
+      "name": "skills-marketplace",
+      "url": "https://github.com/aiskillstore/marketplace.git",
+      "category": "marketplace",
+      "trust": "review_required",
+      "default_use": "Use for skill discovery only after audit."
+    },
+    {
+      "name": "idea-validation-agents",
+      "url": "https://github.com/MaxKmet/idea-validation-agents.git",
+      "category": "business_validation",
+      "trust": "review_required",
+      "default_use": "Use for startup idea validation, market checks, and decision framing."
+    },
+    {
+      "name": "playwright-best-practices-skill",
+      "url": "https://github.com/currents-dev/playwright-best-practices-skill.git",
+      "category": "testing",
+      "trust": "review_required",
+      "default_use": "Use for browser testing strategy and Playwright best practices."
+    },
+    {
+      "name": "TRAE-Skills",
+      "url": "https://github.com/HighMark-31/TRAE-Skills.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill."
+    },
+    {
+      "name": "Mck-ppt-design-skill",
+      "url": "https://github.com/likaku/Mck-ppt-design-skill.git",
+      "category": "presentations",
+      "trust": "review_required",
+      "default_use": "Use for PowerPoint/storyline/layout guidance when the user asks for slides."
+    },
+    {
+      "name": "ai-research-skills",
+      "url": "https://github.com/WenyuChiou/ai-research-skills.git",
+      "category": "research",
+      "trust": "review_required",
+      "default_use": "Use for research workflows, synthesis, literature review, and evidence plans."
+    },
+    {
+      "name": "ai-research-os-workshop",
+      "url": "https://github.com/iusztinpaul/ai-research-os-workshop.git",
+      "category": "research",
+      "trust": "review_required",
+      "default_use": "Use for research operating-system patterns and reproducible research workflows."
+    },
+    {
+      "name": "openclaw-marketing-skills",
+      "url": "https://github.com/davidpc007/openclaw-marketing-skills.git",
+      "category": "marketing",
+      "trust": "review_required",
+      "default_use": "Use for marketing strategy, content, paid media, and growth workflow guidance."
+    },
+    {
+      "name": "clawfu-skills",
+      "url": "https://github.com/guia-matthieu/clawfu-skills.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill."
+    },
+    {
+      "name": "payloadcms-skills",
+      "url": "https://github.com/payloadcms/skills.git",
+      "category": "cms",
+      "trust": "review_required",
+      "default_use": "Use for Payload CMS implementation and content architecture tasks."
+    },
+    {
+      "name": "awesome-claude-corporate-skills",
+      "url": "https://github.com/w95/awesome-claude-corporate-skills.git",
+      "category": "corporate",
+      "trust": "review_required",
+      "default_use": "Use for corporate workflows, analysis frameworks, and business operations guidance."
+    },
+    {
+      "name": "generateblocks-skills",
+      "url": "https://github.com/wpgaurav/generateblocks-skills.git",
+      "category": "wordpress",
+      "trust": "review_required",
+      "default_use": "Use for WordPress GenerateBlocks and site-building tasks."
+    },
+    {
+      "name": "video-skills-toolkit",
+      "url": "https://github.com/bozhouDev/video-skills-toolkit.git",
+      "category": "video",
+      "trust": "review_required",
+      "default_use": "Use for video planning, editing workflows, captions, and production systems."
+    },
+    {
+      "name": "sales-skills",
+      "url": "https://github.com/sales-skills/sales.git",
+      "category": "sales",
+      "trust": "review_required",
+      "default_use": "Use for sales scripts, discovery calls, objection handling, and pipeline workflows."
+    },
+    {
+      "name": "claude-marketing",
+      "url": "https://github.com/thatrebeccarae/claude-marketing.git",
+      "category": "marketing",
+      "trust": "review_required",
+      "default_use": "Use for marketing copy, content systems, and campaign strategy after audit."
+    },
+    {
+      "name": "agent-skills",
+      "url": "https://github.com/dash0hq/agent-skills.git",
+      "category": "observability",
+      "trust": "review_required",
+      "default_use": "Use for observability, monitoring, agent diagnostics, and incident workflows."
+    },
+    {
+      "name": "kc_ai_skills",
+      "url": "https://github.com/KerberosClaw/kc_ai_skills.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill."
+    },
+    {
+      "name": "presidio",
+      "url": "https://github.com/microsoft/presidio.git",
+      "category": "privacy",
+      "trust": "high_value_review_required",
+      "default_use": "Use for PII detection, anonymization, redaction, masking, and privacy-preserving data handling guidance."
+    },
+    {
+      "name": "guardrails_pii",
+      "url": "https://github.com/guardrails-ai/guardrails_pii.git",
+      "category": "privacy",
+      "trust": "review_required",
+      "default_use": "Use for LLM output validation patterns that detect and anonymize personally identifiable information."
+    },
+    {
+      "name": "agentic-skills-top-10",
+      "url": "https://github.com/OWASP/www-project-agentic-skills-top-10.git",
+      "category": "skill_security",
+      "trust": "high_value_review_required",
+      "default_use": "Use for auditing external AI skills, identifying malicious skill patterns, and enforcing safe agent behavior."
+    },
+    {
+      "name": "OpenDocuments",
+      "url": "https://github.com/joungminsung/OpenDocuments.git",
+      "category": "knowledge_base",
+      "trust": "review_required",
+      "default_use": "Use for self-hosted RAG, document search, company knowledge bases, local files, Ollama-compatible retrieval, and cited answers."
+    },
+    {
+      "name": "chroma",
+      "url": "https://github.com/chroma-core/chroma.git",
+      "category": "vector_search",
+      "trust": "high_value_review_required",
+      "default_use": "Use for embeddings, vector storage, semantic retrieval, and scaling the skill library search layer."
+    },
+    {
+      "name": "rag-web-ui",
+      "url": "https://github.com/rag-web-ui/rag-web-ui.git",
+      "category": "citations",
+      "trust": "review_required",
+      "default_use": "Use for RAG architecture patterns, source metadata, answer citations, and citation rendering in a web interface."
+    },
+    {
+      "name": "FlashRAG",
+      "url": "https://github.com/RUC-NLPIR/FlashRAG.git",
+      "category": "retrieval",
+      "trust": "review_required",
+      "default_use": "Use for retrieval-augmented generation workflows, retriever/generator separation, and larger-scale RAG experiments."
+    },
+    {
+      "name": "youtube-shorts-pipeline",
+      "url": "https://github.com/rushindrasinha/youtube-shorts-pipeline.git",
+      "category": "youtube",
+      "trust": "review_required",
+      "default_use": "Use for YouTube Shorts ideation, production pipelines, clipping workflows, publishing systems, and short-form channel operations."
+    },
+    {
+      "name": "ai-creator-academy",
+      "url": "https://github.com/Anil-matcha/ai-creator-academy.git",
+      "category": "creator_education",
+      "trust": "review_required",
+      "default_use": "Use for creator training, content systems, audience growth education, and AI creator workflows."
+    },
+    {
+      "name": "nano-banana-pro-prompts-recommend-skill",
+      "url": "https://github.com/YouMind-OpenLab/nano-banana-pro-prompts-recommend-skill.git",
+      "category": "prompting",
+      "trust": "review_required",
+      "default_use": "Use for prompt recommendation, prompt interpretation, and image/content prompt improvement workflows."
+    },
+    {
+      "name": "claude-blog",
+      "url": "https://github.com/AgriciDaniel/claude-blog.git",
+      "category": "blog_writing",
+      "trust": "review_required",
+      "default_use": "Use as a priority blog writing skill for outlines, SEO blog drafts, editorial structure, revision, and publishing-ready articles."
+    },
+    {
+      "name": "lime",
+      "url": "https://github.com/limecloud/lime.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill or workflow."
+    },
+    {
+      "name": "smart-illustrator",
+      "url": "https://github.com/axtonliu/smart-illustrator.git",
+      "category": "illustration",
+      "trust": "review_required",
+      "default_use": "Use for illustration planning, visual asset workflows, and creative image direction."
+    },
+    {
+      "name": "newtype-os",
+      "url": "https://github.com/newtype-01/newtype-os.git",
+      "category": "agent_os",
+      "trust": "restricted",
+      "default_use": "Use only for conceptual agent operating-system patterns. Do not execute automation or computer-control actions without explicit approval."
+    },
+    {
+      "name": "linkedin-skills",
+      "url": "https://github.com/sergebulaev/linkedin-skills.git",
+      "category": "linkedin",
+      "trust": "review_required",
+      "default_use": "Use for LinkedIn profile, content, outreach, thought leadership, and channel audit workflows."
+    },
+    {
+      "name": "social-media-skills",
+      "url": "https://github.com/blacktwist/social-media-skills.git",
+      "category": "social_media",
+      "trust": "review_required",
+      "default_use": "Use for social media strategy, content calendars, posting systems, and channel audits."
+    },
+    {
+      "name": "Nomi",
+      "url": "https://github.com/aqm857886159/Nomi.git",
+      "category": "general",
+      "trust": "review_required",
+      "default_use": "Use only after indexing reveals a relevant safe skill or workflow."
+    },
+    {
+      "name": "self-media-content-workflow",
+      "url": "https://github.com/yanhua1010/self-media-content-workflow.git",
+      "category": "content_workflow",
+      "trust": "review_required",
+      "default_use": "Use for self-media planning, creator publishing workflows, repurposing, and repeatable content operations."
+    },
+    {
+      "name": "claude-youtube",
+      "url": "https://github.com/AgriciDaniel/claude-youtube.git",
+      "category": "youtube",
+      "trust": "review_required",
+      "default_use": "Use for YouTube video planning, scripts, titles, descriptions, thumbnails, SEO, and channel audits."
+    },
+    {
+      "name": "content-pipeline",
+      "url": "https://github.com/OrangeViolin/content-pipeline.git",
+      "category": "content_workflow",
+      "trust": "review_required",
+      "default_use": "Use for end-to-end content pipelines, briefing, drafting, repurposing, publishing, and performance loops."
+    },
+    {
+      "name": "timeline-studio",
+      "url": "https://github.com/chatman-media/timeline-studio.git",
+      "category": "video",
+      "trust": "review_required",
+      "default_use": "Use for video timeline workflows, editing systems, media planning, and production operations."
+    },
+    {
+      "name": "awesome-chatgpt-content-creation-prompts",
+      "url": "https://github.com/aminblm/awesome-chatgpt-content-creation-prompts.git",
+      "category": "prompting",
+      "trust": "review_required",
+      "default_use": "Use for content creation prompts, prompt inspiration, and prompt execution patterns."
+    },
+    {
+      "name": "YiShu-Workbench",
+      "url": "https://github.com/YiShu5/YiShu-Workbench.git",
+      "category": "creator_workbench",
+      "trust": "review_required",
+      "default_use": "Use for creator workbench workflows after audit and indexing."
+    },
+    {
+      "name": "powerpoint-skill",
+      "url": "https://github.com/Noi1r/powerpoint-skill.git",
+      "category": "presentations",
+      "trust": "high_value_review_required",
+      "default_use": "Use for creating, reviewing, validating, and visually auditing editable PowerPoint decks from structured material."
+    },
+    {
+      "name": "presentation-skill",
+      "url": "https://github.com/sirilsengolraj-source/presentation-skill.git",
+      "category": "presentations",
+      "trust": "high_value_review_required",
+      "default_use": "Use for Codex-style presentation generation, deck workspaces, PowerPoint editing, and layout QA."
+    },
+    {
+      "name": "seo-audit-skill",
+      "url": "https://github.com/seo-skills/seo-audit-skill.git",
+      "category": "site_audit",
+      "trust": "high_value_review_required",
+      "default_use": "Use for website audits, SEO diagnostics, Core Web Vitals, structured data, accessibility, security headers, and HTML reports."
+    },
+    {
+      "name": "Agentic-SEO-Skill",
+      "url": "https://github.com/Bhanunamikaze/Agentic-SEO-Skill.git",
+      "category": "site_audit",
+      "trust": "review_required",
+      "default_use": "Use for LLM-first SEO, AI search readiness, content audits, schema checks, and evidence-backed action plans."
+    },
+    {
+      "name": "sciwrite",
+      "url": "https://github.com/labarba/sciwrite.git",
+      "category": "report_writing",
+      "trust": "review_required",
+      "default_use": "Use for manuscript, report, and scientific writing quality review based on structured writing methodology."
+    },
+    {
+      "name": "ai-research-skill",
+      "url": "https://github.com/toadoum/ai-research-skill.git",
+      "category": "research",
+      "trust": "review_required",
+      "default_use": "Use for research generation, hypothesis framing, literature review, experiment planning, and evidence-backed writing."
+    },
+    {
+      "name": "agent-skills-datalayer",
+      "url": "https://github.com/datalayer/agent-skills.git",
+      "category": "skill_runtime",
+      "trust": "review_required",
+      "default_use": "Use for reusable code-based tool compositions, CSV analysis patterns, and searchable skill directory design."
+    },
+    {
+      "name": "jwynia-agent-skills",
+      "url": "https://github.com/jwynia/agent-skills.git",
+      "category": "documents",
+      "trust": "review_required",
+      "default_use": "Use for DOCX generation, template population, document automation, and file conversion skill patterns."
+    },
+    {
+      "name": "openclaw-skills",
+      "url": "https://github.com/openclaw/skills.git",
+      "category": "spreadsheets",
+      "trust": "review_required",
+      "default_use": "Use for data analyst, spreadsheet automation, report generation, visualizations, and structured data workflows."
+    },
+    {
+      "name": "NVIDIA-skills",
+      "url": "https://github.com/NVIDIA/skills.git",
+      "category": "verified_skills",
+      "trust": "high_value_review_required",
+      "default_use": "Use as a reference for signed, governed, verified agent skill structure and security review patterns."
+    },
+    {
+      "name": "mem0",
+      "url": "https://github.com/mem0ai/mem0.git",
+      "category": "memory",
+      "trust": "high_value_review_required",
+      "default_use": "Use for long-term AI memory architecture, user/session memory, chat recall, personalized agent context, and future backend memory integration."
+    },
+    {
+      "name": "higgsfield-skills",
+      "url": "https://github.com/higgsfield-ai/skills.git",
+      "category": "image_video_generation",
+      "trust": "review_required",
+      "default_use": "Use for image and video generation workflows, product photoshoots, marketplace cards, ad creative, branded campaigns, Soul ID identity consistency, and prompt enhancement."
+    },
+    {
+      "name": "diffusers",
+      "url": "https://github.com/huggingface/diffusers.git",
+      "category": "local_image_generation",
+      "trust": "high_value_review_required",
+      "default_use": "Use for local Stable Diffusion pipelines, CPU and GPU image generation, schedulers, image-to-image, and model-loading patterns."
+    },
+    {
+      "name": "stable-diffusion-webui",
+      "url": "https://github.com/AUTOMATIC1111/stable-diffusion-webui.git",
+      "category": "local_image_generation",
+      "trust": "review_required",
+      "default_use": "Use for local Stable Diffusion WebUI and API patterns, especially txt2img and img2img if the user starts the WebUI server."
+    },
+    {
+      "name": "ComfyUI",
+      "url": "https://github.com/comfyanonymous/ComfyUI.git",
+      "category": "image_workflows",
+      "trust": "review_required",
+      "default_use": "Use for node-based image generation workflows, visual pipelines, and advanced Stable Diffusion production graphs."
+    },
+    {
+      "name": "Promptist",
+      "url": "https://github.com/microsoft/Promptist.git",
+      "category": "prompt_optimization",
+      "trust": "review_required",
+      "default_use": "Use for text-to-image prompt optimization patterns and prompt enhancement guidance."
+    },
+    {
+      "name": "awesome-ai-art-image-synthesis",
+      "url": "https://github.com/altryne/awesome-ai-art-image-synthesis.git",
+      "category": "image_skill_discovery",
+      "trust": "review_required",
+      "default_use": "Use for discovering image-generation tools, creative workflows, and prompt resources."
+    },
+    {
+      "name": "stable-diffusion-prompt-reader",
+      "url": "https://github.com/receyuki/stable-diffusion-prompt-reader.git",
+      "category": "image_metadata",
+      "trust": "review_required",
+      "default_use": "Use for reading Stable Diffusion prompt metadata from generated images and preserving prompt provenance."
+    }
+  ]
+}

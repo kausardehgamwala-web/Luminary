@@ -1,0 +1,44 @@
+# Image Design Style Preferences
+
+Add your personal style preferences here. The AI will use these notes
+when generating or editing image designs for you.
+
+## General Style
+- [Describe your overall design aesthetic: minimal, bold, colorful, etc.]
+- [Preferred layout styles]
+- [Use of whitespace]
+
+## Colors
+- Primary color: [e.g., #2E86AB]
+- Secondary color: [e.g., #F4D35E]
+- Accent color: [e.g., #EE6352]
+- Background preference: [light/dark/colorful]
+
+## Typography
+- Heading font: [e.g., Montserrat Bold]
+- Body font: [e.g., Open Sans Regular]
+- Preferred case: [uppercase/sentence/lowercase]
+- Maximum fonts per design: [e.g., 2]
+
+## Images & Graphics
+- Photo style: [lifestyle/product/abstract]
+- Illustration use: [yes/no/sometimes]
+- Icon style: [line/filled/colorful]
+- Filter preferences: [none/specific filters]
+
+## Platform-Specific Notes
+
+### Instagram Posts
+- [Your Instagram post style notes]
+
+### Instagram Stories
+- [Your Instagram story style notes]
+
+### Facebook Posts
+- [Your Facebook post style notes]
+
+### LinkedIn Posts
+- [Your LinkedIn post style notes]
+
+---
+Add sample images to this folder and subfolders for reference.

@@ -1,0 +1,102 @@
+{
+  "brand_name": "Your Brand Name",
+  "tagline": "Your Tagline Here",
+
+  "colors": {
+    "primary": "#2E86AB",
+    "secondary": "#F4D35E",
+    "accent": "#EE6352",
+    "background": {
+      "light": "#FFFFFF",
+      "dark": "#1A1A1A"
+    },
+    "text": {
+      "primary": "#1A1A1A",
+      "secondary": "#666666",
+      "light": "#FFFFFF"
+    },
+    "status": {
+      "success": "#28A745",
+      "warning": "#FFC107",
+      "error": "#DC3545",
+      "info": "#17A2B8"
+    }
+  },
+
+  "typography": {
+    "heading": {
+      "family": "Montserrat",
+      "weights": ["Bold", "SemiBold"],
+      "sizes": {
+        "h1": 48,
+        "h2": 36,
+        "h3": 24,
+        "h4": 20
+      }
+    },
+    "body": {
+      "family": "Open Sans",
+      "weights": ["Regular", "Medium"],
+      "sizes": {
+        "large": 18,
+        "regular": 16,
+        "small": 14,
+        "caption": 12
+      },
+      "line_height": 1.5
+    },
+    "accent": {
+      "family": "Playfair Display",
+      "weights": ["Italic"],
+      "use_cases": ["quotes", "emphasis"]
+    }
+  },
+
+  "logos": {
+    "primary": "logos/primary.png",
+    "secondary": "logos/secondary.png",
+    "icon": "logos/icon.png",
+    "monochrome": {
+      "black": "logos/logo-black.png",
+      "white": "logos/logo-white.png"
+    }
+  },
+
+  "voice": {
+    "tone": "professional yet approachable",
+    "personality": ["innovative", "trustworthy", "friendly"],
+    "avoid": ["jargon", "overly casual", "negative language"],
+    "emoji_usage": "moderate"
+  },
+
+  "social_media": {
+    "instagram": {
+      "hashtags": ["#YourBrand", "#YourIndustry", "#YourNiche"],
+      "posting_style": "visual-first with concise captions",
+      "emoji_style": "selective, relevant"
+    },
+    "linkedin": {
+      "tone": "professional",
+      "content_focus": "thought leadership, industry insights"
+    },
+    "twitter": {
+      "tone": "conversational",
+      "hashtag_limit": 2
+    }
+  },
+
+  "design_rules": {
+    "minimum_logo_clearance": "20px",
+    "image_corner_radius": "8px",
+    "shadow_style": "subtle drop shadow",
+    "border_usage": "minimal"
+  },
+
+  "dont_do": [
+    "Use colors outside the brand palette",
+    "Stretch or distort the logo",
+    "Use more than 2 fonts in a single design",
+    "Place text on busy backgrounds without overlay",
+    "Use low-resolution images"
+  ]
+}
