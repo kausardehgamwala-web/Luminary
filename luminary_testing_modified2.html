@@ -337,6 +337,39 @@
       stroke: rgba(0, 0, 0, 0.2) !important;
     }
 
+
+    /* Hero Greeting Transition Out & Chat Feed Expansion */
+    .workspace-head {
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), margin 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      max-height: 200px;
+      overflow: hidden;
+    }
+    .workspace-head.transition-out,
+    .workspace-head.hidden {
+      opacity: 0 !important;
+      transform: translateY(-30px) scale(0.95) !important;
+      max-height: 0px !important;
+      margin: 0px !important;
+      padding: 0px !important;
+      pointer-events: none !important;
+    }
+    .chat-stage {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      transition: padding var(--transition), height var(--transition);
+    }
+    .chat-feed {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      transition: all var(--transition);
+    }
+
 </style>');
         }
       } catch(e){}
@@ -4744,6 +4777,39 @@ body.light-mode .history-item.active {
       stroke: rgba(0, 0, 0, 0.2) !important;
     }
 
+
+    /* Hero Greeting Transition Out & Chat Feed Expansion */
+    .workspace-head {
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), margin 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      max-height: 200px;
+      overflow: hidden;
+    }
+    .workspace-head.transition-out,
+    .workspace-head.hidden {
+      opacity: 0 !important;
+      transform: translateY(-30px) scale(0.95) !important;
+      max-height: 0px !important;
+      margin: 0px !important;
+      padding: 0px !important;
+      pointer-events: none !important;
+    }
+    .chat-stage {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      transition: padding var(--transition), height var(--transition);
+    }
+    .chat-feed {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      transition: all var(--transition);
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -6603,6 +6669,39 @@ body.light-mode .history-item.active {
       stroke: rgba(0, 0, 0, 0.2) !important;
     }
 
+
+    /* Hero Greeting Transition Out & Chat Feed Expansion */
+    .workspace-head {
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), margin 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      max-height: 200px;
+      overflow: hidden;
+    }
+    .workspace-head.transition-out,
+    .workspace-head.hidden {
+      opacity: 0 !important;
+      transform: translateY(-30px) scale(0.95) !important;
+      max-height: 0px !important;
+      margin: 0px !important;
+      padding: 0px !important;
+      pointer-events: none !important;
+    }
+    .chat-stage {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      transition: padding var(--transition), height var(--transition);
+    }
+    .chat-feed {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      transition: all var(--transition);
+    }
+
 </style>
 
 
@@ -8019,6 +8118,9 @@ body.light-mode .history-item.active {
         if (elements.chatFeed) elements.chatFeed.innerHTML = "";
         return;
       }
+      if (chat.messages && chat.messages.length > 0) {
+        if (typeof window.hideHeroGreeting === 'function') window.hideHeroGreeting();
+      }
       if (!chat.messages || !chat.messages.length) {
         if (elements.chatFeed) elements.chatFeed.innerHTML = "";
       } else {
@@ -8302,7 +8404,6 @@ body.light-mode .history-item.active {
       const head = document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
       if (head && !head.classList.contains("transition-out")) {
         head.classList.add("transition-out");
-        head.style.transition = "opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease";
         head.style.opacity = "0";
         head.style.transform = "translateY(-30px) scale(0.95)";
         head.style.maxHeight = "0px";
@@ -8312,6 +8413,19 @@ body.light-mode .history-item.active {
           head.classList.add("hidden");
           head.style.display = "none";
         }, 400);
+      }
+    };
+
+    window.showHeroGreeting = function() {
+      const head = document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
+      if (head) {
+        head.classList.remove("transition-out", "hidden");
+        head.style.display = "block";
+        head.style.opacity = "1";
+        head.style.transform = "translateY(0) scale(1)";
+        head.style.maxHeight = "200px";
+        head.style.margin = "-10px 0 0 0";
+        head.style.padding = "0px";
       }
     };
 
