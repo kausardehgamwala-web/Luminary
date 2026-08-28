@@ -110,6 +110,29 @@ def discover_ollama_model():
     return os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
 
 MODEL_NAME = discover_ollama_model()
+
+def discover_all_ollama_models() -> list:
+    try:
+        req = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return [m.get("name", "") for m in data.get("models", [])]
+    except Exception:
+        return []
+
+def route_model(task_type: str, available_models: list) -> str:
+    if not available_models:
+        return MODEL_NAME
+    if task_type == "coding":
+        for m in available_models:
+            if "coder" in m or "code" in m:
+                return m
+    elif task_type == "reasoning":
+        for m in available_models:
+            if any(k in m for k in ["llama3", "mistral", "qwen", "phi3"]):
+                return m
+    return available_models[0] if available_models else MODEL_NAME
+
 APP_ROOT = Path(__file__).resolve().parent
 APP_FILE = APP_ROOT / "luminary.html"
 
