@@ -177,6 +177,121 @@
       stroke: var(--orange) !important;
     }
 
+
+    .pinned-asset-chip,
+    .pinned-asset-chip *,
+    body.light-mode .pinned-asset-chip,
+    body.light-mode .pinned-asset-chip * {
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+    }
+
+
+    #calYearDropdown {
+      display: none;
+      position: absolute;
+      top: 42px;
+      left: 0;
+      width: 110px;
+      max-height: 180px;
+      overflow-y: auto;
+      background: #111015 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px;
+      z-index: 9999 !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      padding: 4px;
+    }
+    body.light-mode #calYearDropdown {
+      background: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      box-shadow: 0 8px 24px rgba(255,85,0,0.15);
+    }
+    .year-opt {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .year-opt:hover,
+    .year-opt.active {
+      background: var(--orange) !important;
+      color: #ffffff !important;
+    }
+    body.light-mode .year-opt {
+      color: #1a1a1a !important;
+    }
+    body.light-mode .year-opt:hover,
+    body.light-mode .year-opt.active {
+      background: var(--orange) !important;
+      color: #ffffff !important;
+    }
+
+
+    /* Analytics Select Dropdowns */
+    .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #000000 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+    .analytics-select option {
+      background: #111015 !important;
+      color: #ffffff !important;
+    }
+    body.light-mode .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+    body.light-mode .analytics-select option {
+      background: #ffffff !important;
+      color: #1a1a1a !important;
+    }
+
+
+    .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; border-color: #2b579a !important; font-weight: 700; }
+    .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; border-color: #217346 !important; font-weight: 700; }
+    .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; border-color: #d24726 !important; font-weight: 700; }
+    .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; border-color: #e5a000 !important; font-weight: 700; }
+    .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; border-color: #8e44ad !important; font-weight: 700; }
+    .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; border-color: #e60023 !important; font-weight: 700; }
+    .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; border: none !important; font-weight: 700; }
+    .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; border-color: #16a085 !important; font-weight: 700; }
+
+    body.light-mode .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; }
+
+
+    body.light-mode #analyticsSvg text {
+      fill: #1a1a1a !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode #analyticsSvg line {
+      stroke: rgba(0, 0, 0, 0.22) !important;
+    }
+
 </style>');
         }
       } catch(e){}
@@ -4424,6 +4539,121 @@ body.light-mode .history-item.active {
       stroke: var(--orange) !important;
     }
 
+
+    .pinned-asset-chip,
+    .pinned-asset-chip *,
+    body.light-mode .pinned-asset-chip,
+    body.light-mode .pinned-asset-chip * {
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+    }
+
+
+    #calYearDropdown {
+      display: none;
+      position: absolute;
+      top: 42px;
+      left: 0;
+      width: 110px;
+      max-height: 180px;
+      overflow-y: auto;
+      background: #111015 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px;
+      z-index: 9999 !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      padding: 4px;
+    }
+    body.light-mode #calYearDropdown {
+      background: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      box-shadow: 0 8px 24px rgba(255,85,0,0.15);
+    }
+    .year-opt {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .year-opt:hover,
+    .year-opt.active {
+      background: var(--orange) !important;
+      color: #ffffff !important;
+    }
+    body.light-mode .year-opt {
+      color: #1a1a1a !important;
+    }
+    body.light-mode .year-opt:hover,
+    body.light-mode .year-opt.active {
+      background: var(--orange) !important;
+      color: #ffffff !important;
+    }
+
+
+    /* Analytics Select Dropdowns */
+    .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #000000 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+    .analytics-select option {
+      background: #111015 !important;
+      color: #ffffff !important;
+    }
+    body.light-mode .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+    body.light-mode .analytics-select option {
+      background: #ffffff !important;
+      color: #1a1a1a !important;
+    }
+
+
+    .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; border-color: #2b579a !important; font-weight: 700; }
+    .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; border-color: #217346 !important; font-weight: 700; }
+    .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; border-color: #d24726 !important; font-weight: 700; }
+    .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; border-color: #e5a000 !important; font-weight: 700; }
+    .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; border-color: #8e44ad !important; font-weight: 700; }
+    .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; border-color: #e60023 !important; font-weight: 700; }
+    .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; border: none !important; font-weight: 700; }
+    .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; border-color: #16a085 !important; font-weight: 700; }
+
+    body.light-mode .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; }
+
+
+    body.light-mode #analyticsSvg text {
+      fill: #1a1a1a !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode #analyticsSvg line {
+      stroke: rgba(0, 0, 0, 0.22) !important;
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -4839,8 +5069,8 @@ body.light-mode .history-item.active {
         const tickVal = Math.round((maxVal / yTicks) * i);
         const tickY = getY(tickVal);
         svgContent += `
-          <line x1="${padLeft}" y1="${tickY}" x2="${svgW - padRight}" y2="${tickY}" stroke="rgba(255,255,255,0.12)" stroke-dasharray="5 5" stroke-width="1.2" />
-          <text x="${padLeft - 14}" y="${tickY + 4}" fill="rgba(255,255,255,0.65)" font-size="12" font-weight="600" font-family="'Outfit',sans-serif" text-anchor="end">${tickVal.toLocaleString()}</text>
+          <line x1="${padLeft}" y1="${tickY}" x2="${svgW - padRight}" y2="${tickY}" stroke="${isLight ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.12)"}" stroke-dasharray="5 5" stroke-width="1.2" />
+          <text x="${padLeft - 14}" y="${tickY + 4}" fill="${isLight ? "#1a1a1a" : "rgba(255,255,255,0.75)"}" font-size="12" font-weight="600" font-family="'Outfit',sans-serif" text-anchor="end">${tickVal.toLocaleString()}</text>
         `;
       }
 
@@ -4858,8 +5088,8 @@ body.light-mode .history-item.active {
           }
         }
         svgContent += `
-          <line x1="${xPos}" y1="${padTop + chartH}" x2="${xPos}" y2="${padTop + chartH + 8}" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" />
-          <text x="${xPos}" y="${padTop + chartH + 24}" fill="rgba(255,255,255,0.7)" font-size="12" font-weight="600" font-family="'Outfit',sans-serif" text-anchor="middle">${displayDate}</text>
+          <line x1="${xPos}" y1="${padTop + chartH}" x2="${xPos}" y2="${padTop + chartH + 8}" stroke="${isLight ? "rgba(0,0,0,0.25)" : "rgba(255,255,255,0.25)"}" stroke-width="1.5" />
+          <text x="${xPos}" y="${padTop + chartH + 24}" fill="${isLight ? "#1a1a1a" : "rgba(255,255,255,0.75)"}" font-size="12" font-weight="600" font-family="'Outfit',sans-serif" text-anchor="middle">${displayDate}</text>
         `;
       }
 
@@ -6121,6 +6351,121 @@ body.light-mode .history-item.active {
     body.light-mode .msg-action-btn.active svg {
       fill: var(--orange) !important;
       stroke: var(--orange) !important;
+    }
+
+
+    .pinned-asset-chip,
+    .pinned-asset-chip *,
+    body.light-mode .pinned-asset-chip,
+    body.light-mode .pinned-asset-chip * {
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+    }
+
+
+    #calYearDropdown {
+      display: none;
+      position: absolute;
+      top: 42px;
+      left: 0;
+      width: 110px;
+      max-height: 180px;
+      overflow-y: auto;
+      background: #111015 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px;
+      z-index: 9999 !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      padding: 4px;
+    }
+    body.light-mode #calYearDropdown {
+      background: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      box-shadow: 0 8px 24px rgba(255,85,0,0.15);
+    }
+    .year-opt {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .year-opt:hover,
+    .year-opt.active {
+      background: var(--orange) !important;
+      color: #ffffff !important;
+    }
+    body.light-mode .year-opt {
+      color: #1a1a1a !important;
+    }
+    body.light-mode .year-opt:hover,
+    body.light-mode .year-opt.active {
+      background: var(--orange) !important;
+      color: #ffffff !important;
+    }
+
+
+    /* Analytics Select Dropdowns */
+    .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #000000 !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+    .analytics-select option {
+      background: #111015 !important;
+      color: #ffffff !important;
+    }
+    body.light-mode .analytics-select {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: 1px solid var(--orange) !important;
+      border-radius: 10px !important;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+    body.light-mode .analytics-select option {
+      background: #ffffff !important;
+      color: #1a1a1a !important;
+    }
+
+
+    .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; border-color: #2b579a !important; font-weight: 700; }
+    .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; border-color: #217346 !important; font-weight: 700; }
+    .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; border-color: #d24726 !important; font-weight: 700; }
+    .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; border-color: #e5a000 !important; font-weight: 700; }
+    .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; border-color: #8e44ad !important; font-weight: 700; }
+    .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; border-color: #e60023 !important; font-weight: 700; }
+    .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; border: none !important; font-weight: 700; }
+    .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; border-color: #16a085 !important; font-weight: 700; }
+
+    body.light-mode .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; }
+    body.light-mode .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; }
+
+
+    body.light-mode #analyticsSvg text {
+      fill: #1a1a1a !important;
+      font-weight: 700 !important;
+    }
+    body.light-mode #analyticsSvg line {
+      stroke: rgba(0, 0, 0, 0.22) !important;
     }
 
 </style>
@@ -7583,7 +7928,7 @@ body.light-mode .history-item.active {
                   let upActive = message.feedback === "positive" ? "active" : "";
                   let downActive = message.feedback === "negative" ? "active" : "";
                   actionsHtml = `
-                    <div class="msg-actions">
+                    <div class="msg-actions" style="display:flex; align-items:center; gap:8px;">
                       <button class="msg-action-btn" title="Reply" onclick="setReplyTo('${escapeHtml(message.text.slice(0,60))}...')">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
                       </button>
@@ -7593,6 +7938,7 @@ body.light-mode .history-item.active {
                       <button class="msg-action-btn ${downActive}" title="Not Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'negative')">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
                       </button>
+                      <span style="font-size:0.75rem; color:var(--muted); font-weight:600; margin-left:4px;">${tTaken}</span>
                     </div>
                   `;
               }
@@ -7715,7 +8061,7 @@ body.light-mode .history-item.active {
         return;
       }
       container.innerHTML = state.pinnedAssets.map((asset, idx) => `
-        <span class="pinned-asset-chip" style="display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:8px; background:rgba(255,85,0,0.15); border:1px solid rgba(255,85,0,0.35); color:var(--orange); font-size:0.75rem; font-weight:700; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        <span class="pinned-asset-chip" style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:8px; background:var(--orange) !important; background-color:#ff5500 !important; border:1px solid var(--orange) !important; color:#ffffff !important; font-size:0.78rem; font-weight:700; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:0 3px 10px var(--orange-glow);">
           <i class="fa-solid fa-thumbtack" style="font-size:0.7rem;"></i>
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(asset.name)}</span>
           <button type="button" onclick="unpinAsset(${idx})" style="background:none; border:none; color:inherit; cursor:pointer; padding:0 2px; font-weight:bold; font-size:0.85rem; line-height:1;">&times;</button>
