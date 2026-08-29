@@ -114,9 +114,13 @@ def parse_prompt_specs(prompt: str) -> dict:
             specs["output_type"] = "text"
 
     # ── Resolution & Platform default mapping ──────────────────────────────────
-    explicit = re.search(r'(\d{3,4})\s*[x×]\s*(\d{3,4})', p, re.IGNORECASE)
+    explicit = re.search(r'(\d{2,5})\s*[x×]\s*(\d{2,5})', p, re.IGNORECASE)
     if explicit:
-        specs["resolution"] = (int(explicit.group(1)), int(explicit.group(2)))
+        raw_w, raw_h = int(explicit.group(1)), int(explicit.group(2))
+        # Clamp to safe bounds [256, 2048] to prevent memory exhaustion / DoS
+        clamped_w = max(256, min(raw_w, 2048))
+        clamped_h = max(256, min(raw_h, 2048))
+        specs["resolution"] = (clamped_w, clamped_h)
     else:
         resolved = False
         for key, dims in RESOLUTION_MAP.items():

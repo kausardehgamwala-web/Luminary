@@ -15,7 +15,11 @@ import json
 import os
 import re
 import urllib.request
+import logging
 from pathlib import Path
+
+logger = logging.getLogger("luminary_qc")
+
 
 # QC Evaluation Result
 class QCResult:
@@ -170,9 +174,9 @@ def _call_gpt_oss_qc(prompt: str, inspection_summary: dict, output_snippet: str,
             try:
                 with open(asset_filepath, "rb") as image_file:
                     images_payload.append(base64.b64encode(image_file.read()).decode("utf-8"))
-                    print(f"[QC Vision] Loaded {os.path.basename(asset_filepath)} as base64 for multimodal inspection.")
+                    logger.info(f"[QC Vision] Loaded {os.path.basename(asset_filepath)} as base64 for multimodal inspection.")
             except Exception as e:
-                print(f"[QC Vision] Failed to load image as base64: {e}")
+                logger.warning(f"[QC Vision] Failed to load image as base64: {e}")
 
     eval_prompt = f"""You are Qwen3-VL-4B-Instruct, Luminary AI's Quality Control and Work Verification Vision AI.
  
@@ -232,7 +236,7 @@ def _call_gpt_oss_qc(prompt: str, inspection_summary: dict, output_snippet: str,
                     details=inspection_summary
                 )
     except Exception as e:
-        print(f"[QC Engine] Vision model request failed: {e}")
+        logger.warning(f"[QC Engine] Vision model request failed: {e}")
         # Do NOT fall through to _rule_based_qc which returns PASS/95 by default.
         # Return an explicit QC_UNAVAILABLE so callers know QC did not run —
         # deliverables must NOT be stamped as passing when the QC engine is offline.
@@ -280,15 +284,34 @@ def _rule_based_qc(prompt: str, inspection: dict) -> QCResult:
             )
 
     # Check PPTX empty file check
-    if inspection.get("slide_count", 0) == 0 and ("presentation" in prompt_lower or "deck" in prompt_lower or "ppt" in prompt_lower):
-        if "file_size" in inspection and inspection["file_size"] < 5000:
-            return QCResult(
-                status="REJECT",
-                score=20,
-                issues=["PowerPoint file is corrupted or empty."],
-                fix_instructions="Regenerate presentation file completely.",
-                details=inspection
-            )
+    if inspection.get("slide_count") == 0 and ("presentation" in prompt_lower or "deck" in prompt_lower or "ppt" in prompt_lower or "slide" in prompt_lower):
+        return QCResult(
+            status="REJECT",
+            score=20,
+            issues=["PowerPoint presentation is empty (0 slides found)."],
+            fix_instructions="Regenerate presentation file with complete slide markdown content.",
+            details=inspection
+        )
+
+    # Check DOCX empty document check
+    if inspection.get("word_count") == 0 and ("document" in prompt_lower or "article" in prompt_lower or "doc" in prompt_lower or "report" in prompt_lower or "brief" in prompt_lower):
+        return QCResult(
+            status="REJECT",
+            score=20,
+            issues=["Document is empty (0 words found)."],
+            fix_instructions="Regenerate document file with complete structured content.",
+            details=inspection
+        )
+
+    # Check XLSX validity
+    if inspection.get("valid") is False:
+        return QCResult(
+            status="REJECT",
+            score=20,
+            issues=["Spreadsheet file is corrupted or contains formula errors."],
+            fix_instructions="Regenerate spreadsheet with valid row/column data and verified formulas.",
+            details=inspection
+        )
 
     return QCResult(status="PASS", score=95, details=inspection)
 

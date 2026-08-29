@@ -124,14 +124,31 @@ BRAND_PALETTES = {
 
 # ─── PPTX Generation ──────────────────────────────────────────────────────────
 
-def generate_pptx(markdown_text: str, output_path: str, prompt: str = "") -> str:
+def _resolve_color_suite(cs) -> dict:
+    if isinstance(cs, dict):
+        return cs
+    if isinstance(cs, str):
+        try:
+            import luminary_design_systems as lds
+            if cs in lds.COLOR_SUITE:
+                return lds.COLOR_SUITE[cs]
+        except Exception:
+            pass
+    return {
+        "primary": "#1E293B",
+        "secondary": "#334155",
+        "accent": "#FF5500",
+        "bg": "#08070B",
+        "text": "#FAF8F5"
+    }
+
+
+def generate_pptx(markdown_text: str, output_path: str, prompt: str = None) -> str:
     """
-    Generates a professional agency-grade PowerPoint presentation.
-    Features: brand theming, gradient-ready slides, speaker notes,
-              bullet hierarchy, slide numbering, decorative elements.
+    Parses structured Markdown into a high-converting agency PPTX presentation.
     """
     prs = Presentation()
-    prs.slide_width = Inches(13.33)   # 16:9 widescreen
+    prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
 
     # ── Brand theme & Template detection ──────────────────────────────────────
@@ -143,12 +160,12 @@ def generate_pptx(markdown_text: str, output_path: str, prompt: str = "") -> str
     if prompt:
         matched_template = lt.get_best_template_for_prompt("ppt", prompt)
         if matched_template and "color_suite" in matched_template:
-            cs = matched_template["color_suite"]
-            palette["primary"] = RGBColor(*hex_to_rgb(cs["primary"]))
-            palette["secondary"] = RGBColor(*hex_to_rgb(cs["secondary"]))
-            palette["accent"] = RGBColor(*hex_to_rgb(cs["accent"]))
-            palette["bg"] = RGBColor(*hex_to_rgb(cs["bg"]))
-            palette["text"] = RGBColor(*hex_to_rgb(cs["text"]))
+            cs = _resolve_color_suite(matched_template["color_suite"])
+            palette["primary"] = RGBColor(*hex_to_rgb(cs.get("primary", "#1E293B")))
+            palette["secondary"] = RGBColor(*hex_to_rgb(cs.get("secondary", cs.get("surface", "#334155"))))
+            palette["accent"] = RGBColor(*hex_to_rgb(cs.get("accent", "#FF5500")))
+            palette["bg"] = RGBColor(*hex_to_rgb(cs.get("bg", "#08070B")))
+            palette["text"] = RGBColor(*hex_to_rgb(cs.get("text", "#FAF8F5")))
 
     # Override with explicit color declarations from AI output
     custom = _parse_brand_colors(markdown_text)
@@ -228,7 +245,13 @@ def _add_slide(prs, palette, title: str, bullets: list, slide_num: int, speaker_
     typography = {"display": "Trebuchet MS", "body": "Calibri"}
     layout = "default"
     if template_config:
-        typography = template_config.get("typography", typography)
+        raw_typo = template_config.get("typography")
+        if isinstance(raw_typo, dict):
+            typography = raw_typo
+        elif isinstance(raw_typo, (list, tuple)) and len(raw_typo) >= 1:
+            typography = {"display": raw_typo[0], "body": raw_typo[1] if len(raw_typo) > 1 else raw_typo[0]}
+        elif isinstance(raw_typo, str):
+            typography = {"display": raw_typo, "body": raw_typo}
         layout = template_config.get("layout", layout)
 
     # Background
@@ -387,15 +410,19 @@ def generate_docx(markdown_text: str, output_path: str, prompt: str = "") -> str
         matched_template = lt.get_best_template_for_prompt("docs", prompt)
         if matched_template:
             if "color_suite" in matched_template:
-                cs = matched_template["color_suite"]
-                p_rgb = hex_to_rgb(cs["primary"])
-                s_rgb = hex_to_rgb(cs["accent"])
+                cs = _resolve_color_suite(matched_template["color_suite"])
+                p_rgb = hex_to_rgb(cs.get("primary", "#1E293B"))
+                s_rgb = hex_to_rgb(cs.get("accent", "#FF5500"))
                 primary_color = DocxRGB(*p_rgb)
                 secondary_color = DocxRGB(*s_rgb)
             if "typography" in matched_template:
                 t_set = matched_template["typography"]
-                body_font = t_set.get("body", "Calibri")
-                head_font = t_set.get("heading", "Calibri")
+                if isinstance(t_set, dict):
+                    body_font = t_set.get("body", "Calibri")
+                    head_font = t_set.get("heading", "Calibri")
+                elif isinstance(t_set, str):
+                    body_font = t_set
+                    head_font = t_set
 
     # ── Page setup ─────────────────────────────────────────────────────────────
     section = doc.sections[0]
@@ -541,11 +568,15 @@ def generate_xlsx(markdown_text: str, output_path: str, prompt: str = "") -> str
         matched_template = lt.get_best_template_for_prompt("sheets", prompt)
         if matched_template:
             if "color_suite" in matched_template:
-                cs = matched_template["color_suite"]
-                header_fill_hex = cs["primary"].lstrip('#')
-                alt_fill_hex = cs["secondary"].lstrip('#')
+                cs = _resolve_color_suite(matched_template["color_suite"])
+                header_fill_hex = cs.get("primary", "#1E293B").lstrip('#')
+                alt_fill_hex = cs.get("secondary", cs.get("surface", "#F1F5F9")).lstrip('#')
             if "typography" in matched_template:
-                cell_font_name = matched_template["typography"].get("body", "Calibri")
+                t_set = matched_template["typography"]
+                if isinstance(t_set, dict):
+                    cell_font_name = t_set.get("body", "Calibri")
+                elif isinstance(t_set, str):
+                    cell_font_name = t_set
 
     # ── Style definitions ──────────────────────────────────────────────────────
     HEADER_FILL = PatternFill("solid", fgColor=header_fill_hex)

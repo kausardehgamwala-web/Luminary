@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
@@ -21,10 +21,8 @@ build/
 *.sqlite3
 
 # Model weights — large binary files, checked in selectively
-# Intentionally committed: models/nudenet_320n.onnx (NSFW safety classifier)
-# Block any new .onnx or large weight files dropped accidentally
 models/*.onnx
-!models/nudenet_320n.onnx
+models/checkpoints/
 
 # Local dev logs
 *.log

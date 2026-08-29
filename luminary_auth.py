@@ -19,22 +19,48 @@ import ipaddress
 import urllib.parse
 from pathlib import Path
 
-# Secret key for session signing — MUST be set via environment variable.
-# If not set, the server refuses to start to prevent token-forgery via the known fallback string.
-_raw_secret = os.getenv("LUMINARY_AUTH_SECRET", "")
-if not _raw_secret:
-    raise RuntimeError(
-        "\n\n[LUMINARY STARTUP ERROR] LUMINARY_AUTH_SECRET is not set.\n"
-        "Every session token is signed with this key. Running without it allows anyone\n"
-        "who reads the source to forge valid session tokens for any account.\n\n"
-        "To generate a secure secret, run:\n"
-        "    python -c \"import secrets; print(secrets.token_hex(32))\"\n\n"
-        "Then set it before starting the server:\n"
-        "    Windows:  set LUMINARY_AUTH_SECRET=<your-secret>\n"
-        "    Linux:    export LUMINARY_AUTH_SECRET=<your-secret>\n"
-        "Or add it to your .env file (never commit .env to git).\n"
-    )
-AUTH_SECRET = _raw_secret
+import secrets
+import logging
+
+logger = logging.getLogger("luminary_auth")
+
+def _load_or_generate_auth_secret() -> str:
+    """
+    Resolves the HMAC session signing secret securely in order:
+    1. LUMINARY_AUTH_SECRET environment variable
+    2. .env file in project directory
+    3. Auto-generates a cryptographically random 256-bit (32-byte) secret,
+       persists it to .env if writable, and continues securely.
+    """
+    secret = os.getenv("LUMINARY_AUTH_SECRET", "").strip()
+    if secret:
+        return secret
+
+    env_path = Path(__file__).resolve().parent / ".env"
+    if env_path.exists():
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("LUMINARY_AUTH_SECRET="):
+                        val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        if val:
+                            return val
+        except Exception as e:
+            logger.warning(f"[LUMINARY AUTH] Could not read .env: {e}")
+
+    # Auto-generate a high-entropy 256-bit random secret
+    generated_secret = secrets.token_hex(32)
+    try:
+        with open(env_path, "a", encoding="utf-8") as f:
+            f.write(f"\nLUMINARY_AUTH_SECRET={generated_secret}\n")
+        logger.info(f"[LUMINARY AUTH] Generated new secure 256-bit auth secret and saved to {env_path.name}")
+    except Exception:
+        logger.info("[LUMINARY AUTH] Using ephemeral in-memory 256-bit session secret for this run.")
+
+    return generated_secret
+
+AUTH_SECRET = _load_or_generate_auth_secret()
 
 # In-memory session cache for fast lookup (token -> session_data)
 SESSION_STORE = {}

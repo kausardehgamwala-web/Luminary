@@ -127,13 +127,39 @@ def run_golden_suite() -> bool:
     print("\n--- Phase 3: Image Generation & Vision Classifier Pipeline ---")
     print("\nEvaluating [GOLDEN_07_IMAGE_PIPELINE] 'End-to-End Image Generation & Verification'...")
     try:
-        # Generate or simulate image pipeline deliverable
-        test_img = Image.new("RGB", (512, 512), color=(220, 180, 140)) # Warm tan product mockup
-        img_safety = luminary_safety.classify_image_safety(test_img, client_id="golden_ci_runner")
+        import local_sdxl_service
+        img_prompt = "Create a luxury product catalogue image for a stainless steel watch, studio lighting, clean background"
+        target_w, target_h = 512, 512
         
+        # Test real generation via local_sdxl_service with fast 20-step inference
+        print(f"  - Invoking local_sdxl_service for prompt: '{img_prompt[:60]}...'")
+        test_img = local_sdxl_service.sdxl_service.generate(
+            prompt=img_prompt,
+            width=target_w,
+            height=target_h,
+            num_inference_steps=20
+        )
+        
+        assert isinstance(test_img, Image.Image), "Generated output is not a PIL Image"
+        assert test_img.size == (target_w, target_h), f"Resolution mismatch: expected ({target_w}, {target_h}), got {test_img.size}"
+        
+        # Save temporary test image to verify file I/O
+        test_img_path = os.path.join(os.path.dirname(__file__), "generated", "golden_test_image.jpg")
+        os.makedirs(os.path.dirname(test_img_path), exist_ok=True)
+        test_img.save(test_img_path, format="JPEG", quality=95)
+        assert os.path.exists(test_img_path) and os.path.getsize(test_img_path) > 1000, "Image file not saved properly"
+        
+        # Real Safety Screening
+        img_safety = luminary_safety.classify_image_safety(test_img, client_id="golden_ci_runner")
         print(f"  - Generated Image Safety: safe={img_safety.safe}, category={img_safety.category}")
         assert img_safety.safe is True, "Image safety classifier raised false positive on clean image"
-        print("  - Status: PASS (Image pipeline & vision classifier intact)")
+        
+        # Real QC Verification
+        qc_result = luminary_qc_engine.verify_output(img_prompt, "", test_img_path)
+        print(f"  - Generated Image QC Status: {qc_result.status}, Score: {qc_result.score}/100")
+        
+        print(f"  - Output Verified: {test_img.size[0]}x{test_img.size[1]} ({os.path.getsize(test_img_path)} bytes)")
+        print("  - Status: PASS (Real image generated, verified, and screened)")
     except Exception as img_err:
         print(f"  [ERROR] Image pipeline golden case failed: {img_err}")
         all_passed = False

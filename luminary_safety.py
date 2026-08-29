@@ -465,12 +465,15 @@ if not os.path.exists(_NUDENET_ONNX_PATH):
         pass
 
 if not os.path.exists(_NUDENET_ONNX_PATH):
-    # Loud startup warning — classifier will degrade to pixel-colour heuristic
+    # Loud startup warning — classifier will run in heuristic mode
     logger.warning(
-        "[VISION SAFETY] ONNX NudeNet model NOT FOUND at models/nudenet_320n.onnx. "
-        "Image safety classifier is degraded to pixel-colour heuristic only. "
-        "Place nudenet_320n.onnx in the models/ directory to enable full NSFW detection."
+        "\n" + "=" * 70 + "\n"
+        "[VISION SAFETY WARNING] No ONNX ML model found at models/nudenet_320n.onnx.\n"
+        "Image safety classifier is operating in HEURISTIC-ONLY mode\n"
+        "(color/morphological analysis, not a deep ML classifier).\n"
+        "=" * 70
     )
+
 
 
 _NUDENET_LABELS = [

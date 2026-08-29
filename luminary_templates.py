@@ -213,6 +213,20 @@ def get_templates_by_category(category: str) -> List[Dict[str, Any]]:
     if "image" in category or "graphic" in category: return IMAGES_TEMPLATES
     return []
 
+def get_best_template_for_prompt(category: str, prompt: str) -> Dict[str, Any]:
+    """Finds the best template matching user prompt keywords in a category."""
+    templates = get_templates_by_category(category)
+    if not templates:
+        return {}
+    pl = prompt.lower()
+    for t in templates:
+        t_name = t.get("name", "").lower()
+        t_cat = t.get("category", "").lower()
+        if any(word in pl for word in t_name.split()) or t_cat in pl:
+            return t
+    return templates[0]
+
+
 def list_templates_summary() -> str:
     return (
         f"luminary_templates v3.0 - Premium Canva 360 Library\n"

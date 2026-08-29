@@ -219,6 +219,13 @@ class LocalSDXLService:
         """
         Executes thread-safe SDXL generation under concurrency lock.
         """
+        # Enforce hard upper/lower resolution limits to prevent memory exhaustion / DoS
+        clamped_w = max(256, min(int(width), 2048))
+        clamped_h = max(256, min(int(height), 2048))
+        if clamped_w != width or clamped_h != height:
+            logger.warning(f"[SDXL Service] Requested resolution {width}x{height} clamped to safe bounds {clamped_w}x{clamped_h}")
+            width, height = clamped_w, clamped_h
+
         with _INFERENCE_LOCK:
             logger.info(f"[SDXL Service] Concurrency lock acquired. Generating {width}x{height} image...")
             start_time = time.time()

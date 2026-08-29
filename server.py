@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import logging
 import json
 import threading
@@ -81,6 +82,36 @@ class _SessionContextProxy(dict):
         update_session_context("default", d)
 
 LUMINARY_SESSION_CONTEXT = _SessionContextProxy()
+
+
+# ── Thread-Safe Per-Client Generation Rate Limiter ──────────────────────────
+class GenerationRateLimiter:
+    """
+    Sliding-window per-client rate limiter for generation endpoints to prevent DoS.
+    """
+    def __init__(self, max_requests_per_window: int = 20, window_seconds: int = 60):
+        self.max_requests = max_requests_per_window
+        self.window_seconds = window_seconds
+        self.lock = threading.Lock()
+        self.client_timestamps = collections.defaultdict(list)
+
+    def is_allowed(self, client_id: str) -> Tuple[bool, int]:
+        now = time.time()
+        with self.lock:
+            timestamps = self.client_timestamps[client_id]
+            # Filter out timestamps outside current sliding window
+            valid_timestamps = [t for t in timestamps if now - t < self.window_seconds]
+            self.client_timestamps[client_id] = valid_timestamps
+
+            if len(valid_timestamps) >= self.max_requests:
+                earliest = valid_timestamps[0]
+                retry_after = int(self.window_seconds - (now - earliest)) + 1
+                return False, max(1, retry_after)
+
+            valid_timestamps.append(now)
+            return True, 0
+
+GENERATION_RATE_LIMITER = GenerationRateLimiter(max_requests_per_window=20, window_seconds=60)
 
 
 APP_ROOT = Path(__file__).resolve().parent
@@ -726,6 +757,17 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
             return
 
+        # Enforce rate limiting on generation-heavy endpoints
+        if self.path in ("/chat", "/generate-image", "/blog/generate"):
+            allowed, retry_after = GENERATION_RATE_LIMITER.is_allowed(self.authenticated_client_id)
+            if not allowed:
+                self._json(429)
+                self.wfile.write(json.dumps({
+                    "detail": f"Too Many Requests: Rate limit exceeded for generation requests. Please retry in {retry_after} seconds.",
+                    "retry_after": retry_after
+                }).encode("utf-8"))
+                return
+
         if self.path == "/chat":
             self.handle_chat(body)
         elif self.path == "/generate-image":
@@ -1265,14 +1307,21 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     logger.error("Native File generation failed:", e)
 
                 # ── 5. QC AI Work Verification & Inspection Gate (gpt-oss-20b) ──
+                qc_badge = ""
                 if 'filepath' in locals() and filepath.exists():
                     qc_res = luminary_qc_engine.verify_output(prompt, clean_text, str(filepath))
                     logger.warning(f"[QC AI qwen2.5vl] Status={qc_res.status} Score={qc_res.score} Issues={qc_res.issues}")
                     
-                    # Revision Loop for QC failures
+                    # Revision Loop for QC failures (REVISE)
                     if qc_res.status == "REVISE" and qc_res.fix_instructions:
                         logger.info(f"[QC AI Revision Loop] Applying fix instructions: {qc_res.fix_instructions}")
-                        fix_prompt = f"### Instruction:\nYou generated an asset, but QC check identified missing requirements:\n{qc_res.fix_instructions}\n\nOriginal Prompt:\n{prompt}\n\nRegenerate full revised text:\n### Response:"
+                        # Wire Agency Orchestrator revision prompt if brief available
+                        if 'cd_text_brief' in locals() and cd_text_brief is not None:
+                            qc_dict = {"status": "REVISE", "score": qc_res.score, "issues": qc_res.issues, "fix_instructions": qc_res.fix_instructions}
+                            fix_prompt = _cd_orchestrator.build_revision_prompt(prompt, clean_text, qc_dict)
+                        else:
+                            fix_prompt = f"### Instruction:\nYou generated an asset, but QC check identified missing requirements:\n{qc_res.fix_instructions}\n\nOriginal Prompt:\n{prompt}\n\nRegenerate full revised text:\n### Response:"
+                        
                         revised_text = query_ollama(fix_prompt, timeout=250, model_name=routed_model)
                         if revised_text and len(revised_text) > 100:
                             clean_text = re.sub(r"<clarify>.*?</clarify>|<suggest>.*?</suggest>", "", revised_text, flags=re.DOTALL)
@@ -1282,7 +1331,29 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                                 file_generator.generate_docx(clean_text, str(filepath), prompt)
                             elif is_sheet:
                                 file_generator.generate_xlsx(clean_text, str(filepath), prompt)
-                            logger.info(f"[QC AI Revision Loop] Asset regenerated successfully: {filepath.name}")
+                            logger.info(f"[QC AI Revision Loop] Asset regenerated. Re-verifying new deliverable: {filepath.name}")
+                            # RE-VERIFY the new regenerated deliverable
+                            qc_res = luminary_qc_engine.verify_output(prompt, clean_text, str(filepath))
+                            logger.info(f"[QC AI Post-Retry Verification] Status={qc_res.status} Score={qc_res.score}")
+                            qa_attempts += 1
+
+                    # Update final_qc_score with actual post-generation score
+                    final_qc_score = qc_res.score
+
+                    # Branch on all QCResult.status values
+                    if qc_res.status == "PASS":
+                        rev_text = "First Pass" if qa_attempts == 0 else f"{qa_attempts} revision(s)"
+                        qc_badge = f"\n\n*✓ Agency Quality Verified: Passed QC Benchmark {final_qc_score}/100 ({rev_text})*"
+                    elif qc_res.status == "QC_UNAVAILABLE":
+                        qc_badge = f"\n\n*⚠️ Quality Notice: Deliverable generated but Unverified (QC Engine Offline)*"
+                    elif qc_res.status == "REJECT":
+                        issues_str = "; ".join(qc_res.issues) if qc_res.issues else "Quality benchmark failure"
+                        qc_badge = f"\n\n*⚠️ Quality Alert: Deliverable Did Not Pass QC Gate ({final_qc_score}/100 - {issues_str})*"
+                    else: # REVISE still pending after retry
+                        qc_badge = f"\n\n*⚠️ Quality Notice: Deliverable Needs Revision ({final_qc_score}/100)*"
+                else:
+                    rev_text = "First Pass" if qa_attempts == 0 else f"{qa_attempts} revision(s)"
+                    qc_badge = f"\n\n*✓ Agency Quality Verified: Passed QC Benchmark {final_qc_score}/100 ({rev_text})*"
 
                 # ── 6. Output Security Safeguard Gate ──
                 out_sec = luminary_safety.inspect_prompt(response_text)
@@ -1321,8 +1392,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     response_text = out_safety.safe_alternative
 
                 # ── 7. Visible Quality & Confidence Indicator (Legible QC Process) ──
-                rev_text = "First Pass" if qa_attempts == 0 else f"{qa_attempts} revision(s)"
-                response_text += f"\n\n*✓ Agency Quality Verified: Passed QC Benchmark {final_qc_score}/100 ({rev_text})*"
+                response_text += qc_badge
 
                 # Log interaction to persistent memory
                 luminary_memory.log_interaction(prompt, response_text[:200])
@@ -1617,18 +1687,19 @@ def run():
     print(f"   Health Check: http://localhost:{SERVER_PORT}/health")
     print("========================================================================")
     print(" [PROGRAMMED AI AGENCY ROLES & ORCHESTRATION FLEET]")
-    print("   * Creative Director AI      -> luminary_creative_director.py (Briefing, Art Direction, QC & Self-Healing)")
-    print("   * Skill Router AI           -> luminary_skill_router.py (Task Intent & Multi-Platform Dispatch)")
+    print("   * Creative Director AI      -> luminary_creative_director.py (Briefing, Art Direction & Prompt Architecture)")
+    print("   * Agency Orchestrator AI    -> luminary_agency_orchestrator.py (Task Intent, Quality Control & Revision Loops)")
+    print("   * Skill Router AI           -> luminary_skill_router.py (Intent Classification & Multi-Platform Dispatch)")
     print("   * Copywriter AI             -> server.py (High-Converting Copy, PPTX, Articles & Social Posts)")
     print("   * Prompt Engineer AI        -> luminary_intelligence.py (Spec Expansion & MCQ Clarification Engine)")
-    print("   * Quality Control & QA AI   -> luminary_qc_engine.py (Semantic Coherence & Brand Scoring)")
+    print("   * Quality Control & QA AI   -> luminary_qc_engine.py (Multimodal Inspection & Deliverable Verification)")
     print("   * Safety & Safeguard Gate   -> luminary_safety.py (Prompt Safety, Compliance & Toxicity Guard)")
     print("   * Brand Asset Analyst AI    -> luminary_asset_engine.py (Multi-Modal Guideline & Palette Ingestion)")
     print("   * Channel Strategist AI     -> social_sync.py (Omnichannel Auto-Publishing & Analytics)")
     print("------------------------------------------------------------------------")
     print(f" [ACTIVE TEXT AI ENGINE]       : {MODEL_NAME} (Ollama)")
     print("   Supported Text Hierarchy    : qwen2.5-coder:7b (Primary) | deepseek-coder:6.7b | codellama:7b |")
-    logger.info("                                 qwen2.5:7b | qwen2.5:3b | mistral:7b | llama3:8b | phi3:medium | phi3:mini")
+    print("                                 qwen2.5:7b | qwen2.5:3b | mistral:7b | llama3:8b | phi3:medium | phi3:mini")
     print(" [ACTIVE IMAGE AI ENGINE]      : runwayml/stable-diffusion-v1-5 & SDXL Turbo (Local Hardware Accelerated)")
     print("========================================================================")
     
