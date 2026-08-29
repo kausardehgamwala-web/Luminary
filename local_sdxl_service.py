@@ -135,7 +135,11 @@ class LocalSDXLService:
 
             # Memory Optimizations for 16GB RAM / Laptop GPU
             if self.device == "cuda":
-                pipe.to("cuda")
+                try:
+                    pipe.enable_model_cpu_offload()
+                    logger.info("[SDXL Service] Model CPU offloading enabled to prevent VRAM spikes.")
+                except Exception:
+                    pipe.to("cuda")
                 try:
                     pipe.enable_attention_slicing(slice_size="auto")
                 except Exception:

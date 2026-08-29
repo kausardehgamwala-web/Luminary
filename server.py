@@ -32,6 +32,7 @@ except ImportError:
         def select_skill_context(prompt: str, max_chars: int = 5000) -> str:
             return ""
 
+import luminary_agency_orchestrator
 import luminary_qc_engine
 import luminary_design_systems
 import luminary_examples
