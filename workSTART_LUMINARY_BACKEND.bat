@@ -30,40 +30,24 @@ if %errorlevel% equ 0 (
   )
 )
 
-set "PY_CMD="
+:: ── VENV CHECK: Dedicated Luminary Virtual Environment ──────────────────────
+set "VENV_PY=%~dp0.venv\Scripts\python.exe"
 
-:: List of candidates to test (tested with real python execution, not just where)
-set CANDIDATE_1="%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
-set CANDIDATE_2="py"
-set CANDIDATE_3="python"
-set CANDIDATE_4="%LOCALAPPDATA%\Programs\Python\Python312\python.exe"
-set CANDIDATE_5="%LOCALAPPDATA%\Programs\Python\Python310\python.exe"
-set CANDIDATE_6="%LOCALAPPDATA%\Programs\Python\Python311\python.exe"
-set CANDIDATE_7="%ProgramFiles%\Python312\python.exe"
-set CANDIDATE_8="%ProgramFiles%\Python311\python.exe"
-set CANDIDATE_9="%ProgramFiles%\Python310\python.exe"
-
-for /L %%i in (1,1,9) do (
-  if not defined PY_CMD (
-    set "CURRENT_CANDIDATE=!CANDIDATE_%%i!"
-    !CURRENT_CANDIDATE! -c "import sys; sys.exit(0)" >nul 2>nul
-    if !errorlevel! equ 0 (
-      set "PY_CMD=!CURRENT_CANDIDATE!"
-    )
-  )
-)
-
-if not defined PY_CMD (
+if not exist "%VENV_PY%" (
   echo.
-  echo [ERROR] No working Python installation was found.
-  echo Checked PATH, User Cache, and standard Python directories.
-  echo Please install Python 3.10+ and add it to your system PATH.
+  echo ========================================================
+  echo [ERROR] Luminary dedicated virtual environment not found!
+  echo Missing interpreter: %VENV_PY%
+  echo.
+  echo Please run setup_luminary_env.bat first to create the
+  echo dedicated environment and install all dependencies.
+  echo ========================================================
   echo.
   pause
   exit /b 1
 )
 
-echo Starting Luminary Server with Python: %PY_CMD%
+echo Starting Luminary Server with dedicated Python: %VENV_PY%
 echo.
 
 :: ── SECURITY CHECK: LUMINARY_AUTH_SECRET must be set ────────────────────────
@@ -81,7 +65,7 @@ if not defined LUMINARY_AUTH_SECRET (
   echo [INFO] LUMINARY_AUTH_SECRET not set in CMD. luminary_auth will auto-load from .env or generate a secure 256-bit key.
 )
 
-%PY_CMD% "%~dp0server.py"
+"%VENV_PY%" "%~dp0server.py"
 if %errorlevel% neq 0 (
   echo.
   echo [SERVER TERMINATED WITH ERROR CODE %errorlevel%]
