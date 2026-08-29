@@ -11193,6 +11193,10 @@ body.light-mode .history-item.active {
       formEl.querySelectorAll("input, textarea").forEach(input => removeFieldError(input));
     }
 
+    // Gemini-style Isolated Chat Session State Management
+    let chatSessions = window.chatSessions = {};
+    let currentChatId = window.currentChatId = null;
+
     var state = window.state = {
       account: null,
       chats: [],
@@ -11323,6 +11327,11 @@ body.light-mode .history-item.active {
       if (!state.account) return;
       const st = getStore();
       const k = accountKey(state.account);
+      // Sync chatSessions to state.chats
+      if (Object.keys(chatSessions).length) {
+        state.chats = Object.values(chatSessions).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      }
+      state.activeChatId = currentChatId || state.activeChatId;
       st[k] = {
         account: state.account,
         chats: state.chats,
@@ -11346,27 +11355,30 @@ body.light-mode .history-item.active {
           id: "chat_default_1",
           title: "Brand Campaign Strategy",
           createdAt: new Date().toISOString(),
+          inputDraft: "",
           messages: [
             { role: "user", text: "Create a luxury marketing strategy for Luminary AI launch." },
-            { role: "assistant", text: "Here is your multi-channel launch campaign strategy:\\n\\n1. **Instagram Campaign**: High-contrast geometric visuals.\\n2. **YouTube Showcase**: 60-second product demo video.\\n3. **Facebook Retargeting**: Direct audience engagement ads.", date: "10:30 AM" }
+            { role: "assistant", text: "Here is your multi-channel launch campaign strategy:\n\n1. **Instagram Campaign**: High-contrast geometric visuals.\n2. **YouTube Showcase**: 60-second product demo video.\n3. **Facebook Retargeting**: Direct audience engagement ads.", date: "10:30 AM" }
           ]
         },
         {
           id: "chat_default_2",
           title: "Instagram Visuals & Copy",
           createdAt: new Date(Date.now() - 86400000).toISOString(),
+          inputDraft: "",
           messages: [
             { role: "user", text: "Generate Instagram copy and post ideas." },
-            { role: "assistant", text: "### Luminary Launch Post\\n*Caption*: Precision growth, automated beautifully. Empower your brand with Luminary AI.\\n\\n[IMAGE][logo_orange.png](Download Logo)", date: "Yesterday" }
+            { role: "assistant", text: "### Luminary Launch Post\n*Caption*: Precision growth, automated beautifully. Empower your brand with Luminary AI.\n\n[IMAGE][logo_orange.png](Download Logo)", date: "Yesterday" }
           ]
         },
         {
           id: "chat_default_3",
           title: "Q3 Marketing Analytics Audit",
           createdAt: new Date(Date.now() - 172800000).toISOString(),
+          inputDraft: "",
           messages: [
             { role: "user", text: "Audit performance metrics across all social channels." },
-            { role: "assistant", text: "### Performance Audit Summary\\n- **Total Reach**: 45.2K impressions\\n- **Engagement Rate**: +34% growth\\n- **Top Platform**: Instagram (2.5K views)", date: "2 days ago" }
+            { role: "assistant", text: "### Performance Audit Summary\n- **Total Reach**: 45.2K impressions\n- **Engagement Rate**: +34% growth\n- **Top Platform**: Instagram (2.5K views)", date: "2 days ago" }
           ]
         }
       ];
@@ -11394,22 +11406,43 @@ body.light-mode .history-item.active {
         } catch(e) {}
       }
       state.chats = existingChats || defaultChats;
+
+      // Populate Gemini-style isolated chatSessions state
+      chatSessions = window.chatSessions = {};
+      (state.chats || []).forEach(c => {
+        chatSessions[c.id] = {
+          id: c.id,
+          title: c.title || "New chat",
+          messages: Array.isArray(c.messages) ? c.messages : [],
+          inputDraft: c.inputDraft || "",
+          createdAt: c.createdAt || new Date().toISOString(),
+          updatedAt: c.updatedAt || new Date().toISOString()
+        };
+      });
+
       state.brandAssets = Array.isArray(saved?.brandAssets) && saved.brandAssets.length ? saved.brandAssets : defaultBrandAssets;
       state.pinnedAssets = Array.isArray(saved?.pinnedAssets) ? saved.pinnedAssets : [];
       state.calendarEvents = defaultCalendarEvents;
 
       state.activeChatId = saved?.activeChatId || (state.chats.length ? state.chats[0].id : null);
+      currentChatId = window.currentChatId = state.activeChatId;
 
       if (!state.chats.length) {
         createNewChat();
       } else if (!state.activeChatId || !state.chats.find((c) => c.id === state.activeChatId)) {
         state.activeChatId = state.chats[0].id;
+        currentChatId = window.currentChatId = state.activeChatId;
       }
       updateAccountUI();
       renderHistory();
       renderChat();
       renderBrandAssets();
       renderPinnedAssets();
+
+      const promptEl = document.getElementById("promptInput") || document.getElementById("chat-input");
+      if (promptEl && currentChatId && chatSessions[currentChatId]) {
+        promptEl.value = chatSessions[currentChatId].inputDraft || "";
+      }
     }
 
     function updateAccountUI() {
@@ -11422,21 +11455,34 @@ body.light-mode .history-item.active {
     }
 
     function createNewChat() {
+      const promptField = document.getElementById("promptInput") || document.getElementById("chat-input");
+      
+      // Save outgoing input draft before creating new chat
+      if (currentChatId && chatSessions[currentChatId] && promptField) {
+        chatSessions[currentChatId].inputDraft = promptField.value;
+        const out = (state.chats || []).find(c => c.id === currentChatId);
+        if (out) out.inputDraft = promptField.value;
+      }
+
       const now = new Date();
-      const id = "chat_" + now.getTime();
+      const id = "chat_" + Date.now();
       const title = "New chat";
-      state.chats.unshift({
+      const newSession = {
         id,
         title,
+        messages: [],
+        inputDraft: "",
         createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-        messages: []
-      });
+        updatedAt: now.toISOString()
+      };
+
+      chatSessions[id] = newSession;
+      currentChatId = window.currentChatId = id;
       state.activeChatId = id;
+      state.chats = [newSession, ...(state.chats || []).filter(c => c.id !== id)];
 
       // 1. Explicitly clear all prompt / chat input fields
       if (elements.promptInput) elements.promptInput.value = "";
-      const promptField = document.getElementById("promptInput") || document.getElementById("chat-input");
       if (promptField) promptField.value = "";
 
       // 2. Clear attachments, tags, and reply context
@@ -11483,7 +11529,10 @@ body.light-mode .history-item.active {
     window.createNewChat = createNewChat;
 
     function getActiveChat() {
-      return state.chats.find((c) => c.id === state.activeChatId);
+      if (currentChatId && chatSessions[currentChatId]) {
+        return chatSessions[currentChatId];
+      }
+      return (state.chats || []).find((c) => c.id === (currentChatId || state.activeChatId));
     }
 
     function openLightbox(src, filename) {
@@ -11827,18 +11876,22 @@ body.light-mode .history-item.active {
       const hSearch = document.getElementById("historySearch") || elements.historySearch;
       if (!hList) return;
       const query = (hSearch?.value || "").trim().toLowerCase();
+      const activeId = currentChatId || state.activeChatId;
       const items = (state.chats || []).filter((c) => {
         if (!query) return true;
-        const haystack = [c.title, ...(c.messages || []).map((m) => m.text)].join(" ").toLowerCase();
+        const s = chatSessions[c.id] || c;
+        const haystack = [s.title || c.title, ...(s.messages || c.messages || []).map((m) => m.text)].join(" ").toLowerCase();
         return haystack.includes(query);
       });
       hList.innerHTML = items.map((c) => {
-        const preview = c.messages && c.messages.length ? c.messages[c.messages.length - 1]?.text || "No messages yet." : "No messages yet.";
-        const active = c.id === state.activeChatId ? " active" : "";
+        const s = chatSessions[c.id] || c;
+        const msgs = s.messages || c.messages || [];
+        const preview = msgs.length ? msgs[msgs.length - 1]?.text || "No messages yet." : "No messages yet.";
+        const active = c.id === activeId ? " active" : "";
         return `
-          <div class="history-item${active}" data-chat-id="${c.id}">
+          <div class="history-item${active}" data-chat-id="${c.id}" onclick="selectChat('${c.id}')">
             <div style="display:flex; flex-direction:column; gap:2px; overflow:hidden; flex-grow:1; max-width:82%;">
-              <strong style="font-size:0.92rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${escapeHtml(c.title)}</strong>
+              <strong style="font-size:0.92rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${escapeHtml(s.title || c.title)}</strong>
               <div class="history-preview" style="font-size:0.78rem; opacity:0.6; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${escapeHtml(preview)}</div>
             </div>
             <button class="delete-chat-btn" type="button" aria-label="Delete Chat" onclick="event.stopPropagation(); deleteChat('${c.id}')" style="position:relative; bottom:auto; right:auto; flex-shrink:0; margin-left:auto; z-index:5;">
@@ -11855,20 +11908,74 @@ body.light-mode .history-item.active {
     window.renderHistoryList = renderHistory;
 
     window.selectChat = function(id) {
+      if (!id) return;
+      const inputBox = document.getElementById("promptInput") || document.getElementById("chat-input");
+
+      // 1. Save the current input box text into the outgoing chat's state
+      if (currentChatId && chatSessions[currentChatId] && inputBox) {
+        chatSessions[currentChatId].inputDraft = inputBox.value;
+        const outgoing = (state.chats || []).find(c => c.id === currentChatId);
+        if (outgoing) outgoing.inputDraft = inputBox.value;
+      }
+
+      // 2. Update currentChatId pointer to the clicked session's ID
+      currentChatId = window.currentChatId = id;
       state.activeChatId = id;
-      renderHistory();
+
+      // Ensure session exists in chatSessions
+      if (!chatSessions[id]) {
+        const existing = (state.chats || []).find(c => c.id === id);
+        if (existing) {
+          chatSessions[id] = {
+            id: existing.id,
+            title: existing.title || "New chat",
+            messages: Array.isArray(existing.messages) ? existing.messages : [],
+            inputDraft: existing.inputDraft || "",
+            createdAt: existing.createdAt || new Date().toISOString(),
+            updatedAt: existing.updatedAt || new Date().toISOString()
+          };
+        }
+      }
+
+      // 3. Clear the main chat UI
+      const feed = document.getElementById("chatFeed") || elements.chatFeed;
+      if (feed) feed.innerHTML = "";
+
+      // 4. Re-render the message bubbles for that specific history
       renderChat();
+
+      // 5. Restore the input box text from chat's draft
+      if (inputBox) {
+        inputBox.value = (chatSessions[id] && chatSessions[id].inputDraft) ? chatSessions[id].inputDraft : "";
+      }
+
+      // 6. Update the .active styling in the sidebar to highlight the selected chat
+      renderHistory();
       persistAccount();
+
+      if (typeof switchMainView === "function") {
+        switchMainView("home");
+      } else if (typeof window.switchMainView === "function") {
+        window.switchMainView("home");
+      }
+      if (inputBox) inputBox.focus();
     };
 
     window.deleteChat = function(id) {
-      state.chats = state.chats.filter(c => c.id !== id);
-      if (state.activeChatId === id) {
-        state.activeChatId = state.chats[0]?.id || null;
+      delete chatSessions[id];
+      state.chats = (state.chats || []).filter(c => c.id !== id);
+      if (currentChatId === id || state.activeChatId === id) {
+        const nextId = state.chats[0]?.id || null;
+        if (nextId) {
+          window.selectChat(nextId);
+        } else {
+          createNewChat();
+        }
+      } else {
+        persistAccount();
+        renderHistory();
+        renderChat();
       }
-      persistAccount();
-      renderHistory();
-      renderChat();
     };
 
     function renderPinnedAssets() {
@@ -12014,6 +12121,18 @@ body.light-mode .history-item.active {
 
       const chat = getActiveChat();
       if (!chat) return;
+      const targetChatId = chat.id;
+
+      if (!chatSessions[targetChatId]) {
+        chatSessions[targetChatId] = {
+          id: chat.id,
+          title: chat.title || "New chat",
+          messages: Array.isArray(chat.messages) ? chat.messages : [],
+          inputDraft: "",
+          createdAt: chat.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
 
       // Auto-rename chat if it is currently 'New chat'
       if (!chat.title || chat.title.toLowerCase() === "new chat" || chat.title.toLowerCase() === "untitled chat") {
@@ -12022,18 +12141,25 @@ body.light-mode .history-item.active {
         if (words.length > 0) {
           const generatedTitle = words.slice(0, 5).join(" ") + (words.length > 5 ? "..." : "");
           chat.title = generatedTitle;
+          chatSessions[targetChatId].title = generatedTitle;
         }
       }
 
       const attachmentsCopy = [...state.attachments];
       const pinnedCopy = [...(state.pinnedAssets || [])];
 
-      chat.messages.push({
+      const userMsg = {
         role: "user",
         text: prompt,
         attachments: attachmentsCopy,
         date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
+      };
+
+      // 4. Bind Messaging to State: Push message data into chatSessions[currentChatId].messages
+      chatSessions[targetChatId].messages.push(userMsg);
+      chat.messages = chatSessions[targetChatId].messages;
+      chatSessions[targetChatId].inputDraft = "";
+      chat.inputDraft = "";
 
       const attachmentContext = attachmentsCopy.length
         ? "\\n\\nAttached files:\\n" + attachmentsCopy.map(item => {
@@ -12059,7 +12185,7 @@ body.light-mode .history-item.active {
       const activeImageTag = state.selectedTags.find(t => imageTags.includes(t));
       const currentTag = activeImageTag || state.selectedTags[0] || "";
 
-      const history = chat.messages ? chat.messages.map((item) => ({ role: item.role, text: item.text })) : [];
+      const history = chatSessions[targetChatId].messages ? chatSessions[targetChatId].messages.map((item) => ({ role: item.role, text: item.text })) : [];
       const requestPayload = {
         prompt: prompt + taskContext + accountContext + attachmentContext + pinnedContext,
         tag: currentTag,
@@ -12077,47 +12203,51 @@ body.light-mode .history-item.active {
       elements.sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:0.85rem;"></i>';
 
       const startTimeVal = Date.now();
-      chat.messages.push({
+      chatSessions[targetChatId].messages.push({
         role: "assistant",
         text: "Luminary AI is working...",
         isRunning: true,
         startTime: startTimeVal
       });
+      chat.messages = chatSessions[targetChatId].messages;
       renderChat();
       renderHistory();
       persistAccount();
 
       // Immediate DOM update for active sidebar item
-      const activeTitleEl = document.querySelector(`.history-item[data-chat-id="${chat.id}"] strong`) || document.querySelector(".history-item.active strong");
+      const activeTitleEl = document.querySelector(`.history-item[data-chat-id="${targetChatId}"] strong`) || document.querySelector(".history-item.active strong");
       if (activeTitleEl) activeTitleEl.textContent = chat.title;
-      const activeSubtitleEl = document.querySelector(`.history-item[data-chat-id="${chat.id}"] .history-preview`) || document.querySelector(".history-item.active .history-preview");
+      const activeSubtitleEl = document.querySelector(`.history-item[data-chat-id="${targetChatId}"] .history-preview`) || document.querySelector(".history-item.active .history-preview");
       if (activeSubtitleEl) activeSubtitleEl.textContent = "Working...";
 
       try {
         const responseData = await requestBackend("/chat", requestPayload);
         const elapsedSeconds = Math.round((Date.now() - startTimeVal) / 1000);
         
-        chat.messages[chat.messages.length - 1] = {
+        chatSessions[targetChatId].messages[chatSessions[targetChatId].messages.length - 1] = {
           role: "assistant",
           text: responseData.response || "Something went wrong. Please try again.",
           timeTaken: elapsedSeconds,
           tags: tagsBeforeClear,
           suggestions: responseData.smart_suggestion?.chips || [],
-          timeTaken: Math.floor((Date.now() - (chat.messages[chat.messages.length-1].startTime || Date.now()))/1000), date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
       } catch (error) {
         console.error("[Luminary] Backend request failed:", error);
-        chat.messages[chat.messages.length - 1] = {
+        chatSessions[targetChatId].messages[chatSessions[targetChatId].messages.length - 1] = {
           role: "assistant",
           text: error.message || "Something went wrong. Please try again.",
-          timeTaken: Math.floor((Date.now() - (chat.messages[chat.messages.length-1].startTime || Date.now()))/1000), date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          timeTaken: Math.floor((Date.now() - startTimeVal) / 1000),
+          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
       } finally {
         elements.sendBtn.disabled = false;
         elements.sendBtn.innerHTML = `<i class="fa-solid fa-arrow-up" style="color: #ffffff; font-size: 1.15rem;"></i>`;
       }
 
-      chat.updatedAt = new Date().toISOString();
+      chatSessions[targetChatId].updatedAt = new Date().toISOString();
+      chat.updatedAt = chatSessions[targetChatId].updatedAt;
+      chat.messages = chatSessions[targetChatId].messages;
       renderChat();
       renderHistory();
       persistAccount();
@@ -12497,6 +12627,14 @@ body.light-mode .history-item.active {
     });
 
     elements.sendBtn?.addEventListener("click", sendPrompt);
+    elements.promptInput?.addEventListener("input", () => {
+      const activeId = currentChatId || state.activeChatId;
+      if (activeId && chatSessions[activeId]) {
+        chatSessions[activeId].inputDraft = elements.promptInput.value;
+        const c = (state.chats || []).find(x => x.id === activeId);
+        if (c) c.inputDraft = elements.promptInput.value;
+      }
+    });
     elements.promptInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
