@@ -179,6 +179,19 @@ class LocalSDXLService:
 
             self.pipeline = pipe
             self.current_checkpoint = checkpoint_name
+
+            # Configure DPMSolverMultistepScheduler with DPM++ 2M Karras for optimal quality in fewer steps
+            try:
+                from diffusers import DPMSolverMultistepScheduler
+                self.pipeline.scheduler = DPMSolverMultistepScheduler.from_config(
+                    self.pipeline.scheduler.config,
+                    algorithm_type="dpmsolver++",
+                    use_karras_sigmas=True
+                )
+                logger.info("[SDXL Service] DPMSolverMultistepScheduler (DPM++ 2M Karras) configured successfully.")
+            except Exception as sched_err:
+                logger.warning(f"[SDXL Service] DPMSolverMultistepScheduler configuration warning: {sched_err}")
+
             self.is_loaded = True
             logger.info("[SDXL Service] Image Pipeline loaded successfully into persistent memory.")
             self.is_downloading = False
@@ -231,7 +244,7 @@ class LocalSDXLService:
         negative_prompt: str = "",
         width: int = 1024,
         height: int = 1024,
-        num_inference_steps: int = 35,
+        num_inference_steps: int = 20,
         guidance_scale: float = 7.5,
         reference_image_path: Optional[Path] = None,
         use_controlnet: bool = False,
@@ -264,6 +277,13 @@ class LocalSDXLService:
                     if seed is not None:
                         generator.manual_seed(seed)
 
+                    # Determine effective inference steps based on hardware device
+                    # On CPU, 20 steps with DPM++ 2M Karras achieves 30+ step convergence in ~50-60% less compute
+                    if self.device == "cpu":
+                        eff_steps = 20 if (num_inference_steps is None or num_inference_steps > 25) else max(20, num_inference_steps)
+                    else:
+                        eff_steps = num_inference_steps if num_inference_steps is not None else 30
+
                     # Apply LoRAs if provided
                     if loras:
                         self.apply_loras(loras)
@@ -285,7 +305,7 @@ class LocalSDXLService:
                             ip_adapter_image=ref_img,
                             width=width,
                             height=height,
-                            num_inference_steps=num_inference_steps,
+                            num_inference_steps=eff_steps,
                             guidance_scale=guidance_scale,
                             generator=generator
                         )
@@ -295,7 +315,7 @@ class LocalSDXLService:
                             negative_prompt=negative_prompt,
                             width=width,
                             height=height,
-                            num_inference_steps=num_inference_steps,
+                            num_inference_steps=eff_steps,
                             guidance_scale=guidance_scale,
                             generator=generator
                         )

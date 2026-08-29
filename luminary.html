@@ -11564,7 +11564,8 @@ body.light-mode .history-item.active {
           
           if (roleClass === "assistant") {
               if (message.isRunning) {
-                  bubbleTextHtml = "Luminary AI is working...";
+                  let rText = message.runningText || message.text || "Luminary AI is working...";
+                  bubbleTextHtml = `<div class="running-indicator-content"><span class="running-indicator-text">${escapeHtml(rText)}</span></div>`;
                   workingHtml = '<div class="working-progress-bar"></div>';
                   let start = message.startTime || Date.now();
                   timerHtml = `<div class="message-time live-timer" data-start="${start}" style="font-size:0.7rem; color:var(--orange); margin-top:8px; text-align:right;">0s</div>`;
@@ -11953,11 +11954,25 @@ body.light-mode .history-item.active {
       elements.sendBtn.disabled = true;
       elements.sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:0.85rem;"></i>';
 
+      // Context-aware progress indicator text
+      let workingNotice = "Luminary AI is working...";
+      const pLower = (prompt || "").toLowerCase();
+      if (/image|graphic|visual|poster|photo|picture|logo|banner|illustration|render|art|draw|wallpaper/i.test(pLower)) {
+        workingNotice = "Generating visual graphic (this can take a few minutes on this hardware)...";
+      } else if (/presentation|pitch\s*deck|slide|deck|pptx/i.test(pLower)) {
+        workingNotice = "Designing executive presentation deck...";
+      } else if (/document|report|brief|docx/i.test(pLower)) {
+        workingNotice = "Drafting comprehensive strategy document...";
+      } else if (/sheet|excel|spreadsheet|calendar|xlsx|csv/i.test(pLower)) {
+        workingNotice = "Compiling data models & calendar spreadsheet...";
+      }
+
       const startTimeVal = Date.now();
       chat.messages.push({
         role: "assistant",
-        text: "Luminary AI is working...",
-        isRunning: true, startTime: Date.now(),
+        text: workingNotice,
+        runningText: workingNotice,
+        isRunning: true,
         startTime: startTimeVal
       });
       renderChat();

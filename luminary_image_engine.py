@@ -331,9 +331,9 @@ class ProductionImageEngine:
         import io
         import local_sdxl_service
 
-        # Cap native generation resolution to prevent CPU freezes/timeouts
-        native_w = min(1024, max(512, width))
-        native_h = min(1024, max(512, height))
+        # Cap native generation resolution to prevent CPU freezes/timeouts (768px quality floor)
+        native_w = min(768, max(512, width))
+        native_h = min(768, max(512, height))
 
         img = local_sdxl_service.sdxl_service.generate(
             prompt=prompt,
