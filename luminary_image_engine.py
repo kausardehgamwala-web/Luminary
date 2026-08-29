@@ -372,8 +372,31 @@ class ProductionImageEngine:
             except Exception as e:
                 logger.warning(f"OpenAI DALL-E 3 API failed: {e}")
 
-        # 6. High-Definition Flux Fallback with clean parameters
-        return self._generate_flux_direct(clean_prompt, width, height, negative_prompt, seed)
+        # 6. Local SDXL / Diffusers Pipeline (if available)
+        try:
+            return self._generate_flux_direct(clean_prompt, width, height, negative_prompt, seed)
+        except Exception as e:
+            logger.warning(f"[ImageEngine] Local SDXL pipeline failed or unavailable: {e}")
+
+        # 7. Fallback to OpenAI DALL-E 3 or Stability AI if not already attempted
+        if self.openai_key:
+            try:
+                res, meta = self._generate_openai_dalle3(clean_prompt, width, height)
+                if res:
+                    return res, meta
+            except Exception as e:
+                logger.warning(f"OpenAI DALL-E 3 fallback failed: {e}")
+
+        if self.stability_key:
+            try:
+                res, meta = self._generate_stability(clean_prompt, width, height, negative_prompt, reference_image_path, seed)
+                if res:
+                    return res, meta
+            except Exception as e:
+                logger.warning(f"Stability AI fallback failed: {e}")
+
+        # All providers failed: raise clean exception (NEVER return mock image)
+        raise RuntimeError("All image providers failed. Please verify API keys or local SDXL weights.")
 
     # ── Provider Implementations ─────────────────────────────────────────────
 
@@ -541,99 +564,20 @@ class ProductionImageEngine:
 
     def _generate_flux_direct(self, prompt: str, width: int, height: int, negative_prompt: str, seed: Optional[int]) -> Tuple[bytes, dict]:
         """
-        Local SDXL High-Definition Generation with Pillow Graphic Fallback.
+        Local SDXL High-Definition Generation.
         """
         import io
-        try:
-            import local_sdxl_service
-            img = local_sdxl_service.sdxl_service.generate(
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                width=width,
-                height=height,
-                seed=seed
-            )
-            buf = io.BytesIO()
-            img.save(buf, format="JPEG", quality=95)
-            return buf.getvalue(), {"provider": "local_sdxl_service", "seed": seed or 42}
-        except Exception as e:
-            logger.warning(f"[ImageEngine] Local SDXL/Torch pipeline unavailable ({e}). Generating High-Res Studio Graphic fallback...")
-            from PIL import Image, ImageDraw
-            
-            p_lower = prompt.lower()
-            if any(k in p_lower for k in ["rolex", "luxury", "watch", "gold", "jewelry"]):
-                c_top = (10, 9, 13)
-                c_bottom = (28, 22, 18)
-                accent_color = (212, 175, 55)
-                theme_tag = "HAUTE HORLOGERIE & LUXURY"
-            elif any(k in p_lower for k in ["car", "automotive", "ferrari", "porsche", "speed"]):
-                c_top = (8, 8, 12)
-                c_bottom = (28, 10, 10)
-                accent_color = (255, 60, 40)
-                theme_tag = "AUTOMOTIVE PERFORMANCE"
-            elif any(k in p_lower for k in ["tech", "ai", "saas", "software", "future"]):
-                c_top = (6, 6, 12)
-                c_bottom = (18, 14, 32)
-                accent_color = (0, 240, 255)
-                theme_tag = "NEXT-GEN TECHNOLOGY"
-            else:
-                c_top = (12, 10, 16)
-                c_bottom = (32, 16, 10)
-                accent_color = (255, 85, 0)
-                theme_tag = "LUMINARY STUDIO CAMPAIGN"
-
-            fallback_img = Image.new("RGBA", (width, height), color=c_top)
-            draw = ImageDraw.Draw(fallback_img)
-
-            # Gradient background
-            for y in range(height):
-                ratio = y / float(height)
-                r = int(c_top[0] * (1 - ratio) + c_bottom[0] * ratio)
-                g = int(c_top[1] * (1 - ratio) + c_bottom[1] * ratio)
-                b = int(c_top[2] * (1 - ratio) + c_bottom[2] * ratio)
-                draw.line([(0, y), (width, y)], fill=(r, g, b, 255))
-
-            # Studio Light Radial Glow
-            glow_overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-            glow_draw = ImageDraw.Draw(glow_overlay)
-            cx, cy = width // 2, height // 2
-            max_radius = min(width, height) // 2
-            for r in range(max_radius, 0, -15):
-                alpha = int(45 * (1.0 - (r / max_radius)))
-                glow_draw.ellipse([(cx - r, cy - r // 2), (cx + r, cy + r // 2)], fill=(accent_color[0], accent_color[1], accent_color[2], alpha))
-            fallback_img = Image.alpha_composite(fallback_img, glow_overlay)
-            draw = ImageDraw.Draw(fallback_img)
-
-            # Studio Frame
-            pad = 40
-            draw.rectangle([(pad, pad), (width - pad, height - pad)], outline=(255, 255, 255, 40), width=2)
-            c_len = 35
-            for ox, oy in [(pad, pad), (width - pad, pad), (pad, height - pad), (width - pad, height - pad)]:
-                dx = 1 if ox == pad else -1
-                dy = 1 if oy == pad else -1
-                draw.line([(ox, oy), (ox + dx * c_len, oy)], fill=accent_color, width=4)
-                draw.line([(ox, oy), (ox, oy + dy * c_len)], fill=accent_color, width=4)
-
-            # Typography & Badge
-            clean_title = prompt.strip().replace("\n", " ")
-            if len(clean_title) > 65:
-                clean_title = clean_title[:62] + "..."
-
-            bx = (width - 320) // 2
-            by = height // 2 - 90
-            draw.rectangle([(bx, by), (bx + 320, by + 32)], fill=(0, 0, 0, 160), outline=accent_color, width=1)
-            draw.text((bx + 18, by + 9), theme_tag, fill=accent_color)
-            
-            tx = width // 2 - (len(clean_title) * 7)
-            ty = height // 2 - 30
-            draw.text((max(pad + 30, tx), ty), clean_title.upper(), fill=(255, 255, 255, 240))
-            draw.text((pad + 25, height - pad - 30), "LUMINARY CREATIVE AI • STUDIO RENDER 8K", fill=(255, 255, 255, 120))
-            draw.text((width - pad - 220, height - pad - 30), f"{width}x{height} PRO FORMAT", fill=accent_color)
-
-            final_rgb = fallback_img.convert("RGB")
-            buf = io.BytesIO()
-            final_rgb.save(buf, format="JPEG", quality=95)
-            return buf.getvalue(), {"provider": "luminary_studio_graphics", "seed": seed or 42}
+        import local_sdxl_service
+        img = local_sdxl_service.sdxl_service.generate(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            width=width,
+            height=height,
+            seed=seed
+        )
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=95)
+        return buf.getvalue(), {"provider": "local_sdxl_service", "seed": seed or 42}
 
 
 

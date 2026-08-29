@@ -295,51 +295,6 @@ def extract_topic(prompt):
     return cleaned or "Requested Topic"
 
 
-def _run_image_qa_check(img_url: str, prompt: str, specs: dict) -> list:
-    """
-    V12 Image QA — Prompt-adherence specification check.
-    Validates the generation request against parsed specs to detect clear failures.
-    Returns a list of detected issues (empty list = QA passed).
-
-    Note: This is a spec-adherence check (verifying the prompt was properly constructed).
-    A vision model (llava/moondream) would be needed for pixel-level inspection.
-    """
-    issues = []
-    pl = prompt.lower()
-
-    # Check: if a quantity was requested, verify the prompt reflects it
-    quantity = specs.get("quantity", 1)
-    if quantity > 1:
-        # Check if quantity is reflected in the prompt
-        q_str = str(quantity)
-        if q_str not in pl and f"variation {quantity}" not in pl:
-            issues.append(f"ensure exactly {quantity} subjects are visible and distinct")
-
-    # Check: negative constraint enforcement
-    for neg in specs.get("negative", []):
-        if neg.lower() in pl:
-            issues.append(f"remove {neg} from the composition")
-
-    # Check: required subjects present in prompt
-    subjects = specs.get("subjects", [])
-    for subj in subjects[:3]:  # Check first 3 subjects
-        if len(subj) > 3 and subj.lower() not in pl:
-            issues.append(f"ensure {subj} is clearly visible as the hero element")
-
-    # Check: platform composition rules
-    platform = specs.get("platform", "general")
-    width, height = specs.get("resolution", (1080, 1080))
-    if platform == "pinterest" and width >= height:
-        issues.append("use vertical 2:3 portrait composition for Pinterest")
-    elif platform in ["instagram_story", "tiktok"] and width >= height:
-        issues.append("use 9:16 vertical composition for Stories/Reels")
-
-    # Check: brand accuracy
-    brand = specs.get("brand_name", "")
-    if brand and brand.lower() not in pl:
-        issues.append(f"ensure {brand} brand identity and color palette are accurate")
-
-    return issues
 
 
 def post_process_image(file_path, prompt="", category="", is_print=False):
