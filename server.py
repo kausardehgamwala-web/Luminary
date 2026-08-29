@@ -264,7 +264,9 @@ def query_ollama(prompt, json_mode=False, timeout=300, model_name=None):
             return data.get("response", "")
     except Exception as exc:
         print(f"[Ollama Status] Could not connect to Ollama ({exc}). Service may be offline or model downloading.")
-        return f"Error connecting to Ollama: {exc}"
+        if json_mode:
+            return "{}"
+        return "⚠️ AI Text Engine Offline: Unable to connect to Ollama. Please ensure the service is running."
 
 
 def parse_json_response(text):
@@ -898,9 +900,16 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             print(f"[V12] Generating {img_count} images at {width}x{height}")
 
             img_urls = []
+            image_generation_warning = ""
             for i in range(img_count):
                 variation = f"{enriched_prompt}, variation {i+1} of {img_count}" if img_count > 1 else enriched_prompt
-                img_url = generate_jpeg_graphic(variation, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
+                try:
+                    img_url = generate_jpeg_graphic(variation, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
+                except Exception as img_err:
+                    print(f"[Image Generation Warning] Local image pipeline failed ({img_err}). Handling gracefully...")
+                    img_url = ""
+                    image_generation_warning = "\n\n⚠️ **Image Generation Notice**: Local image engine offline or model initializing. Please ensure PyTorch/Diffusers weights are loaded."
+                    break
 
                 # ── V12 Image QA Loop (max 2 retries on clear failures) ────
                 qa_failures = _run_image_qa_check(img_url, variation, specs)
