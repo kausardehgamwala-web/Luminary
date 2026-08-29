@@ -132,7 +132,7 @@ def discover_ollama_model():
     ]
     try:
         req = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             installed = [m.get("name", "") for m in data.get("models", [])]
             for candidate in models_to_check:
@@ -146,16 +146,19 @@ def discover_ollama_model():
 
 MODEL_NAME = discover_ollama_model()
 
-def discover_all_ollama_models() -> list:
+def discover_all_ollama_models(timeout: int = 10) -> list:
     try:
         req = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return [m.get("name", "") for m in data.get("models", [])]
     except Exception:
         return []
 
 def route_model(task_type: str, available_models: list) -> str:
+    if not available_models:
+        # Re-query /api/tags once more with a longer timeout before falling back
+        available_models = discover_all_ollama_models(timeout=10)
     if not available_models:
         return MODEL_NAME
     if task_type == "coding":
@@ -283,6 +286,16 @@ def query_ollama(prompt, json_mode=False, timeout=300, model_name=None):
         with opener.open(req, timeout=timeout) as response:
             data = json.loads(response.read().decode("utf-8"))
             return data.get("response", "")
+    except urllib.error.HTTPError as http_err:
+        if http_err.code == 404:
+            logger.warning(f"[Ollama Status] Model '{target_model}' not found in Ollama — pull it with: ollama pull {target_model}")
+            if json_mode:
+                return "{}"
+            return f"⚠️ Model Not Found: Model '{target_model}' is not installed in Ollama. Run 'ollama pull {target_model}' to download it."
+        logger.warning(f"[Ollama Status] Ollama HTTP error {http_err.code}: {http_err.reason} for model '{target_model}'")
+        if json_mode:
+            return "{}"
+        return f"⚠️ AI Text Engine Error: Ollama HTTP {http_err.code} ({http_err.reason})."
     except Exception as exc:
         logger.warning(f"[Ollama Status] Could not connect to Ollama ({exc}). Service may be offline or model downloading.")
         if json_mode:
@@ -1078,7 +1091,10 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             })
 
             # Build response text
-            if img_count == 1:
+            if not img_urls:
+                resp = f"I wasn't able to generate the image this time.{image_generation_warning}"
+                img_payload = ""
+            elif img_count == 1:
                 resp = f"Here is your requested visual graphic ({width}x{height}):\n\n![Generated Graphic]({img_urls[0]})"
                 img_payload = img_urls[0]
             else:
