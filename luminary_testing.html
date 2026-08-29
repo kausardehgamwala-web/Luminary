@@ -7375,7 +7375,10 @@ body.light-mode .history-item.active {
       };
 
       try {
-        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`);
+        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`, {
+          method: "GET",
+          credentials: "include"
+        });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         if (data && data.analytics) {
@@ -11772,9 +11775,11 @@ body.light-mode .history-item.active {
       
       // POST to backend
       try {
-          await fetch('/api/feedback', {
+          const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
+          await fetch(`${baseUrl}/api/feedback`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
               body: JSON.stringify({
                   rating: rating,
                   context: chat.messages[msgIdx].text,
@@ -11885,7 +11890,7 @@ body.light-mode .history-item.active {
     }
 
     async function requestBackend(path, payload) {
-      const baseUrl = window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.port === '8000' ? '' : 'http://localhost:8000');
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
       try {
         const response = await fetch(baseUrl + path, {
           method: "POST",
@@ -11893,6 +11898,7 @@ body.light-mode .history-item.active {
             "Content-Type": "application/json",
             "X-Client-ID": "1"
           },
+          credentials: "include",
           body: JSON.stringify(payload)
         });
         const data = await response.json().catch(() => ({}));
@@ -12660,10 +12666,13 @@ body.light-mode .history-item.active {
       if (!grid) return;
 
       const currentClientId = (state && state.account && state.account.id) ? state.account.id : "kausar";
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
 
       try {
-        const res = await fetch(`${baseUrl}/api/social/connections?client_id=${encodeURIComponent(currentClientId)}`);
+        const res = await fetch(`${baseUrl}/api/social/connections?client_id=${encodeURIComponent(currentClientId)}`, {
+          method: "GET",
+          credentials: "include"
+        });
         if (!res.ok) {
           throw new Error("HTTP " + res.status);
         }
@@ -12740,12 +12749,13 @@ body.light-mode .history-item.active {
 
       const currentClientId = (state && state.account && state.account.id) ? state.account.id : "kausar";
       const brandName = (state && state.account && (state.account.business || state.account.company || state.account.name)) ? (state.account.business || state.account.company || state.account.name) : "daytona";
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
 
       try {
         const res = await fetch(`${baseUrl}/api/social/connect`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             client_id: currentClientId,
             platform: platform,
@@ -12799,10 +12809,11 @@ body.light-mode .history-item.active {
     };
 
     window.disconnectSocialPlatform = async function(connIdOrPlatform, platformName) {
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
       try {
         await fetch(`${baseUrl}/api/social/connections/${encodeURIComponent(connIdOrPlatform)}`, {
-          method: "DELETE"
+          method: "DELETE",
+          credentials: "include"
         });
         if (typeof showToast === "function") {
           showToast(`Disconnected ${platformName || 'account'} successfully.`);
@@ -13360,8 +13371,8 @@ body.light-mode .history-item.active {
 
       // 1. Disconnect active Social API connections on purge
       try {
-        const baseUrl = window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.port === '8000' ? '' : 'http://localhost:8000');
-        fetch(`${baseUrl}/api/social/connections/all`, { method: "DELETE" }).catch(() => {});
+        const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
+        fetch(`${baseUrl}/api/social/connections/all`, { method: "DELETE", credentials: "include" }).catch(() => {});
       } catch(apiErr) {
         console.warn("[Social API Purge Warning]:", apiErr);
       }
@@ -13466,7 +13477,7 @@ body.light-mode .history-item.active {
       if (!svg) return;
 
       const currentClientId = (state && state.account && state.account.id) ? state.account.id : "kausar";
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
 
       const monthSelect = document.getElementById("analyticsMonthSelect");
       const yearSelect = document.getElementById("analyticsYearSelect");
@@ -13475,7 +13486,10 @@ body.light-mode .history-item.active {
       const y = yearSelect ? yearSelect.value : new Date().getFullYear();
 
       try {
-        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`);
+        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`, {
+          method: "GET",
+          credentials: "include"
+        });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         window.currentAnalyticsData = data;
