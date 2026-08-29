@@ -326,12 +326,40 @@ def _add_slide(prs, palette, title: str, bullets: list, slide_num: int, speaker_
                     local_path = Path(__file__).parent / visual_url.split("?")[0].lstrip("/")
                     slide.shapes.add_picture(str(local_path), Inches(7.0), Inches(1.0), Inches(5.8), Inches(5.5))
                 else:
-                    # Download temporarily
-                    tmp_img = tempfile.mktemp(suffix=".jpg")
-                    urllib.request.urlretrieve(visual_url, tmp_img)
-                    slide.shapes.add_picture(tmp_img, Inches(7.0), Inches(1.0), Inches(5.8), Inches(5.5))
+                    # Download temporarily safely
+                    import urllib.parse
+                    import socket
+                    import ipaddress
+                    
+                    parsed = urllib.parse.urlparse(visual_url)
+                    if parsed.scheme not in ["http", "https"]:
+                        raise ValueError(f"Invalid URL scheme: {parsed.scheme}")
+                    
+                    hostname = parsed.hostname
+                    if not hostname:
+                        raise ValueError("Invalid URL: missing hostname")
+                        
+                    ip_addr = socket.gethostbyname(hostname)
+                    if ipaddress.ip_address(ip_addr).is_private or ipaddress.ip_address(ip_addr).is_loopback:
+                        raise ValueError("Fetching from internal or private IP ranges is forbidden")
+                        
+                    with urllib.request.urlopen(visual_url, timeout=10) as response:
+                        content_length = int(response.headers.get("Content-Length", 0))
+                        if content_length > 10 * 1024 * 1024:
+                            raise ValueError("Image exceeds 10MB size limit")
+                            
+                        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                            tmp.write(response.read(10 * 1024 * 1024))
+                            tmp_img = tmp.name
+                            
+                    try:
+                        slide.shapes.add_picture(tmp_img, Inches(7.0), Inches(1.0), Inches(5.8), Inches(5.5))
+                    finally:
+                        import os
+                        if os.path.exists(tmp_img):
+                            os.unlink(tmp_img)
         except Exception as e:
-            print(f"Failed to add image to slide: {e}")
+            print(f"Failed to add image to slide safely: {e}")
     else:
         # Default Full Width Layout
         title_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.4), Inches(12.6), Inches(1.3))

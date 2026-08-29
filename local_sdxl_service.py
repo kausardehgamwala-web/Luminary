@@ -101,6 +101,8 @@ class LocalSDXLService:
         self.is_loaded = False
         self.ip_adapter_loaded = False
         self.controlnet_loaded = False
+        self.is_downloading = False
+        self.download_thread = None
 
     def _has_cuda(self) -> bool:
         try:
@@ -108,6 +110,14 @@ class LocalSDXLService:
             return torch.cuda.is_available()
         except ImportError:
             return False
+
+    def async_preload_model(self, checkpoint_name: str = "runwayml/stable-diffusion-v1-5"):
+        if self.pipeline is not None or self.is_downloading:
+            return
+        def _download_task():
+            self.initialize_pipeline(checkpoint_name)
+        self.download_thread = threading.Thread(target=_download_task, daemon=True)
+        self.download_thread.start()
 
     def initialize_pipeline(self, checkpoint_name: str = "runwayml/stable-diffusion-v1-5"):
         """
@@ -119,6 +129,7 @@ class LocalSDXLService:
         logger.info(f"[SDXL Service] Initializing persistent pipeline with checkpoint: {checkpoint_name}")
         logger.info(f"[SDXL Service] Device: {self.device}")
 
+        self.is_downloading = True
         try:
             import torch
             from diffusers import AutoPipelineForText2Image
@@ -161,11 +172,13 @@ class LocalSDXLService:
             self.current_checkpoint = checkpoint_name
             self.is_loaded = True
             logger.info("[SDXL Service] Image Pipeline loaded successfully into persistent memory.")
+            self.is_downloading = False
             return self.pipeline
 
         except Exception as e:
             logger.error(f"[SDXL Service] Failed to initialize diffusers pipeline: {e}")
             self.is_loaded = False
+            self.is_downloading = False
             return None
 
     def load_ip_adapter(self, scale: float = 0.7):
@@ -228,6 +241,10 @@ class LocalSDXLService:
 
         with _INFERENCE_LOCK:
             logger.info(f"[SDXL Service] Concurrency lock acquired. Generating {width}x{height} image...")
+            
+            if self.is_downloading:
+                raise RuntimeError("Model is still downloading from HuggingFace (this only happens once). Please try again shortly.")
+                
             start_time = time.time()
 
             # Attempt diffusers inference if installed and models available

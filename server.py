@@ -254,7 +254,7 @@ def web_search(query):
         if formatted_results:
             return "\n".join(formatted_results)
     except Exception as e:
-        logger.error("DuckDuckGo pip search failed:", e)
+        logger.error("DuckDuckGo pip search failed: %s", e)
     return "Web search is currently unavailable."
 
 
@@ -688,7 +688,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     if script.exists():
                         subprocess.run([sys.executable, str(script)], check=False)
                 except Exception as ex:
-                    logger.error("Error generating catalog on the fly:", ex)
+                    logger.error("Error generating catalog on the fly: %s", ex)
             if catalog_file.exists():
                 self._serve_file(catalog_file, "text/html; charset=utf-8")
                 return
@@ -908,7 +908,12 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         # ── 2. Follow-Up Detection (V12) ──────────────────────────────────────
         # Force NEW_TASK if prompt specifies a clear fresh subject or starts with creation verbs
         fresh_triggers = ["generate", "create", "make a", "draw", "photo of", "image of", "picture of", "render"]
-        if any(lowered.startswith(t) for t in fresh_triggers) or "office" in lowered or "shoes" in lowered or "building" in lowered:
+        is_fresh_start = any(lowered.startswith(t) for t in fresh_triggers)
+        
+        # Only treat "office", "shoes", "building" as a hard NEW_TASK override if the prompt ALSO starts with a creation verb
+        is_hard_override = is_fresh_start and any(w in lowered for w in ["office", "shoes", "building"])
+        
+        if is_hard_override or (is_fresh_start and not specs.get("is_follow_up")):
             follow_up_type = "NEW_TASK"
             is_change_only = False
             # Clear old brief context so previous brand/car traits don't bleed into new tasks
@@ -969,7 +974,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 search_query = f"{specs['subjects'][0]} official brand colors logo hex details" if specs["subjects"] else prompt
                 search_context = luminary_memory.get_cached_research(search_query)
                 if not search_context:
-                    logger.info("Performing image web search for brand details:", search_query)
+                    logger.info("Performing image web search for brand details: %s", search_query)
                     search_context = web_search(search_query)
                     luminary_memory.cache_research(search_query, search_context)
 
@@ -1114,11 +1119,11 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             # Check persistent search cache first
             search_results = luminary_memory.get_cached_research(clean_q)
             if not search_results:
-                logger.info("Performing cached web search for:", clean_q)
+                logger.info("Performing cached web search for: %s", clean_q)
                 search_results = f"\n\n### LIVE WEB SEARCH RESULTS (Internet Reference Context):\n{web_search(clean_q)}\n"
                 luminary_memory.cache_research(clean_q, search_results)
             else:
-                logger.info("Using cached research for query:", clean_q)
+                logger.info("Using cached research for query: %s", clean_q)
 
         # ── 5. Setup LLM Prompts with Memory, Skills, and Examples ────────────
         skill_context = select_skill_context(prompt)
@@ -1146,7 +1151,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             task_workflow = luminary_workflows.get_workflow_for_prompt(prompt)
             workflow_context = f"\n\n[STRICT TASK WORKFLOW ENFORCEMENT]\n{task_workflow}\n"
         except Exception as e:
-            logger.error("Workflow error:", e)
+            logger.error("Workflow error: %s", e)
             workflow_context = ""
 
         # ── V14: Creative Director Production Brief for Text Tasks ─────────────
@@ -1243,7 +1248,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                         design_sys = lds.get_design_system_by_prompt(prompt)
                         logger.info(f"[V13 Design Systems] Matched design system: {design_sys['title']}")
                     except Exception as e:
-                        logger.error("Error loading design system:", e)
+                        logger.error("Error loading design system: %s", e)
                 
                 qa_attempts = 0
                 final_qc_score = 90
@@ -1352,7 +1357,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                         filepath.write_text(html_code, encoding="utf-8")
                         response_text += f"\n\n[Download Generated HTML Website](/generated/{filepath.name})"
                 except Exception as e:
-                    logger.error("Native File generation failed:", e)
+                    logger.error("Native File generation failed: %s", e)
 
                 # ── 5. QC AI Work Verification & Inspection Gate (gpt-oss-20b) ──
                 qc_badge = ""
@@ -1726,6 +1731,13 @@ def run():
         social_sync.start_sync_thread()
     except Exception as ex:
         logger.warning(f"[Warning] Could not initialize social sync thread: {ex}")
+
+    try:
+        import local_sdxl_service
+        logger.info("[Startup] Initiating background download/load of SDXL image model...")
+        local_sdxl_service.sdxl_service.async_preload_model()
+    except Exception as e:
+        logger.error(f"Failed to initiate SDXL background load: {e}")
 
     server_address = (SERVER_HOST if SERVER_HOST != "0.0.0.0" else "", SERVER_PORT)
     server = ThreadingHTTPServer(server_address, LuminaryHandler)
