@@ -472,11 +472,272 @@
       align-self: flex-start !important;
     }
 
+
+    /*  AI Fleet & Model Showcase Styling  */
+    .ai-fleet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255, 85, 0, 0.12);
+      border: 1px solid rgba(255, 85, 0, 0.35);
+      color: var(--orange);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-right: 10px;
+    }
+    .ai-fleet-btn:hover {
+      background: var(--orange);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--orange-glow);
+      transform: translateY(-1px);
+    }
+    body.light-mode .ai-fleet-btn {
+      background: rgba(255, 85, 0, 0.1);
+      border: 1px solid var(--orange);
+      color: var(--orange);
+    }
+    body.light-mode .ai-fleet-btn:hover {
+      background: var(--orange);
+      color: #ffffff;
+    }
+
+    .ai-fleet-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .ai-fleet-dialog {
+      background: #111015;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+    body.light-mode .ai-fleet-dialog {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 24px 60px rgba(255, 85, 0, 0.12);
+    }
+
+    .ai-fleet-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    body.light-mode .ai-fleet-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .ai-fleet-icon-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--orange);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+
+    .ai-fleet-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+    .ai-fleet-close:hover {
+      color: var(--orange);
+    }
+
+    .ai-fleet-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .ai-section-title {
+      margin: 0 0 10px 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-engine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+    .ai-engine-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+    }
+    body.light-mode .ai-engine-card {
+      background: #fdfbf9;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .engine-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .primary-tag {
+      background: #ff5500;
+      color: #ffffff;
+    }
+    .secondary-tag {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+
+    .engine-name {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: monospace;
+    }
+    .engine-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .engine-meta {
+      font-size: 0.72rem;
+      color: var(--orange);
+      font-weight: 600;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .ai-roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 10px;
+    }
+    .ai-role-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    body.light-mode .ai-role-item {
+      background: #faf8f5;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .role-badge {
+      font-size: 0.68rem;
+      font-family: monospace;
+      color: var(--orange);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .role-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .role-desc {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+
+    .models-pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .model-pill {
+      font-size: 0.75rem;
+      font-family: monospace;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+    .model-pill.primary {
+      background: rgba(255, 85, 0, 0.15);
+      border-color: var(--orange);
+      color: var(--orange);
+      font-weight: 700;
+    }
+    body.light-mode .model-pill {
+      background: #f2eee9;
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #333;
+    }
+    body.light-mode .model-pill.primary {
+      background: #ffe8db;
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
 </style>');
         }
       } catch(e){}
     })();
-  </script>
+  
+    window.toggleAiFleetModal = function(show) {
+      const modal = document.getElementById("aiFleetModal");
+      if (modal) {
+        modal.style.display = show ? "flex" : "none";
+      }
+    };
+
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -5014,6 +5275,259 @@ body.light-mode .history-item.active {
       align-self: flex-start !important;
     }
 
+
+    /*  AI Fleet & Model Showcase Styling  */
+    .ai-fleet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255, 85, 0, 0.12);
+      border: 1px solid rgba(255, 85, 0, 0.35);
+      color: var(--orange);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-right: 10px;
+    }
+    .ai-fleet-btn:hover {
+      background: var(--orange);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--orange-glow);
+      transform: translateY(-1px);
+    }
+    body.light-mode .ai-fleet-btn {
+      background: rgba(255, 85, 0, 0.1);
+      border: 1px solid var(--orange);
+      color: var(--orange);
+    }
+    body.light-mode .ai-fleet-btn:hover {
+      background: var(--orange);
+      color: #ffffff;
+    }
+
+    .ai-fleet-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .ai-fleet-dialog {
+      background: #111015;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+    body.light-mode .ai-fleet-dialog {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 24px 60px rgba(255, 85, 0, 0.12);
+    }
+
+    .ai-fleet-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    body.light-mode .ai-fleet-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .ai-fleet-icon-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--orange);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+
+    .ai-fleet-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+    .ai-fleet-close:hover {
+      color: var(--orange);
+    }
+
+    .ai-fleet-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .ai-section-title {
+      margin: 0 0 10px 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-engine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+    .ai-engine-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+    }
+    body.light-mode .ai-engine-card {
+      background: #fdfbf9;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .engine-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .primary-tag {
+      background: #ff5500;
+      color: #ffffff;
+    }
+    .secondary-tag {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+
+    .engine-name {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: monospace;
+    }
+    .engine-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .engine-meta {
+      font-size: 0.72rem;
+      color: var(--orange);
+      font-weight: 600;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .ai-roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 10px;
+    }
+    .ai-role-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    body.light-mode .ai-role-item {
+      background: #faf8f5;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .role-badge {
+      font-size: 0.68rem;
+      font-family: monospace;
+      color: var(--orange);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .role-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .role-desc {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+
+    .models-pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .model-pill {
+      font-size: 0.75rem;
+      font-family: monospace;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+    .model-pill.primary {
+      background: rgba(255, 85, 0, 0.15);
+      border-color: var(--orange);
+      color: var(--orange);
+      font-weight: 700;
+    }
+    body.light-mode .model-pill {
+      background: #f2eee9;
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #333;
+    }
+    body.light-mode .model-pill.primary {
+      background: #ffe8db;
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -5507,6 +6021,14 @@ body.light-mode .history-item.active {
       }
     };
 
+
+    window.toggleAiFleetModal = function(show) {
+      const modal = document.getElementById("aiFleetModal");
+      if (modal) {
+        modal.style.display = show ? "flex" : "none";
+      }
+    };
+
 </script>
 <script>
     window.submitSignupForm = function() {
@@ -5534,6 +6056,14 @@ body.light-mode .history-item.active {
         window.showView("dashboard");
       }
     };
+
+    window.toggleAiFleetModal = function(show) {
+      const modal = document.getElementById("aiFleetModal");
+      if (modal) {
+        modal.style.display = show ? "flex" : "none";
+      }
+    };
+
 </script>
 
 </head>
@@ -7008,6 +7538,259 @@ body.light-mode .history-item.active {
     .analytics-panel {
       margin-top: 0 !important;
       align-self: flex-start !important;
+    }
+
+
+    /*  AI Fleet & Model Showcase Styling  */
+    .ai-fleet-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255, 85, 0, 0.12);
+      border: 1px solid rgba(255, 85, 0, 0.35);
+      color: var(--orange);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-right: 10px;
+    }
+    .ai-fleet-btn:hover {
+      background: var(--orange);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--orange-glow);
+      transform: translateY(-1px);
+    }
+    body.light-mode .ai-fleet-btn {
+      background: rgba(255, 85, 0, 0.1);
+      border: 1px solid var(--orange);
+      color: var(--orange);
+    }
+    body.light-mode .ai-fleet-btn:hover {
+      background: var(--orange);
+      color: #ffffff;
+    }
+
+    .ai-fleet-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .ai-fleet-dialog {
+      background: #111015;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+    body.light-mode .ai-fleet-dialog {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 24px 60px rgba(255, 85, 0, 0.12);
+    }
+
+    .ai-fleet-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    body.light-mode .ai-fleet-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .ai-fleet-icon-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--orange);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--orange-glow);
+    }
+
+    .ai-fleet-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+    .ai-fleet-close:hover {
+      color: var(--orange);
+    }
+
+    .ai-fleet-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .ai-section-title {
+      margin: 0 0 10px 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ai-engine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px;
+    }
+    .ai-engine-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+    }
+    body.light-mode .ai-engine-card {
+      background: #fdfbf9;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .engine-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .primary-tag {
+      background: #ff5500;
+      color: #ffffff;
+    }
+    .secondary-tag {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+
+    .engine-name {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: monospace;
+    }
+    .engine-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .engine-meta {
+      font-size: 0.72rem;
+      color: var(--orange);
+      font-weight: 600;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .ai-roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 10px;
+    }
+    .ai-role-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    body.light-mode .ai-role-item {
+      background: #faf8f5;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .role-badge {
+      font-size: 0.68rem;
+      font-family: monospace;
+      color: var(--orange);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .role-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .role-desc {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+
+    .models-pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .model-pill {
+      font-size: 0.75rem;
+      font-family: monospace;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+    .model-pill.primary {
+      background: rgba(255, 85, 0, 0.15);
+      border-color: var(--orange);
+      color: var(--orange);
+      font-weight: 700;
+    }
+    body.light-mode .model-pill {
+      background: #f2eee9;
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #333;
+    }
+    body.light-mode .model-pill.primary {
+      background: #ffe8db;
+      border-color: var(--orange);
+      color: var(--orange);
     }
 
 </style>
@@ -9261,6 +10044,14 @@ body.light-mode .history-item.active {
     if (!initParams.get("view") && !initParams.has("subview") && !initParams.has("subtab") && !initParams.has("modal")) {
       showView("landing");
     }
+
+    window.toggleAiFleetModal = function(show) {
+      const modal = document.getElementById("aiFleetModal");
+      if (modal) {
+        modal.style.display = show ? "flex" : "none";
+      }
+    };
+
 </script>
 <script>
     window.submitSignupForm = function() {
@@ -9288,6 +10079,14 @@ body.light-mode .history-item.active {
         window.showView("dashboard");
       }
     };
+
+    window.toggleAiFleetModal = function(show) {
+      const modal = document.getElementById("aiFleetModal");
+      if (modal) {
+        modal.style.display = show ? "flex" : "none";
+      }
+    };
+
 </script>
 
 
@@ -9949,6 +10748,14 @@ body.light-mode .history-item.active {
     bindAllInteractiveButtons();
   }
 })();
+
+    window.toggleAiFleetModal = function(show) {
+      const modal = document.getElementById("aiFleetModal");
+      if (modal) {
+        modal.style.display = show ? "flex" : "none";
+      }
+    };
+
 </script>
 
 
@@ -10683,6 +11490,127 @@ body.light-mode .history-item.active {
     }
   }
 
+
+    window.toggleAiFleetModal = function(show) {
+      const modal = document.getElementById("aiFleetModal");
+      if (modal) {
+        modal.style.display = show ? "flex" : "none";
+      }
+    };
+
 </script>
+
+
+  <!--  LUMINARY AI FLEET & ARCHITECTURE MODAL  -->
+  <div id="aiFleetModal" class="ai-fleet-modal" style="display:none;" onclick="if(event.target===this) window.toggleAiFleetModal(false);">
+    <div class="ai-fleet-dialog">
+      <div class="ai-fleet-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="ai-fleet-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a4 4 0 0 1 4 4c0 1.1-.9 2-2 2h-4a2 2 0 0 1-2-2 4 4 0 0 1 4-4z"/><rect x="4" y="8" width="16" height="12" rx="3"/><circle cx="9" cy="14" r="1.5"/><circle cx="15" cy="14" r="1.5"/><path d="M9 18h6"/></svg>
+          </div>
+          <div>
+            <h3 style="margin:0; font-size:1.25rem; font-weight:700; color:var(--text); letter-spacing:-0.02em;">Programmed AI Fleet & Active Models</h3>
+            <p style="margin:2px 0 0 0; font-size:0.8rem; color:var(--muted);">Full-stack multi-agent agency architecture & hardware routing</p>
+          </div>
+        </div>
+        <button class="ai-fleet-close" onclick="window.toggleAiFleetModal(false)">&times;</button>
+      </div>
+
+      <div class="ai-fleet-body">
+        <!-- Section 1: Active Model Engines -->
+        <div class="ai-fleet-section">
+          <h4 class="ai-section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            Active Model Engines & Hardware
+          </h4>
+          <div class="ai-engine-grid">
+            <div class="ai-engine-card active-engine">
+              <div class="engine-tag primary-tag">Primary Text Model</div>
+              <div class="engine-name">qwen2.5-coder:7b</div>
+              <div class="engine-desc">7 Billion Parameter instruction-tuned coding & reasoning LLM running locally via headless Ollama server.</div>
+              <div class="engine-meta"><span class="status-dot"></span> Active &bull; 16K Context &bull; Temperature 0.4</div>
+            </div>
+            <div class="ai-engine-card active-engine">
+              <div class="engine-tag secondary-tag">Primary Image Model</div>
+              <div class="engine-name">runwayml/stable-diffusion-v1-5</div>
+              <div class="engine-desc">Hardware-accelerated local image synthesis engine with SDXL Turbo 1-4 step support and VRAM auto-clearing.</div>
+              <div class="engine-meta"><span class="status-dot"></span> Active &bull; Attention Slicing &bull; CUDA / CPU</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Programmed AI Specialized Agency Roles -->
+        <div class="ai-fleet-section" style="margin-top:18px;">
+          <h4 class="ai-section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Programmed Agency Roles & Orchestrators (8 Active)
+          </h4>
+          <div class="ai-roles-grid">
+            <div class="ai-role-item">
+              <div class="role-badge">luminary_creative_director.py</div>
+              <div class="role-title">Creative Director AI</div>
+              <div class="role-desc">Builds comprehensive campaign production briefs, controls visual mood and composition, and executes multi-pass creative QC with automatic self-healing.</div>
+            </div>
+            <div class="ai-role-item">
+              <div class="role-badge">luminary_skill_router.py</div>
+              <div class="role-title">Skill Router AI</div>
+              <div class="role-desc">Classifies intent into 20+ creative deliverables (PowerPoint, Sheets, Docs, Image, Audit, Pinterest, Instagram) with zero prompt destruction.</div>
+            </div>
+            <div class="ai-role-item">
+              <div class="role-badge">server.py &bull; Copy Engine</div>
+              <div class="role-title">Copywriter & Content AI</div>
+              <div class="role-desc">Generates high-converting marketing frameworks, viral hooks, SEO blog articles, email sequences, and structured slide decks.</div>
+            </div>
+            <div class="ai-role-item">
+              <div class="role-badge">luminary_intelligence.py</div>
+              <div class="role-title">Prompt Engineer AI</div>
+              <div class="role-desc">Expands brief specs (lighting, camera, aspect ratio) and automatically triggers smart MCQ clarification gates when details are missing.</div>
+            </div>
+            <div class="ai-role-item">
+              <div class="role-badge">luminary_qc_engine.py</div>
+              <div class="role-title">Quality Control & QA AI</div>
+              <div class="role-desc">Conducts multi-dimensional semantic audits, headline validation, and numerical token adherence scoring before output is delivered.</div>
+            </div>
+            <div class="ai-role-item">
+              <div class="role-badge">luminary_safety.py</div>
+              <div class="role-title">Safety & Safeguard Gate</div>
+              <div class="role-desc">Enterprise prompt vulnerability analyzer, content toxicity filter, and brand-safe alternative generator (gpt-oss-safeguard-20b).</div>
+            </div>
+            <div class="ai-role-item">
+              <div class="role-badge">luminary_asset_engine.py</div>
+              <div class="role-title">Brand Asset Analyst AI</div>
+              <div class="role-desc">Extracts official brand guidelines, typography systems, color hex codes, and vector logos from uploaded documents and reference images.</div>
+            </div>
+            <div class="ai-role-item">
+              <div class="role-badge">social_sync.py</div>
+              <div class="role-title">Channel Strategist AI</div>
+              <div class="role-desc">Automates omnichannel content publishing, tracks live engagement analytics, and feeds performance metrics into the memory store.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Supported Text Models Hierarchy -->
+        <div class="ai-fleet-section" style="margin-top:18px;">
+          <h4 class="ai-section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            Supported Ollama Text Model Hierarchy (10 Candidates)
+          </h4>
+          <div class="models-pill-wrap">
+            <span class="model-pill primary">qwen2.5-coder:7b (Primary)</span>
+            <span class="model-pill">deepseek-coder:6.7b</span>
+            <span class="model-pill">codellama:7b</span>
+            <span class="model-pill">qwen2.5:7b</span>
+            <span class="model-pill">qwen2.5:3b</span>
+            <span class="model-pill">mistral:7b</span>
+            <span class="model-pill">llama3:8b</span>
+            <span class="model-pill">phi3:medium</span>
+            <span class="model-pill">phi3:mini</span>
+            <span class="model-pill">qwen2.5-coder:1.5b</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </body></html>
