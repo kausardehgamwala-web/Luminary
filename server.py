@@ -16,6 +16,8 @@ APP_ROOT = Path(__file__).resolve().parent
 if str(APP_ROOT / "skill_runtime") not in sys.path:
     sys.path.insert(0, str(APP_ROOT / "skill_runtime"))
 
+import luminary_skill_router as _skill_router_module
+import luminary_creative_director as _cd_orchestrator
 import luminary_auth
 import luminary_safety
 import luminary_intelligence
@@ -43,6 +45,7 @@ logger = logging.getLogger("luminary_server")
 
 # ── Environment Configurable Endpoints ──────────────────────────────────────
 OLLAMA_BASE_URL = os.getenv("OLLAMA_HOST", os.getenv("OLLAMA_URL", "http://localhost:11434")).rstrip("/")
+OLLAMA_URL = f"{OLLAMA_BASE_URL}/api/generate"
 SERVER_HOST = os.getenv("LUMINARY_HOST", "0.0.0.0")
 SERVER_PORT = int(os.getenv("LUMINARY_PORT", os.getenv("PORT", "8000")))
 
@@ -300,6 +303,7 @@ def query_ollama(prompt, json_mode=False, timeout=300, model_name=None):
             data = json.loads(response.read().decode("utf-8"))
             return data.get("response", "")
     except Exception as exc:
+        print(f"[Ollama Status] Could not connect to Ollama ({exc}). Service may be offline or model downloading.")
         return f"Error connecting to Ollama: {exc}"
 
 

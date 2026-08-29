@@ -109,9 +109,9 @@ class LocalSDXLService:
         except ImportError:
             return False
 
-    def initialize_pipeline(self, checkpoint_name: str = "stabilityai/stable-diffusion-xl-base-1.0"):
+    def initialize_pipeline(self, checkpoint_name: str = "runwayml/stable-diffusion-v1-5"):
         """
-        Loads SDXL model with 8-16GB VRAM optimizations and keeps it persistent in memory.
+        Loads lightweight SD 1.5 / SDXL Turbo model with 8-16GB VRAM / CPU optimizations.
         """
         if self.pipeline is not None and self.current_checkpoint == checkpoint_name:
             return self.pipeline
@@ -121,46 +121,46 @@ class LocalSDXLService:
 
         try:
             import torch
-            from diffusers import AutoPipelineForText2Image, StableDiffusionXLPipeline
+            from diffusers import AutoPipelineForText2Image
 
             torch_dtype = torch.float16 if self.device == "cuda" else torch.float32
 
-            # Load pipeline with safe tensors
-            pipe = StableDiffusionXLPipeline.from_pretrained(
+            # Use AutoPipeline to seamlessly support SD 1.5, SDXL, and SDXL-Turbo
+            pipe = AutoPipelineForText2Image.from_pretrained(
                 checkpoint_name,
                 torch_dtype=torch_dtype,
                 use_safetensors=True,
                 cache_dir=str(MODELS_CACHE_DIR)
             )
 
-            # ── Memory Optimizations for 8-16GB VRAM ─────────────────────────
+            # Memory Optimizations for 16GB RAM / Laptop GPU
             if self.device == "cuda":
-                # Offload components to CPU when inactive to prevent OOM
-                pipe.enable_model_cpu_offload()
-                # Enable VAE tiling and slicing for high-resolution images
-                pipe.enable_vae_tiling()
-                pipe.enable_vae_slicing()
-                
+                pipe.to("cuda")
                 try:
-                    pipe.enable_xformers_memory_efficient_attention()
-                    logger.info("[SDXL Service] xFormers memory-efficient attention enabled.")
-                except Exception:
                     pipe.enable_attention_slicing(slice_size="auto")
-                    logger.info("[SDXL Service] Attention slicing enabled.")
+                except Exception:
+                    pass
+                try:
+                    pipe.enable_vae_slicing()
+                except Exception:
+                    pass
+                logger.info("[SDXL Service] CUDA GPU acceleration & attention slicing enabled.")
             else:
-                # CPU / Iris Xe fallback optimizations
                 pipe.to("cpu")
-                pipe.enable_attention_slicing(slice_size=1)
-                pipe.enable_vae_slicing()
+                try:
+                    pipe.enable_attention_slicing(slice_size=1)
+                except Exception:
+                    pass
+                logger.info("[SDXL Service] CPU fallback mode active with memory slicing.")
 
             self.pipeline = pipe
             self.current_checkpoint = checkpoint_name
             self.is_loaded = True
-            logger.info("[SDXL Service] SDXL Pipeline loaded successfully into persistent memory.")
+            logger.info("[SDXL Service] Image Pipeline loaded successfully into persistent memory.")
             return self.pipeline
 
         except Exception as e:
-            logger.error(f"[SDXL Service] Failed to initialize diffusers SDXL pipeline: {e}")
+            logger.error(f"[SDXL Service] Failed to initialize diffusers pipeline: {e}")
             self.is_loaded = False
             return None
 
@@ -263,7 +263,14 @@ class LocalSDXLService:
                             generator=generator
                         )
 
-                    gen_img = output.images[0]
+                                        gen_img = output.images[0]
+                    # Post-generation VRAM cleanup
+                    if self.device == "cuda":
+                        try:
+                            import torch
+                            torch.cuda.empty_cache()
+                        except Exception:
+                            pass
                     # Post-Generation Safety Screen
                     safety_res = luminary_safety.classify_image_safety(gen_img)
                     if not safety_res.safe:
