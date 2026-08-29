@@ -11433,14 +11433,54 @@ body.light-mode .history-item.active {
         messages: []
       });
       state.activeChatId = id;
+
+      // 1. Explicitly clear all prompt / chat input fields
       if (elements.promptInput) elements.promptInput.value = "";
+      const promptField = document.getElementById("promptInput") || document.getElementById("chat-input");
+      if (promptField) promptField.value = "";
+
+      // 2. Clear attachments, tags, and reply context
       state.attachments = [];
       state.selectedTags = [];
+      if (typeof clearReply === "function") {
+        clearReply();
+      } else if (typeof window.clearReply === "function") {
+        window.clearReply();
+      }
+
+      // 3. Clear the main chat window completely
+      const feed = elements.chatFeed || document.getElementById("chatFeed");
+      if (feed) feed.innerHTML = "";
+
+      // 4. Reinject/restore the premium Welcome Message
+      const chatStage = document.querySelector(".chat-stage") || document.querySelector(".chat-container");
+      let welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead");
+      if (!welcomeEl && chatStage) {
+        const welDiv = document.createElement("div");
+        welDiv.id = "welcome-message";
+        welDiv.className = "welcome-container";
+        welDiv.innerHTML = '<h2 id="welcomeHeading">Welcome to Luminary</h2><p>How can I help you today?</p>';
+        chatStage.insertBefore(welDiv, chatStage.firstChild);
+        welcomeEl = welDiv;
+      }
+      if (welcomeEl) {
+        welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+        welcomeEl.style.display = "flex";
+      }
+
       renderSelections();
       persistAccount();
       renderHistory();
       renderChat();
+
+      if (typeof switchMainView === "function") {
+        switchMainView("home");
+      } else if (typeof window.switchMainView === "function") {
+        window.switchMainView("home");
+      }
+      if (promptField) promptField.focus();
     }
+    window.createNewChat = createNewChat;
 
     function getActiveChat() {
       return state.chats.find((c) => c.id === state.activeChatId);
@@ -13119,10 +13159,16 @@ body.light-mode .history-item.active {
     document.getElementById("historyOpenBtn")?.addEventListener("click", () => window.toggleHistory(true));
     document.getElementById("historyCloseBtn")?.addEventListener("click", () => window.toggleHistory(false));
     document.getElementById("newChatBtn")?.addEventListener("click", () => {
-      const feed = document.getElementById("chatFeed");
-      if (feed) feed.innerHTML = "";
-      window.switchMainView("home");
-      document.getElementById("promptInput")?.focus();
+      if (typeof window.createNewChat === "function") {
+        window.createNewChat();
+      } else {
+        const feed = document.getElementById("chatFeed");
+        if (feed) feed.innerHTML = "";
+        const promptEl = document.getElementById("promptInput") || document.getElementById("chat-input");
+        if (promptEl) promptEl.value = "";
+        window.switchMainView("home");
+        promptEl?.focus();
+      }
     });
 
     // Calendar Navigation
