@@ -11152,7 +11152,7 @@ body.light-mode .history-item.active {
       formEl.querySelectorAll("input, textarea").forEach(input => removeFieldError(input));
     }
 
-    const state = {
+    var state = window.state = {
       account: null,
       chats: [],
       activeChatId: null,
@@ -11577,13 +11577,13 @@ body.light-mode .history-item.active {
                   let downActive = message.feedback === "negative" ? "active" : "";
                   actionsHtml = `
                     <div class="msg-actions" style="display:flex; align-items:center; gap:8px;">
-                      <button class="msg-action-btn" title="Reply" onclick="setReplyTo('${escapeHtml(message.text.slice(0,60))}...')">
+                      <button type="button" class="msg-action-btn reply-msg-btn" title="Reply to this response" onclick="setReplyByIndex(${idx}); event.stopPropagation();">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
                       </button>
-                      <button class="msg-action-btn ${upActive}" title="Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'positive')">
+                      <button type="button" class="msg-action-btn ${upActive}" title="Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'positive'); event.stopPropagation();">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
                       </button>
-                      <button class="msg-action-btn ${downActive}" title="Not Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'negative')">
+                      <button type="button" class="msg-action-btn ${downActive}" title="Not Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'negative'); event.stopPropagation();">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
                       </button>
                       <span style="font-size:0.75rem; color:var(--muted); font-weight:600; margin-left:4px;">${tTaken}</span>
@@ -11649,23 +11649,50 @@ body.light-mode .history-item.active {
 
     
     
+    window.setReplyByIndex = function(msgIdx) {
+      const chat = getActiveChat();
+      if (!chat || !chat.messages || !chat.messages[msgIdx]) return;
+      const msg = chat.messages[msgIdx];
+      let snippet = "";
+      if (msg.deliverables && msg.deliverables.length) {
+        const imgDeliv = msg.deliverables.find(d => d.type === 'image' || d.type === 'png' || d.type === 'jpg');
+        if (imgDeliv) {
+          snippet = "Generated Image: " + (imgDeliv.title || imgDeliv.filename || "Agency Visual Deliverable");
+        } else {
+          snippet = "Deliverable: " + (msg.deliverables[0].title || msg.deliverables[0].filename || "Agency Asset");
+        }
+      }
+      if (!snippet && msg.text) {
+        snippet = msg.text.trim().replace(/\s+/g, ' ').slice(0, 70);
+        if (msg.text.length > 70) snippet += "...";
+      }
+      if (!snippet) snippet = "Generated AI Output";
+      window.setReplyTo(snippet);
+    };
+
     window.setReplyTo = function(snippet) {
       state.replyingTo = snippet;
       const textEl = document.getElementById('replyStripText');
       if(textEl) {
-          textEl.textContent = "Reply to: " + snippet;
+          textEl.textContent = "Replying to: " + snippet;
           const strip = textEl.parentElement;
           strip.style.display = 'flex';
-          strip.style.padding = '9px 14px';
+          strip.style.alignItems = 'center';
+          strip.style.justifyContent = 'space-between';
+          strip.style.padding = '8px 14px';
           strip.style.background = 'var(--orange)';
           strip.style.backgroundColor = '#ff5500';
           strip.style.border = '1px solid #ff5500';
-          strip.style.borderRadius = '8px';
+          strip.style.borderRadius = '10px';
           strip.style.color = '#ffffff';
-          strip.style.marginBottom = '12px';
+          strip.style.marginBottom = '10px';
           strip.style.boxShadow = '0 4px 14px var(--orange-glow)';
           const btn = document.getElementById('cancelReplyBtn');
           if(btn) btn.style.color = '#ffffff';
+      }
+      const promptInput = document.getElementById('promptInput');
+      if (promptInput) {
+        promptInput.focus();
       }
     };
     
