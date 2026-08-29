@@ -1078,6 +1078,92 @@
       transform: translateY(-1px) !important;
     }
 
+
+    /*  Big Agency Aesthetic Polish & Sleek Image Framing  */
+    .chat-bubble-image-wrap {
+      margin-top: 14px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 85, 0, 0.25);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 85, 0, 0.15);
+      position: relative;
+      transition: all 0.3s ease;
+      max-width: 600px;
+    }
+    body.light-mode .chat-bubble-image-wrap {
+      background: #faf8f5;
+      border: 1px solid rgba(255, 85, 0, 0.2);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 0 20px rgba(255, 85, 0, 0.08);
+    }
+    .chat-bubble-image-wrap:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 16px 40px rgba(255, 85, 0, 0.25);
+      border-color: var(--orange);
+    }
+    .chat-bubble-image-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .chat-bubble-image-wrap:hover img {
+      transform: scale(1.02);
+    }
+    .image-engine-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(10, 9, 13, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .image-engine-badge .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 6px var(--orange);
+    }
+
+    /* Executive Typography & Markdown Enhancements */
+    .bubble-text h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 12px 0 6px 0;
+      letter-spacing: -0.02em;
+    }
+    .bubble-text h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--orange);
+      margin: 10px 0 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .bubble-text ul {
+      margin: 6px 0 10px 0;
+      padding-left: 20px;
+    }
+    .bubble-text li {
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+    .bubble-text strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
 </style>');
         }
       } catch(e){}
@@ -6234,6 +6320,92 @@ body.light-mode .history-item.active {
       transform: translateY(-1px) !important;
     }
 
+
+    /*  Big Agency Aesthetic Polish & Sleek Image Framing  */
+    .chat-bubble-image-wrap {
+      margin-top: 14px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 85, 0, 0.25);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 85, 0, 0.15);
+      position: relative;
+      transition: all 0.3s ease;
+      max-width: 600px;
+    }
+    body.light-mode .chat-bubble-image-wrap {
+      background: #faf8f5;
+      border: 1px solid rgba(255, 85, 0, 0.2);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 0 20px rgba(255, 85, 0, 0.08);
+    }
+    .chat-bubble-image-wrap:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 16px 40px rgba(255, 85, 0, 0.25);
+      border-color: var(--orange);
+    }
+    .chat-bubble-image-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .chat-bubble-image-wrap:hover img {
+      transform: scale(1.02);
+    }
+    .image-engine-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(10, 9, 13, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .image-engine-badge .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 6px var(--orange);
+    }
+
+    /* Executive Typography & Markdown Enhancements */
+    .bubble-text h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 12px 0 6px 0;
+      letter-spacing: -0.02em;
+    }
+    .bubble-text h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--orange);
+      margin: 10px 0 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .bubble-text ul {
+      margin: 6px 0 10px 0;
+      padding-left: 20px;
+    }
+    .bubble-text li {
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+    .bubble-text strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -8850,6 +9022,92 @@ body.light-mode .history-item.active {
       background: #ff661a !important;
       background-color: #ff661a !important;
       transform: translateY(-1px) !important;
+    }
+
+
+    /*  Big Agency Aesthetic Polish & Sleek Image Framing  */
+    .chat-bubble-image-wrap {
+      margin-top: 14px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 85, 0, 0.25);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 85, 0, 0.15);
+      position: relative;
+      transition: all 0.3s ease;
+      max-width: 600px;
+    }
+    body.light-mode .chat-bubble-image-wrap {
+      background: #faf8f5;
+      border: 1px solid rgba(255, 85, 0, 0.2);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 0 20px rgba(255, 85, 0, 0.08);
+    }
+    .chat-bubble-image-wrap:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 16px 40px rgba(255, 85, 0, 0.25);
+      border-color: var(--orange);
+    }
+    .chat-bubble-image-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .chat-bubble-image-wrap:hover img {
+      transform: scale(1.02);
+    }
+    .image-engine-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(10, 9, 13, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+    .image-engine-badge .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 6px var(--orange);
+    }
+
+    /* Executive Typography & Markdown Enhancements */
+    .bubble-text h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 12px 0 6px 0;
+      letter-spacing: -0.02em;
+    }
+    .bubble-text h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--orange);
+      margin: 10px 0 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .bubble-text ul {
+      margin: 6px 0 10px 0;
+      padding-left: 20px;
+    }
+    .bubble-text li {
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+    .bubble-text strong {
+      color: var(--text);
+      font-weight: 700;
     }
 
 </style>

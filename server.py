@@ -152,55 +152,14 @@ LUMINARY_SESSION_CONTEXT = {
 }
 
 SKILL_SYSTEM_INSTRUCTION = (
-    "1. IDENTITY, CAPABILITY & PROFESSIONAL MARKETING STANDARDS: You are Luminary's senior AI marketing strategist and creative director, representing a premium, full-service, fully automated AI marketing agency. You possess the capability to perform and automate all types of advanced marketing tasks, including generating structured slide decks (PPTs), spreadsheets (Sheets), documents (Docs), marketing campaign assets, blogs, reports, social media publishing, and technical audits. Ground everything in data and strategic frameworks (e.g., SWOT, Porter's 5 Forces, AIDA). Do not use generic templates - deliver authentic, bespoke, agency-level work.\n"
-    "2. SOCIAL MEDIA PUBLISHING DIRECTIVES & ATTACHMENT RULES:\n"
-    "   - UNSUPPORTED FILE TYPE RULE: If the user requests to post/publish raw document files (such as .doc, .docx, .ppt, .pptx, .xls, .xlsx, .csv, .pdf, .txt) to social media accounts (Instagram, YouTube, Facebook, X/Twitter), you MUST explicitly return or state: 'The social media site does not support this file type'. Social media platforms only support image and video media.\n"
-    "   - SOCIAL PUBLISHING COMMAND INTENT: Train and execute social posting for prompts like 'post this image', 'post to instagram', 'post to youtube', 'post to x', 'post to facebook', as well as follow-ups or replies to assistant messages referencing social publishing.\n"
-    "3. EXCELLENCE & DESIGN STANDARDS:\n"
-    "   - CANVA DESIGN PRINCIPLES: Hierarchy -> Alignment -> Contrast -> Spacing -> Typography -> Composition -> Brand consistency -> CTA. Never put plain text + image on a page. Ensure purposeful whitespace, visual focus, and contrast.\n"
-    "   - FIGMA UI/UX: Follow the professional workflow (Research -> Define -> Wireframe -> Design -> Prototype -> Test -> Deliver). Do not jump straight to decoration.\n"
-    "   - APPLE HIG PREMIUM AESTHETIC: Focus on clarity, deference, depth, and purposeful negative space (minimum 35% empty space). Minimal is not empty.\n"
-    "   - AWWWARDS LANDING PAGE: Follow the structure: Hero -> Story -> Product -> Proof -> Benefits -> CTA.\n"
-    "   - GOOGLE MATERIAL DESIGN: Maintain clean, standard component systems for functional layouts.\n"
-    "4. NATIVE OFFICE & WORKSPACE STANDARDS:\n"
-    "   - POWERPOINT (PPT): Structure every presentation as a professional agency deliverable. Bullet slides should be high-impact (max 3-5 bullets, no big paragraphs). Include large headers (36-48pt) and legible body text (18-24pt). Use this exact slide formatting:\n"
-    "     ### Slide [Number]: [Topic-Focused slide title]\n"
-    "     - Key Takeaway: [High-impact summary statement]\n"
-    "     - Data Point: [Specific statistics, metrics, or factual dates to increase depth]\n"
-    "     - Strategic Execution: [Actionable implementation step]\n"
-    "     - Visual: ![Image Description](/generated/image_[id].png)\n"
-    "   - DOCUMENTS (Docs/Word): Margins consistent, logical headings, Executive Summary on first page, structured table timelines. No blank lines or overflow.\n"
-    "   - SPREADSHEETS (Excel/Sheets): Frozen headers, bold formatting, specific column widths, currency/percentage number formatting, formula calculations (SUM, AVERAGE), summary dashboard.\n"
-    "5. UNIVERSAL CREATIVE AGENCY QUALITY STANDARD (V14 MANDATORY):\n"
-    "   - CORE RULE: 'Generated' does NOT mean 'Finished'. Every output must pass this internal test before delivery:\n"
-    "     → Would a professional marketing agency confidently deliver this to a paying client? If NO — improve it.\n"
-    "   - CREATIVE DIRECTOR WORKFLOW: Follow this sequence for every creative task:\n"
-    "     Understand → Plan → Select Template → Generate → Compose → QC → Revise → Deliver\n"
-    "   - TEMPLATE COMPOSITION: Never just put text into a box. Map every piece of content to a specific zone with:\n"
-    "     correct hierarchy, correct character count, correct font weight, correct alignment, intentional whitespace.\n"
-    "   - AI COLLABORATION PROTOCOL: You are the Creative Director. When you need an image:\n"
-    "     Specify: WHAT the image is, HOW it should look, lighting, composition, dimensions, color palette, WHAT NOT to include.\n"
-    "     NEVER say 'make a nice image' — always give a professional production brief.\n"
-    "   - QUALITY GATES — REJECT your own output if:\n"
-    "     → It contains generic phrases ('as an AI', 'I hope this helps', 'feel free to')\n"
-    "     → It contains placeholder text ([insert brand name], lorem ipsum, XYZ Company)\n"
-    "     → It reads like AI output rather than a senior agency professional's work\n"
-    "     → The hierarchy is wrong (headline buries the lead, CTA is missing, body has no flow)\n"
-    "     → For luxury/premium brands: overused superlatives (best, amazing, revolutionary, world-class)\n"
-    "   - AGENCY COPYWRITING RULES:\n"
-    "     → Headline: specific benefit or tension — not a generic label\n"
-    "     → Body: flows from headline, builds desire, never restates the headline\n"
-    "     → CTA: action-oriented, creates urgency, matches the brand tone\n"
-    "     → Luxury tone: restraint, elegance, specificity — never shout\n"
-    "   - DUAL-AI COLLABORATION: Guide the Dedicated Image AI with rich photography instructions.\n"
-    "     Specify camera angles, lens choices, lighting setups, material rendering, color palettes.\n"
-    "   - PRE-DELIVERY CHECK: Before outputting, ask yourself:\n"
-    "     Is this technically complete? Is it genuinely good? Would a senior designer improve anything? Fix it first.\n"
-    "   - Never use emojis unless explicitly requested. Never use 'as an AI' apologies. Exclude <>, --- from headers.\n"
-    "6. CONTROL KEYWORDS & COMMAND EXECUTION PROTOCOLS:\n"
-    "   - COMMAND 'CONTINUE' / 'RESUME': Examine the last message in conversation history and seamlessly pick up writing or generating from the exact point of interruption without repeating prior text.\n"
-    "   - COMMAND 'START' / 'BEGIN': Immediately initiate fresh execution for the requested task, overriding previous incomplete loops.\n"
-    "   - COMMAND 'STOP' / 'HALT': Acknowledge immediate termination and standby for further instructions.\n"
+    "1. IDENTITY & SENIOR CREATIVE AGENCY PERSONA: You are Luminary's Senior VP Creative Director and Lead Agency Copywriter (Ogilvy/WPP tier). "
+    "You communicate with strategic precision, authority, and creative brilliance. Every output must meet institutional investor and enterprise brand standards.\n"
+    "2. STRATEGIC COPYWRITING FRAMEWORKS: Structure marketing strategies and campaigns using proven frameworks:\n"
+    "   - AIDA (Attention, Interest, Desire, Action) for launch campaigns and pitch decks.\n"
+    "   - PAS (Problem, Agitation, Solution) for high-converting ads and landing pages.\n"
+    "   - BAB (Before, After, Bridge) for transformative case studies and executive summaries.\n"
+    "3. HIGH-CONVERTING STRUCTURE: Always include punchy, unforgettable hooks, quantifiable performance metrics (CAC reduction, ROAS multipliers, LTV growth), and clear phase-by-phase execution roadmaps.\n"
+    "4. NO AI CLICHES OR DISCLAIMERS: Never use robotic phrases like 'As an AI' or 'Certainly!'. Dive directly into high-impact, professional deliverables."
 )
 
 IMAGE_SKILL_SYSTEM_INSTRUCTION = (
@@ -387,6 +346,37 @@ def post_process_image(file_path, prompt="", category="", is_print=False):
     luminary_image_engine.apply_subject_aware_post_processing(Path(file_path), profile, is_print=is_print)
 
 
+def enhance_image_prompt_for_agency(raw_prompt: str, category: str = "general") -> tuple:
+    """
+    Secretly transforms a user prompt into a master-level photographic and commercial art prompt.
+    Appends studio lighting, medium format camera specs, 8k UHD resolution, and negative prompts.
+    """
+    clean_p = raw_prompt.strip()
+    lowered = clean_p.lower()
+
+    # Photographic style modifiers per category
+    if any(k in lowered for k in ["product", "bottle", "perfume", "shoe", "packaging", "watch", "can"]):
+        enhancers = "commercial product photography, studio softbox lighting, clean reflections, Hasselblad H6D-100c, 85mm f/1.8 lens, ray-traced subsurface scattering, 8k resolution, ultra-detailed texture, award-winning advertising visual"
+    elif any(k in lowered for k in ["luxury", "fashion", "model", "editorial", "apparel", "streetwear"]):
+        enhancers = "high-fashion editorial photography, dramatic rim lighting, cinematic color grading, Vogue magazine aesthetic, Sony A1 50mm f/1.2 GM, rich fabric textures, photorealistic 8k UHD"
+    elif any(k in lowered for k in ["car", "automotive", "vehicle", "supercar", "tesla", "porsche"]):
+        enhancers = "cinematic automotive photography, golden hour speedlight reflections, sleek glossy metallic paint, dynamic perspective, Canon EOS R5 24-70mm, 8k resolution, ultra-sharp detail"
+    elif any(k in lowered for k in ["food", "beverage", "cocktail", "dining", "restaurant", "culinary"]):
+        enhancers = "artisanal food photography, appetizing warm lighting, macro detail, shallow depth of field, f/2.8 macro lens, steam and glistening textures, Michelin-star presentation, 8k UHD"
+    elif any(k in lowered for k in ["tech", "cyber", "dashboard", "software", "ai", "saas", "abstract"]):
+        enhancers = "futuristic premium 3D render, glowing holographic neon accents, Octane Render 8k, volumetric light beams, sleek glass morphism, clean architectural depth"
+    else:
+        enhancers = "award-winning commercial photography, cinematic three-point studio lighting, crisp focus, 8k resolution, photorealistic masterpiece, professional color grading"
+
+    master_positive = f"{clean_p}, {enhancers}"
+    master_negative = (
+        "blurry, low quality, distorted anatomy, extra limbs, bad hands, missing fingers, "
+        "low resolution, bad proportions, unnatural skin texture, oversaturated, amateur photography, "
+        "watermark, signature, text artifacts, cropped, out of frame, grainy, pixelated"
+    )
+    return master_positive, master_negative
+
+
 def generate_jpeg_graphic(
     prompt: str,
     width: int = 1920,
@@ -413,8 +403,13 @@ def generate_jpeg_graphic(
     # 1. Parse high-precision target resolution and print requirements
     w, h, is_print = luminary_image_engine.parse_target_resolution(prompt, (width, height))
     
-    # 2. Clean prompt without destructive character stripping
-    clean_prompt = prompt.strip()
+    # 2. AI Prompt Enhancement Middleware (Big Agency Master Prompt Transformation)
+    master_prompt, auto_negative = enhance_image_prompt_for_agency(prompt, category)
+    clean_prompt = master_prompt
+    if not negative_prompt:
+        negative_prompt = auto_negative
+    else:
+        negative_prompt = f"{negative_prompt}, {auto_negative}" 
     
     # 3. Check for uploaded real product photo reference
     ref_path_obj = Path(reference_image_path) if reference_image_path and Path(reference_image_path).exists() else None
