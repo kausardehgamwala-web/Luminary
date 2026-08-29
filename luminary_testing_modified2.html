@@ -725,6 +725,112 @@
       color: var(--orange);
     }
 
+
+    /*  Downloadable Deliverable Cards & Multi-Role Loading UI  */
+    .deliverable-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .deliverable-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all var(--transition);
+    }
+    body.light-mode .deliverable-card {
+      background: #faf8f5;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    }
+    .deliverable-card:hover {
+      border-color: var(--orange);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--orange-glow);
+    }
+    .deliverable-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .deliverable-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .icon-pptx { background: rgba(210, 71, 38, 0.15); color: #d24726; border: 1px solid rgba(210, 71, 38, 0.3); }
+    .icon-docx { background: rgba(43, 87, 154, 0.15); color: #2b579a; border: 1px solid rgba(43, 87, 154, 0.3); }
+    .icon-xlsx { background: rgba(33, 115, 70, 0.15); color: #217346; border: 1px solid rgba(33, 115, 70, 0.3); }
+    .icon-file { background: rgba(255, 85, 0, 0.15); color: var(--orange); border: 1px solid var(--orange); }
+
+    .deliverable-info h4 {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .deliverable-info p {
+      margin: 2px 0 0 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .deliverable-download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      background: var(--orange) !important;
+      color: #ffffff !important;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 4px 12px var(--orange-glow);
+      transition: all var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+    .deliverable-download-btn:hover {
+      background: #ff661a !important;
+      transform: translateY(-1px);
+    }
+
+    /* Dynamic Multi-Stage Loading State Animation */
+    .working-state-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px 0;
+    }
+    .working-stage-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .working-stage-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      animation: pulseDot 1.2s infinite ease-in-out;
+    }
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(0.8); opacity: 0.4; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 10px var(--orange); }
+    }
+
 </style>');
         }
       } catch(e){}
@@ -5528,6 +5634,112 @@ body.light-mode .history-item.active {
       color: var(--orange);
     }
 
+
+    /*  Downloadable Deliverable Cards & Multi-Role Loading UI  */
+    .deliverable-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .deliverable-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all var(--transition);
+    }
+    body.light-mode .deliverable-card {
+      background: #faf8f5;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    }
+    .deliverable-card:hover {
+      border-color: var(--orange);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--orange-glow);
+    }
+    .deliverable-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .deliverable-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .icon-pptx { background: rgba(210, 71, 38, 0.15); color: #d24726; border: 1px solid rgba(210, 71, 38, 0.3); }
+    .icon-docx { background: rgba(43, 87, 154, 0.15); color: #2b579a; border: 1px solid rgba(43, 87, 154, 0.3); }
+    .icon-xlsx { background: rgba(33, 115, 70, 0.15); color: #217346; border: 1px solid rgba(33, 115, 70, 0.3); }
+    .icon-file { background: rgba(255, 85, 0, 0.15); color: var(--orange); border: 1px solid var(--orange); }
+
+    .deliverable-info h4 {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .deliverable-info p {
+      margin: 2px 0 0 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .deliverable-download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      background: var(--orange) !important;
+      color: #ffffff !important;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 4px 12px var(--orange-glow);
+      transition: all var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+    .deliverable-download-btn:hover {
+      background: #ff661a !important;
+      transform: translateY(-1px);
+    }
+
+    /* Dynamic Multi-Stage Loading State Animation */
+    .working-state-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px 0;
+    }
+    .working-stage-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .working-stage-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      animation: pulseDot 1.2s infinite ease-in-out;
+    }
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(0.8); opacity: 0.4; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 10px var(--orange); }
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -7793,6 +8005,112 @@ body.light-mode .history-item.active {
       color: var(--orange);
     }
 
+
+    /*  Downloadable Deliverable Cards & Multi-Role Loading UI  */
+    .deliverable-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .deliverable-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all var(--transition);
+    }
+    body.light-mode .deliverable-card {
+      background: #faf8f5;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    }
+    .deliverable-card:hover {
+      border-color: var(--orange);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--orange-glow);
+    }
+    .deliverable-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .deliverable-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .icon-pptx { background: rgba(210, 71, 38, 0.15); color: #d24726; border: 1px solid rgba(210, 71, 38, 0.3); }
+    .icon-docx { background: rgba(43, 87, 154, 0.15); color: #2b579a; border: 1px solid rgba(43, 87, 154, 0.3); }
+    .icon-xlsx { background: rgba(33, 115, 70, 0.15); color: #217346; border: 1px solid rgba(33, 115, 70, 0.3); }
+    .icon-file { background: rgba(255, 85, 0, 0.15); color: var(--orange); border: 1px solid var(--orange); }
+
+    .deliverable-info h4 {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .deliverable-info p {
+      margin: 2px 0 0 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .deliverable-download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      background: var(--orange) !important;
+      color: #ffffff !important;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 4px 12px var(--orange-glow);
+      transition: all var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+    .deliverable-download-btn:hover {
+      background: #ff661a !important;
+      transform: translateY(-1px);
+    }
+
+    /* Dynamic Multi-Stage Loading State Animation */
+    .working-state-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px 0;
+    }
+    .working-stage-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .working-stage-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      animation: pulseDot 1.2s infinite ease-in-out;
+    }
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(0.8); opacity: 0.4; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 10px var(--orange); }
+    }
+
 </style>
 
 
@@ -9274,7 +9592,35 @@ body.light-mode .history-item.active {
               timerHtml = message.date ? `<div class="message-time" style="font-size:0.7rem; color:var(--muted); margin-top:4px; text-align:right;">${escapeHtml(message.date)}</div>` : '';
           }
           
-          return `<article class="chat-message ${roleClass}"><div class="bubble">${meta}<div class="bubble-text">${bubbleTextHtml}</div>${workingHtml}</div>${actionsHtml}</article>`;
+          return `<article class="chat-message ${roleClass}"><div class="bubble">${meta}<div class="bubble-text">${bubbleTextHtml}</div>
+                      ${message.deliverables && message.deliverables.length ? `
+                        <div class="deliverable-container">
+                          ${message.deliverables.map(d => {
+                            let iconClass = d.type === 'pptx' ? 'icon-pptx' : (d.type === 'docx' ? 'icon-docx' : (d.type === 'xlsx' ? 'icon-xlsx' : 'icon-file'));
+                            let iconSvg = d.type === 'pptx' 
+                              ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+                              : (d.type === 'docx' 
+                                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'
+                                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>');
+                            return `
+                              <div class="deliverable-card">
+                                <div class="deliverable-left">
+                                  <div class="deliverable-icon-wrap ${iconClass}">${iconSvg}</div>
+                                  <div class="deliverable-info">
+                                    <h4>${escapeHtml(d.title || d.filename)}</h4>
+                                    <p>${escapeHtml(d.filename)} &bull; ${d.file_size || 'Agency Deliverable'}</p>
+                                  </div>
+                                </div>
+                                <a href="${escapeHtml(d.url)}" download="${escapeHtml(d.filename)}" class="deliverable-download-btn">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                  <span>Download ${d.type ? d.type.toUpperCase() : 'File'}</span>
+                                </a>
+                              </div>
+                            `;
+                          }).join('')}
+                        </div>
+                      ` : ''}
+                      ${workingHtml}</div>${actionsHtml}</article>`;
         }).join("");
         elements.chatFeed.scrollTop = elements.chatFeed.scrollHeight;
       }

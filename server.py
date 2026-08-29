@@ -458,86 +458,73 @@ def generate_downloadable_file(file_type, topic, content_text):
     filename = f"export_{int(time.time())}"
     out_dir = APP_ROOT / "generated"
     out_dir.mkdir(parents=True, exist_ok=True)
+    
+    clean_topic = re.sub(r"[^a-zA-Z0-9_-]", "_", topic).strip("_") or "Luminary_Deliverable"
 
-    if file_type in ["website", "code", "html"]:
-        file_path = out_dir / f"{filename}.html"
-        # Extract HTML code if the LLM returned it inside a code block
-        html_code_match = re.search(r"```html\s*([\s\S]*?)```", content_text, re.IGNORECASE)
-        if html_code_match:
-            html_code = html_code_match.group(1).strip()
-        else:
-            html_code = content_text.strip()
-        file_path.write_text(html_code, encoding="utf-8")
-        return f"/generated/{filename}.html", f"{topic}_Website.html"
+    try:
+        import file_generator
+    except ImportError:
+        file_generator = None
 
-    elif file_type == "sheets":
-        file_path = out_dir / f"{filename}.csv"
-        # If the LLM returned a markdown table, try to extract it for the CSV
+    if file_type in ["pptx", "ppt", "presentation", "deck"]:
+        file_path = out_dir / f"{filename}.pptx"
+        if file_generator and hasattr(file_generator, "generate_pptx"):
+            try:
+                file_generator.generate_pptx(content_text, str(file_path), topic=topic)
+                return f"/generated/{filename}.pptx", f"{clean_topic}_Presentation.pptx"
+            except Exception as e:
+                print(f"[FileGenerator Error PPTX] {e}")
+        # Fallback to HTML slide deck if pptx engine throws error
+        html_file = out_dir / f"{filename}.html"
+        html_ppt = f"""<!DOCTYPE html><html><head><title>{topic} Pitch Deck</title>
+<style>body {{ font-family: system-ui, sans-serif; background: #08070b; color: #faf8f5; padding: 40px; }}
+.slide {{ background: #14121a; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; margin-bottom: 30px; }}
+h1 {{ color: #ff5500; }} h2 {{ color: #ff7700; }}</style></head><body>
+<div class="slide"><h1>{topic.title()}</h1><h3>Luminary AI Executive Pitch Deck</h3></div>
+<div class="slide"><h2>Campaign Strategy & Deliverables</h2><p>{content_text[:800].replace(chr(10), '<br>')}</p></div>
+</body></html>"""
+        html_file.write_text(html_ppt, encoding="utf-8")
+        return f"/generated/{filename}.html", f"{clean_topic}_Pitch_Deck.html"
+
+    elif file_type in ["docx", "doc", "document", "report"]:
+        file_path = out_dir / f"{filename}.docx"
+        if file_generator and hasattr(file_generator, "generate_docx"):
+            try:
+                file_generator.generate_docx(content_text, str(file_path), title=topic)
+                return f"/generated/{filename}.docx", f"{clean_topic}_Strategy_Document.docx"
+            except Exception as e:
+                print(f"[FileGenerator Error DOCX] {e}")
+        # Fallback to HTML doc
+        html_file = out_dir / f"{filename}.html"
+        doc_html = f"<!DOCTYPE html><html><head><title>{topic}</title></head><body style='font-family:sans-serif;padding:40px;max-width:800px;margin:auto;'><h1>{topic}</h1><div>{content_text.replace(chr(10), '<br>')}</div></body></html>"
+        html_file.write_text(doc_html, encoding="utf-8")
+        return f"/generated/{filename}.html", f"{clean_topic}_Document.html"
+
+    elif file_type in ["sheets", "xlsx", "excel", "csv", "table", "calendar"]:
+        file_path = out_dir / f"{filename}.xlsx"
+        if file_generator and hasattr(file_generator, "generate_xlsx"):
+            try:
+                file_generator.generate_xlsx(content_text, str(file_path), title=topic)
+                return f"/generated/{filename}.xlsx", f"{clean_topic}_Content_Calendar.xlsx"
+            except Exception as e:
+                print(f"[FileGenerator Error XLSX] {e}")
+        # Fallback to CSV
+        csv_file = out_dir / f"{filename}.csv"
         table_match = re.search(r"\|.*\|.*\n\|[-:\s|]+\|.*\n(?:\|.*\|.*\n)+", content_text)
         if table_match:
             csv_data = table_match.group(0).replace("|", ",").replace(" ,", ",").replace(", ", ",")
-            # Basic cleanup of markdown table syntax
             csv_data = "\n".join([line.strip(",") for line in csv_data.split("\n") if "---" not in line and line.strip()])
         else:
-            csv_data = (
-                "Phase,Focus Area,Key Deliverables,Ownership,Target Timeline,Status\n"
-                f"Phase 1,Technical Audit & Strategy,{topic} Audit,Growth Engineering,Month 1,Active\n"
-                f"Phase 2,Content Velocity,{topic} Content Clusters,Creative Team,Month 2,Scheduled\n"
-                f"Phase 3,Automation & Routing,CRM Nurture Triggers,Ops Team,Month 2-3,Planning\n"
-                f"Phase 4,Performance Tuning,Paid Channel Scaling,Growth Lead,Month 3+,Backlog\n"
-            )
-        file_path.write_text(csv_data, encoding="utf-8")
-        return f"/generated/{filename}.csv", f"{topic}_Strategy_Table.csv"
-
-    elif file_type == "ppt":
-        file_path = out_dir / f"{filename}.html"
-        # Render a more premium HTML deck based on content
-        html_ppt = f"""<!DOCTYPE html>
-<html><head><title>{topic} Presentation Deck</title>
-<style>
-body {{ font-family: 'Segoe UI', system-ui, sans-serif; background: #08070b; color: #faf8f5; padding: 40px; margin: 0; }}
-.slide {{ background: linear-gradient(145deg, #14121a, #1a1721); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 50px; margin-bottom: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-width: 900px; margin-left: auto; margin-right: auto; }}
-h1 {{ color: #ff5500; font-size: 3rem; margin-bottom: 10px; }}
-h2 {{ color: #ff7700; font-size: 2rem; border-bottom: 2px solid rgba(255,85,0,0.3); padding-bottom: 10px; }}
-h3 {{ color: #faf8f5; font-size: 1.5rem; opacity: 0.8; margin-top: 0; }}
-p, ul, li {{ font-size: 1.2rem; line-height: 1.6; color: rgba(250, 248, 245, 0.85); }}
-</style></head><body>
-<div class="slide"><h1>{topic.title()}</h1><h3>Luminary AI Executive Deck</h3></div>
-<div class="slide"><h2>Overview & Context</h2><p>{content_text[:600].replace(chr(10), '<br>')}</p></div>
-<div class="slide"><h2>Strategic Execution Roadmap</h2><ul>
-<li>Phase 1: Foundation & Audit</li>
-<li>Phase 2: Core Development & Launch</li>
-<li>Phase 3: Scale & Optimization</li></ul></div>
-</body></html>"""
-        file_path.write_text(html_ppt, encoding="utf-8")
-        return f"/generated/{filename}.html", f"{topic}_Presentation_Deck.html"
+            csv_data = "Phase,Deliverable,Timeline,Ownership,Status\nPhase 1,Campaign Brief,Week 1,Creative Director,Completed\nPhase 2,Asset Production,Week 2,Content Engine,In Progress\nPhase 3,Omnichannel Launch,Week 3-4,Growth Lead,Scheduled"
+        csv_file.write_text(csv_data, encoding="utf-8")
+        return f"/generated/{filename}.csv", f"{clean_topic}_Data_Sheet.csv"
 
     else:
         file_path = out_dir / f"{filename}.html"
-        doc_html = f"""<!DOCTYPE html>
-<html><head><title>{topic.title()} - Official Document</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-body {{ font-family: 'Inter', system-ui, sans-serif; background: #ffffff; color: #111827; padding: 60px; max-width: 900px; margin: 0 auto; line-height: 1.8; font-size: 1.15rem; }}
-h1, h2, h3 {{ color: #111827; font-weight: 800; letter-spacing: -0.02em; }}
-h1 {{ font-size: 2.5rem; margin-bottom: 0.5rem; }}
-.subtitle {{ color: #6b7280; font-size: 1.1rem; margin-bottom: 40px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }}
-p {{ margin-bottom: 24px; color: #374151; }}
-a {{ color: #ff5500; text-decoration: none; }}
-a:hover {{ text-decoration: underline; }}
-.header-box {{ border-left: 4px solid #ff5500; padding-left: 20px; margin-bottom: 40px; background: #f9fafb; padding: 20px 20px 20px 24px; border-radius: 0 12px 12px 0; }}
-</style></head><body>
-<div class="header-box">
-  <h1>{topic.title()}</h1>
-  <div class="subtitle">Official Document &bull; Luminary AI</div>
-</div>
-<div>
-{content_text.replace(chr(10), '<br>').replace('#', '')}
-</div>
-</body></html>"""
-        file_path.write_text(doc_html, encoding="utf-8")
-        return f"/generated/{filename}.html", f"{topic}_Document.html"
-
+        html_code_match = re.search(r"```html\s*([\s\S]*?)```", content_text, re.IGNORECASE)
+        html_code = html_code_match.group(1).strip() if html_code_match else content_text.strip()
+        file_path.write_text(html_code, encoding="utf-8")
+        return f"/generated/{filename}.html", f"{clean_topic}_Website.html"
 
 
 def generate_comprehensive_report(topic, prompt_details):
