@@ -11975,6 +11975,16 @@ body.light-mode .history-item.active {
       const chat = getActiveChat();
       if (!chat) return;
 
+      // Auto-rename chat if it is currently 'New chat'
+      if (!chat.title || chat.title.toLowerCase() === "new chat" || chat.title.toLowerCase() === "untitled chat") {
+        const cleanPrompt = (origPrompt || "").replace(/\[Replying to:[^\]]*\]/g, "").trim();
+        const words = cleanPrompt.split(/\s+/).filter(Boolean);
+        if (words.length > 0) {
+          const generatedTitle = words.slice(0, 5).join(" ") + (words.length > 5 ? "..." : "");
+          chat.title = generatedTitle;
+        }
+      }
+
       const attachmentsCopy = [...state.attachments];
       const pinnedCopy = [...(state.pinnedAssets || [])];
 
@@ -12030,11 +12040,18 @@ body.light-mode .history-item.active {
       chat.messages.push({
         role: "assistant",
         text: "Luminary AI is working...",
-        isRunning: true, startTime: Date.now(),
+        isRunning: true,
         startTime: startTimeVal
       });
       renderChat();
+      renderHistory();
       persistAccount();
+
+      // Immediate DOM update for active sidebar item
+      const activeTitleEl = document.querySelector(`.history-item[data-chat-id="${chat.id}"] strong`) || document.querySelector(".history-item.active strong");
+      if (activeTitleEl) activeTitleEl.textContent = chat.title;
+      const activeSubtitleEl = document.querySelector(`.history-item[data-chat-id="${chat.id}"] .history-preview`) || document.querySelector(".history-item.active .history-preview");
+      if (activeSubtitleEl) activeSubtitleEl.textContent = "Working...";
 
       try {
         const responseData = await requestBackend("/chat", requestPayload);
