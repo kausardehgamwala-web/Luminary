@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 import sqlite3
 import uuid
 import json
+import logging
 from pathlib import Path
+
+logger = logging.getLogger("luminary_db")
 
 DB_PATH = Path(__file__).resolve().parent / "luminary.db"
 
@@ -164,7 +167,7 @@ ensure_db_initialized()
 
 if __name__ == "__main__":
     init_db()
-    print("Database initialized successfully.")
+    logger.info("Database initialized successfully.")
 
 
 def log_security_audit(client_id: str, category: str, severity: str, reason: str, blocked_content: str = "") -> str:
@@ -184,7 +187,7 @@ def log_security_audit(client_id: str, category: str, severity: str, reason: str
         conn.close()
         return log_id
     except Exception as ex:
-        print(f"[Audit Log Error]: Failed to write security audit to SQLite: {ex}")
+        logger.error(f"[Audit Log Error]: Failed to write security audit to SQLite: {ex}")
         return ""
 
 def get_security_audit_logs(limit: int = 50, client_id: str = None) -> list:
@@ -204,7 +207,7 @@ def get_security_audit_logs(limit: int = 50, client_id: str = None) -> list:
         conn.close()
         return logs
     except Exception as ex:
-        print(f"[Audit Log Fetch Error]: {ex}")
+        logger.error(f"[Audit Log Fetch Error]: {ex}")
         return []
 
 
@@ -225,7 +228,7 @@ def record_qc_pattern_feedback(template_id: str, deliverable_type: str, issue_ca
         conn.close()
         return feedback_id
     except Exception as ex:
-        print(f"[QC Pattern Log Error]: {ex}")
+        logger.error(f"[QC Pattern Log Error]: {ex}")
         return ""
 
 
@@ -258,7 +261,7 @@ def get_recurring_qc_patterns(min_occurrences: int = 1) -> list:
         conn.close()
         return patterns
     except Exception as ex:
-        print(f"[QC Pattern Fetch Error]: {ex}")
+        logger.error(f"[QC Pattern Fetch Error]: {ex}")
         return []
 
 
@@ -363,7 +366,7 @@ def get_quality_dashboard_summary() -> dict:
             "recurring_qc_patterns": recurring_patterns
         }
     except Exception as ex:
-        print(f"[Quality Dashboard Error]: {ex}")
+        logger.error(f"[Quality Dashboard Error]: {ex}")
         return {
             "total_blocks": 0, "blocks_by_category": {}, "total_generations": 0,
             "overall_avg_duration_seconds": 0.0, "overall_avg_qc_score": 0.0,

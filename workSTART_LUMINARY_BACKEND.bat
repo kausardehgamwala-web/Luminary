@@ -65,6 +65,39 @@ if not defined PY_CMD (
 
 echo Starting Luminary Server with Python: %PY_CMD%
 echo.
+
+:: ── SECURITY CHECK: LUMINARY_AUTH_SECRET must be set ────────────────────────
+:: This key signs all session tokens. Without it the server will refuse to start.
+:: To generate a secure secret (run once, save the output):
+::
+::   python -c "import secrets; print(secrets.token_hex(32))"
+::
+:: Then set it here before the server launch line, e.g.:
+::   set LUMINARY_AUTH_SECRET=your_generated_secret_here
+::
+:: Or add it to a .env file (never commit .env to git).
+:: ─────────────────────────────────────────────────────────────────────────────
+if not defined LUMINARY_AUTH_SECRET (
+  echo.
+  echo [SECURITY ERROR] LUMINARY_AUTH_SECRET is not set.
+  echo.
+  echo This environment variable signs all session tokens. The server will
+  echo refuse to start without it to prevent token-forgery attacks.
+  echo.
+  echo To generate a secret, run:
+  echo   %PY_CMD% -c "import secrets; print(secrets.token_hex(32))"
+  echo.
+  echo Then either:
+  echo   a) Add:  set LUMINARY_AUTH_SECRET=^<your_secret^>
+  echo      to this .bat file (above the server launch line), OR
+  echo   b) Set it in your system environment variables, OR
+  echo   c) Add LUMINARY_AUTH_SECRET=^<your_secret^> to a .env file
+  echo      (make sure .env is in .gitignore and never committed).
+  echo.
+  pause
+  exit /b 1
+)
+
 %PY_CMD% "%~dp0server.py"
 if %errorlevel% neq 0 (
   echo.

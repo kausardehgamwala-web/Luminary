@@ -19,8 +19,22 @@ import ipaddress
 import urllib.parse
 from pathlib import Path
 
-# Secret key for session signing
-AUTH_SECRET = os.getenv("LUMINARY_AUTH_SECRET", "luminary-agency-secret-key-2026-production")
+# Secret key for session signing — MUST be set via environment variable.
+# If not set, the server refuses to start to prevent token-forgery via the known fallback string.
+_raw_secret = os.getenv("LUMINARY_AUTH_SECRET", "")
+if not _raw_secret:
+    raise RuntimeError(
+        "\n\n[LUMINARY STARTUP ERROR] LUMINARY_AUTH_SECRET is not set.\n"
+        "Every session token is signed with this key. Running without it allows anyone\n"
+        "who reads the source to forge valid session tokens for any account.\n\n"
+        "To generate a secure secret, run:\n"
+        "    python -c \"import secrets; print(secrets.token_hex(32))\"\n\n"
+        "Then set it before starting the server:\n"
+        "    Windows:  set LUMINARY_AUTH_SECRET=<your-secret>\n"
+        "    Linux:    export LUMINARY_AUTH_SECRET=<your-secret>\n"
+        "Or add it to your .env file (never commit .env to git).\n"
+    )
+AUTH_SECRET = _raw_secret
 
 # In-memory session cache for fast lookup (token -> session_data)
 SESSION_STORE = {}
@@ -51,8 +65,19 @@ def handle_cors_headers(handler, status=200):
     origin = handler.headers.get("Origin", "") if hasattr(handler, "headers") else ""
     handler.send_response(status)
     handler.send_header("Content-Type", "application/json")
-    handler.send_header("Access-Control-Allow-Origin", origin if origin and origin != "null" else "*")
-    handler.send_header("Access-Control-Allow-Credentials", "true")
+
+    allowed_origins = get_allowed_origins()
+
+    if origin and origin != "null" and origin in allowed_origins:
+        # Origin is explicitly allowed — reflect it back with credentials
+        handler.send_header("Access-Control-Allow-Origin", origin)
+        handler.send_header("Access-Control-Allow-Credentials", "true")
+    else:
+        # Origin is unknown/untrusted — do NOT reflect it and do NOT allow credentials.
+        # Using a fixed safe default (localhost:8000) so browsers can still use the UI locally.
+        handler.send_header("Access-Control-Allow-Origin", "http://localhost:8000")
+        # No Access-Control-Allow-Credentials header → defaults to false
+
     handler.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
     handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Session-Token, X-Client-ID")
 

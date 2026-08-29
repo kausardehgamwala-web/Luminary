@@ -6,8 +6,11 @@ import os
 import uuid
 import base64
 import datetime
+import logging
 import db
 from pathlib import Path
+
+logger = logging.getLogger("luminary_social_api")
 
 # SocialAPI.ai Base URL
 SOCAPI_BASE_URL = "https://api.social-api.ai/v1"
@@ -71,10 +74,10 @@ def api_request(method, endpoint, data=None):
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         err_msg = e.read().decode("utf-8")
-        print(f"SocialAPI HTTP Error {e.code}: {err_msg}")
+        logger.error(f"SocialAPI HTTP Error {e.code}: {err_msg}")
         raise e
     except Exception as e:
-        print(f"SocialAPI Error: {e}")
+        logger.error(f"SocialAPI Error: {e}")
         raise e
 
 def upload_media_bytes(file_bytes, file_name, mime_type):
@@ -104,10 +107,10 @@ def upload_media_bytes(file_bytes, file_name, mime_type):
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         err_msg = e.read().decode("utf-8")
-        print(f"SocialAPI Media HTTP Error {e.code}: {err_msg}")
+        logger.error(f"SocialAPI Media HTTP Error {e.code}: {err_msg}")
         raise e
     except Exception as e:
-        print(f"SocialAPI Media Error: {e}")
+        logger.error(f"SocialAPI Media Error: {e}")
         raise e
 
 def handle_get(handler):
@@ -165,7 +168,7 @@ def handle_get(handler):
                 if acc_id:
                     socapi_accounts_map[acc_id] = acc
         except Exception as e:
-            print(f"[Analytics Check] Live accounts query info: {e}")
+            logger.info(f"[Analytics Check] Live accounts query info: {e}")
 
         today = datetime.date.today()
         today_str = today.isoformat()
@@ -251,7 +254,7 @@ def handle_get(handler):
                         likes_arr = [int(data_by_date[d].get("engagement", 0)) if d in data_by_date else 0 for d in month_dates]
 
                     except Exception as parse_err:
-                        print(f"[Analytics Month Range Error]: {parse_err}")
+                        logger.error(f"[Analytics Month Range Error]: {parse_err}")
                         month_param = None
 
                 if not month_param or not year_param:
@@ -342,7 +345,7 @@ def handle_get(handler):
             
             if not account:
                 conn.close()
-                print(f"Error: Account {account_id} not found in SocialAPI.")
+                logger.error(f"Error: Account {account_id} not found in SocialAPI.")
                 _json_response(handler, 400, {"error": "Account not found in SocialAPI"})
                 return True
                 
@@ -350,7 +353,7 @@ def handle_get(handler):
             account_brand_id = account.get("brand_id")
             if account_brand_id != expected_brand_id:
                 conn.close()
-                print(f"[SECURITY ALERT] Tenant isolation failure: account brand {account_brand_id} != expected brand {expected_brand_id}")
+                logger.error(f"[SECURITY ALERT] Tenant isolation failure: account brand {account_brand_id} != expected brand {expected_brand_id}")
                 _json_response(handler, 403, {"error": "Tenant isolation check failed: brand mismatch"})
                 return True
                 
@@ -406,7 +409,7 @@ def handle_get(handler):
 try:
     db.init_db()
 except Exception as e:
-    print("Warning: failed to init DB on load:", e)
+    logger.error("Warning: failed to init DB on load:", e)
 
 def handle_post(handler, body, session=None):
     if not session:
@@ -447,7 +450,7 @@ def handle_post(handler, body, session=None):
                 live_brands_dict = {b.get("name", "").lower().strip(): b.get("id") for b in brands_resp.get("data", []) if b.get("name") and b.get("id")}
                 live_brand_ids = [b.get("id") for b in brands_resp.get("data", []) if b.get("id")]
             except Exception as e:
-                print(f"[Brand Check Warning] Could not verify brands list due to error: {e}")
+                logger.error(f"[Brand Check Warning] Could not verify brands list due to error: {e}")
 
             existing_matched_id = live_brands_dict.get(brand_name_input.lower().strip())
             if existing_matched_id:
@@ -466,7 +469,7 @@ def handle_post(handler, body, session=None):
             
             _json_response(handler, 200, {"status": "success", "brand_id": brand_id})
         except Exception as e:
-            print("Error init_brand:", e)
+            logger.error("Error init_brand:", e)
             _json_response(handler, 500, {"error": str(e)})
         finally:
             conn.close()
@@ -510,7 +513,7 @@ def handle_post(handler, body, session=None):
                     if b_name and b_id:
                         live_brands_dict[b_name] = b_id
             except Exception as e:
-                print(f"[Brand Check Warning] Could not verify live brands list: {e}")
+                logger.warning(f"[Brand Check Warning] Could not verify live brands list: {e}")
 
             brand_id = None
             if profile and profile.get("socapi_profile_id") and profile["socapi_profile_id"] in live_brand_ids:
@@ -523,7 +526,7 @@ def handle_post(handler, body, session=None):
             else:
                 brand_resp = api_request("POST", "/brands", {"name": brand_name_input})
                 brand_id = brand_resp.get("id")
-                print(f"[Brand Created] Created new SocialAPI brand profile '{brand_name_input}': {brand_id}")
+                logger.info(f"[Brand Created] Created new SocialAPI brand profile '{brand_name_input}': {brand_id}")
 
             if profile:
                 cursor.execute("UPDATE social_profiles SET socapi_profile_id = ?, brand_name = ? WHERE id = ?", (brand_id, brand_name_input, profile["id"]))
@@ -552,7 +555,7 @@ def handle_post(handler, body, session=None):
                 auth_url = auth_resp.get("auth_url") or auth_resp.get("url") or (auth_resp.get("data", {}) if isinstance(auth_resp.get("data"), dict) else {}).get("auth_url")
             except Exception as soc_err:
                 primary_error = str(soc_err)
-                print(f"[SocialAPI Connect Warning] Primary connect failed ({soc_err}). Trying fallback platform key...")
+                logger.error(f"[SocialAPI Connect Warning] Primary connect failed ({soc_err}). Trying fallback platform key...")
                 # Fallback for X / Twitter platform key naming
                 if target_platform == "twitter":
                     connect_req["platform"] = "x"
@@ -564,14 +567,14 @@ def handle_post(handler, body, session=None):
                         
             if not auth_url:
                 err_detail = primary_error if 'primary_error' in locals() and primary_error else "SocialAPI did not return a valid auth_url"
-                print(f"[SocialAPI Connect Error] {err_detail}")
+                logger.error(f"[SocialAPI Connect Error] {err_detail}")
                 _json_response(handler, 502, {"error": f"Failed to generate connection URL from SocialAPI: {err_detail}"})
                 return True
                 
             _json_response(handler, 200, {"auth_url": auth_url})
             
         except Exception as e:
-            print("Error connecting:", e)
+            logger.error("Error connecting:", e)
             _json_response(handler, 500, {"error": f"Failed to initiate connection with SocialAPI: {str(e)}"})
             
         finally:
@@ -617,7 +620,7 @@ def handle_post(handler, body, session=None):
         account_ids = []
         for row in accounts:
             if row["socapi_brand_id"] and row["socapi_brand_id"] != expected_brand_id:
-                print(f"[SECURITY ALERT] Target account {row['socapi_account_id']} brand mismatch!")
+                logger.error(f"[SECURITY ALERT] Target account {row['socapi_account_id']} brand mismatch!")
                 _json_response(handler, 403, {"error": "Tenant isolation violation in publish target"})
                 return True
             account_ids.append(row["socapi_account_id"])
@@ -654,34 +657,13 @@ def handle_post(handler, body, session=None):
             _json_response(handler, 200, {"status": "success", "post": post_resp})
             
         except Exception as e:
-            print("Failed to publish:", e)
+            logger.error("Failed to publish:", e)
             _json_response(handler, 500, {"error": f"Failed to publish via SocialAPI: {str(e)}"})
             
         return True
 
-    # /api/social/admin/key endpoint removed for security
-    # Save to .env
-        env_path = Path(__file__).resolve().parent / ".env"
-        env_lines = []
-        key_found = False
-        if env_path.exists():
-            env_lines = env_path.read_text(encoding="utf-8-sig").splitlines()
-            for i, line in enumerate(env_lines):
-                if line.startswith("SOCAPI_API_KEY="):
-                    env_lines[i] = f"SOCAPI_API_KEY={api_key}"
-                    key_found = True
-                    break
-        
-        if not key_found:
-            env_lines.append(f"SOCAPI_API_KEY={api_key}")
-            
-        env_path.write_text("\n".join(env_lines), encoding="utf-8-sig")
-        os.environ["SOCAPI_API_KEY"] = api_key
-        
-        _json_response(handler, 200, {"status": "success"})
-        return True
-
     return False
+
     
 def handle_delete(handler):
     path = handler.path
@@ -701,7 +683,7 @@ def handle_delete(handler):
                     try:
                         api_request("DELETE", f"/accounts/{row['socapi_account_id']}")
                     except Exception as e:
-                        print(f"Failed to delete account from SocialAPI: {e}")
+                        logger.error(f"Failed to delete account from SocialAPI: {e}")
                 cursor.execute("UPDATE social_connections SET status = 'disconnected' WHERE id = ?", (row["id"],))
             
             if conn_id.lower() in ("instagram", "facebook", "youtube", "twitter", "x", "all"):
@@ -711,7 +693,7 @@ def handle_delete(handler):
                     cursor.execute("UPDATE social_connections SET status = 'disconnected' WHERE LOWER(platform) = LOWER(?)", (conn_id,))
             conn.commit()
         except Exception as err:
-            print(f"[SocialAPI Delete Warning] {err}")
+            logger.warning(f"[SocialAPI Delete Warning] {err}")
         finally:
             conn.close()
         

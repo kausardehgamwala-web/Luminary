@@ -233,10 +233,16 @@ def _call_gpt_oss_qc(prompt: str, inspection_summary: dict, output_snippet: str,
                 )
     except Exception as e:
         print(f"[QC Engine] Vision model request failed: {e}")
-        pass
-
-    # Deterministic Fallback Rules
-    return _rule_based_qc(prompt, inspection_summary)
+        # Do NOT fall through to _rule_based_qc which returns PASS/95 by default.
+        # Return an explicit QC_UNAVAILABLE so callers know QC did not run —
+        # deliverables must NOT be stamped as passing when the QC engine is offline.
+        return QCResult(
+            status="QC_UNAVAILABLE",
+            score=0,
+            issues=["Vision QC model is offline or unreachable. Quality was not verified."],
+            fix_instructions="QC engine is unavailable. Do not treat this as a passing result. Retry after Ollama/vision model is back online.",
+            details=inspection_summary
+        )
 
 def _rule_based_qc(prompt: str, inspection: dict) -> QCResult:
     """High-speed deterministic quality rules when running offline/local checks."""

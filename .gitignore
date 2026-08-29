@@ -1,39 +1,42 @@
-# Environment & Secrets
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment / Secrets — NEVER commit these
 .env
 .env.*
-*.env
+*.key
+*.pem
+*.crt
 
-# Databases
-luminary.db
+# Database files
 *.db
 *.sqlite
 *.sqlite3
 
-# Large Binary Archives
-system_prompts.zip
-*.zip
-*.tar
-*.gz
+# Model weights — large binary files, checked in selectively
+# Intentionally committed: models/nudenet_320n.onnx (NSFW safety classifier)
+# Block any new .onnx or large weight files dropped accidentally
+models/*.onnx
+!models/nudenet_320n.onnx
 
-# Temporary / Dummy test files
-dummy.*
-dummy.docx
-dummy.mp4
-dummy.png
-dummy.ppt
-
-# Python cache & artifacts
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Workspace artifacts
-scratch/
-memory/
-generated/
+# Local dev logs
 *.log
+logs/
 
-# OS metadata
+# OS noise
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

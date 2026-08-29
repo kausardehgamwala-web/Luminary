@@ -448,12 +448,12 @@ def filter_profanity(text: str) -> str:
 # ─── Post-Generation Image Safety Classifier ────────────────────────────────
 
 # ─── REAL TRAINED ONNX & DEEP VISION SAFETY CLASSIFIER ───────────────────────
-_NUDENET_ONNX_PATH = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "..", ".cache", "codex-runtimes", "codex-primary-runtime", "dependencies", "python", "Lib", "site-packages", "nudenet", "320n.onnx"
-)
+# Primary path: committed models/nudenet_320n.onnx relative to this file
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+_NUDENET_ONNX_PATH = os.path.join(_APP_DIR, "models", "nudenet_320n.onnx")
+
 if not os.path.exists(_NUDENET_ONNX_PATH):
-    # Fallback to site-packages search
+    # Fallback 1: site-packages (covers pip install nudenet)
     try:
         import site
         for sp in site.getsitepackages():
@@ -463,6 +463,15 @@ if not os.path.exists(_NUDENET_ONNX_PATH):
                 break
     except Exception:
         pass
+
+if not os.path.exists(_NUDENET_ONNX_PATH):
+    # Loud startup warning — classifier will degrade to pixel-colour heuristic
+    logger.warning(
+        "[VISION SAFETY] ONNX NudeNet model NOT FOUND at models/nudenet_320n.onnx. "
+        "Image safety classifier is degraded to pixel-colour heuristic only. "
+        "Place nudenet_320n.onnx in the models/ directory to enable full NSFW detection."
+    )
+
 
 _NUDENET_LABELS = [
     "FEMALE_GENITALIA_COVERED", "FACE_FEMALE", "BUTTOCKS_EXPOSED",
@@ -608,14 +617,17 @@ def classify_image_safety(image_input, client_id: str = "system") -> SafetyResul
     """
     try:
         from PIL import Image
-        if isinstance(image_input, (str, bytes)):
-            if isinstance(image_input, str) and os.path.exists(image_input):
+        import io
+        if isinstance(image_input, str):
+            if os.path.exists(image_input):
                 img = Image.open(image_input).convert("RGB")
                 img_desc = f"File: {os.path.basename(image_input)}"
             else:
-                import io
-                img = Image.open(io.BytesIO(image_input if isinstance(image_input, bytes) else image_input.encode())).convert("RGB")
-                img_desc = "Raw image buffer"
+                logger.warning(f"[VISION SAFETY] Image path does not exist: {image_input}")
+                return SafetyResult(safe=True)
+        elif isinstance(image_input, (bytes, bytearray)):
+            img = Image.open(io.BytesIO(image_input)).convert("RGB")
+            img_desc = "Raw image buffer"
         elif hasattr(image_input, "convert"):
             img = image_input.convert("RGB")
             img_desc = f"PIL Image ({img.size[0]}x{img.size[1]})"

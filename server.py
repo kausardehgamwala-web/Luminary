@@ -140,17 +140,7 @@ def route_model(task_type: str, available_models: list) -> str:
 APP_ROOT = Path(__file__).resolve().parent
 APP_FILE = APP_ROOT / "luminary.html"
 
-# ── V12: Session context for follow-up / change-only mode ─────────────────────
-# Stores the last delivered asset's creative brief so follow-ups can reference it
-LUMINARY_SESSION_CONTEXT = {
-    "last_prompt": "",
-    "last_brief": {},
-    "last_specs": {},
-    "last_image_url": "",
-    "last_output_type": "text",
-    "last_platform": "general",
-    "last_brand": "",
-}
+
 
 SKILL_SYSTEM_INSTRUCTION = (
     "1. IDENTITY & SENIOR CREATIVE AGENCY PERSONA: You are Luminary's Senior VP Creative Director and Lead Agency Copywriter (Ogilvy/WPP tier). "
@@ -227,13 +217,13 @@ def web_search(query):
                     # Take up to 2500 characters of the actual page text to give deep context
                     full_text = f"\n  [Full Page Extract]: {page_text[:2500]}"
                 except Exception as fe:
-                    print(f"Failed to fetch {url}: {fe}")
+                    logger.error(f"Failed to fetch {url}: {fe}")
                     
             formatted_results.append(f"- Title: {title}\n  URL: {url}\n  Snippet: {snippet}{full_text}\n")
         if formatted_results:
             return "\n".join(formatted_results)
     except Exception as e:
-        print("DuckDuckGo pip search failed:", e)
+        logger.error("DuckDuckGo pip search failed:", e)
     return "Web search is currently unavailable."
 
 
@@ -263,7 +253,7 @@ def query_ollama(prompt, json_mode=False, timeout=300, model_name=None):
             data = json.loads(response.read().decode("utf-8"))
             return data.get("response", "")
     except Exception as exc:
-        print(f"[Ollama Status] Could not connect to Ollama ({exc}). Service may be offline or model downloading.")
+        logger.warning(f"[Ollama Status] Could not connect to Ollama ({exc}). Service may be offline or model downloading.")
         if json_mode:
             return "{}"
         return "⚠️ AI Text Engine Offline: Unable to connect to Ollama. Please ensure the service is running."
@@ -402,7 +392,7 @@ def generate_jpeg_graphic(
         return f"/generated/{filename}?v={int(time.time())}"
 
     except Exception as e:
-        print(f"[ImageEngine Error] Generation failed: {e}")
+        logger.error(f"[ImageEngine Error] Generation failed: {e}")
         # Clean failure handling: Log error and raise structured exception or return None
         raise RuntimeError(f"Image generation failed: {str(e)}")
 
@@ -426,7 +416,7 @@ def generate_downloadable_file(file_type, topic, content_text):
                 file_generator.generate_pptx(content_text, str(file_path), topic=topic)
                 return f"/generated/{filename}.pptx", f"{clean_topic}_Presentation.pptx"
             except Exception as e:
-                print(f"[FileGenerator Error PPTX] {e}")
+                logger.error(f"[FileGenerator Error PPTX] {e}")
         # Fallback to HTML slide deck if pptx engine throws error
         html_file = out_dir / f"{filename}.html"
         html_ppt = f"""<!DOCTYPE html><html><head><title>{topic} Pitch Deck</title>
@@ -446,7 +436,7 @@ h1 {{ color: #ff5500; }} h2 {{ color: #ff7700; }}</style></head><body>
                 file_generator.generate_docx(content_text, str(file_path), title=topic)
                 return f"/generated/{filename}.docx", f"{clean_topic}_Strategy_Document.docx"
             except Exception as e:
-                print(f"[FileGenerator Error DOCX] {e}")
+                logger.error(f"[FileGenerator Error DOCX] {e}")
         # Fallback to HTML doc
         html_file = out_dir / f"{filename}.html"
         doc_html = f"<!DOCTYPE html><html><head><title>{topic}</title></head><body style='font-family:sans-serif;padding:40px;max-width:800px;margin:auto;'><h1>{topic}</h1><div>{content_text.replace(chr(10), '<br>')}</div></body></html>"
@@ -460,7 +450,7 @@ h1 {{ color: #ff5500; }} h2 {{ color: #ff7700; }}</style></head><body>
                 file_generator.generate_xlsx(content_text, str(file_path), title=topic)
                 return f"/generated/{filename}.xlsx", f"{clean_topic}_Content_Calendar.xlsx"
             except Exception as e:
-                print(f"[FileGenerator Error XLSX] {e}")
+                logger.error(f"[FileGenerator Error XLSX] {e}")
         # Fallback to CSV
         csv_file = out_dir / f"{filename}.csv"
         table_match = re.search(r"\|.*\|.*\n\|[-:\s|]+\|.*\n(?:\|.*\|.*\n)+", content_text)
@@ -534,22 +524,75 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         try:
             self.send_response(200)
             self.send_header("Content-Type", content_type)
-            self.send_header("Access-Control-Allow-Origin", "*")
+            # Enforce CORS allowlist — do not blindly reflect any Origin
+            origin = self.headers.get("Origin", "") if hasattr(self, "headers") and self.headers else ""
+            allowed_origins = luminary_auth.get_allowed_origins()
+            if origin and origin != "null" and origin in allowed_origins:
+                self.send_header("Access-Control-Allow-Origin", origin)
+            else:
+                self.send_header("Access-Control-Allow-Origin", "http://localhost:8000")
             self.end_headers()
             self.wfile.write(file_path.read_bytes())
         except Exception as e:
-            print(f"Connection aborted while serving {file_path}: {e}")
+            logger.warning(f"Connection aborted while serving {file_path}: {e}")
 
     def _resolve_asset_path(self, request_path):
+        # Allowlist of safe file extensions for static serving
+        SAFE_EXTENSIONS = {
+            ".html", ".css", ".js", ".ico", ".png", ".jpg", ".jpeg",
+            ".gif", ".svg", ".webp", ".woff", ".woff2", ".ttf", ".eot",
+            ".mp4", ".webm", ".pdf", ".json",
+        }
+        # Dangerous extensions that must NEVER be served regardless of location
+        BLOCKED_EXTENSIONS = {
+            ".py", ".pyc", ".pyo", ".env", ".db", ".sqlite", ".sqlite3",
+            ".bat", ".sh", ".bash", ".cfg", ".ini", ".key", ".pem", ".crt",
+        }
+        # Only directories under APP_ROOT that are safe to serve from
+        SAFE_DIRECTORIES = {"generated", "static", "assets"}
+
         clean_path = request_path.split("?", 1)[0].lstrip("/")
         if not clean_path:
             return None
+
         candidate = (APP_ROOT / clean_path).resolve()
+
+        # Block path traversal
         try:
             candidate.relative_to(APP_ROOT)
         except ValueError:
             return None
-        return candidate if candidate.is_file() else None
+
+        if not candidate.is_file():
+            return None
+
+        ext = candidate.suffix.lower()
+
+        # Explicitly blocked extensions — never serve
+        if ext in BLOCKED_EXTENSIONS:
+            return None
+
+        # Extension must be in the safe allowlist
+        if ext not in SAFE_EXTENSIONS:
+            return None
+
+        # File must either be directly in APP_ROOT (e.g. luminary_testing.html)
+        # or inside one of the designated safe subdirectories
+        try:
+            rel = candidate.relative_to(APP_ROOT)
+            parts = rel.parts
+            # Allow root-level HTML files only
+            if len(parts) == 1:
+                if ext not in {".html", ".ico"}:
+                    return None  # Only HTML/ico at root level
+            else:
+                # Must be inside a safe subdirectory
+                if parts[0] not in SAFE_DIRECTORIES:
+                    return None
+        except ValueError:
+            return None
+
+        return candidate
 
     def do_OPTIONS(self):
         self._json(200)
@@ -566,7 +609,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     if script.exists():
                         subprocess.run([sys.executable, str(script)], check=False)
                 except Exception as ex:
-                    print("Error generating catalog on the fly:", ex)
+                    logger.error("Error generating catalog on the fly:", ex)
             if catalog_file.exists():
                 self._serve_file(catalog_file, "text/html; charset=utf-8")
                 return
@@ -672,9 +715,9 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 try:
                     import luminary_memory
                     luminary_memory.log_feedback(out_type, rating, context_str)
-                    print(f"[Feedback] Logged {rating} feedback for {out_type}")
+                    logger.info(f"[Feedback] Logged {rating} feedback for {out_type}")
                 except Exception as e:
-                    print(f"[Feedback] Error logging memory: {e}")
+                    logger.error(f"[Feedback] Error logging memory: {e}")
                 
                 self._json(200)
                 self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
@@ -733,15 +776,15 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                         
                         engine.add_asset(str(temp_filepath), user_description=asset.get("folder", ""))
                     except Exception as e:
-                        print(f"Error writing/registering brand asset {name}: {e}")
-            print(f"[V13 Asset Engine] Loaded assets: {engine.summary()}")
+                        logger.error(f"Error writing/registering brand asset {name}: {e}")
+            logger.info(f"[V13 Asset Engine] Loaded assets: {engine.summary()}")
             
         # Build design brief from assets
         design_brief = engine.build_design_brief()
         asset_context = design_brief.get("prompt_context", "")
         if asset_context:
             prompt = prompt + "\n\n" + asset_context
-            print("[V13 Asset Engine] Extracted design brief context injected into prompt.")
+            logger.info("[V13 Asset Engine] Extracted design brief context injected into prompt.")
 
         lowered = prompt.lower()
         tag = body.get("tag", "").lower()
@@ -749,7 +792,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         # ── 0. Input Safety & Safeguard Gate (gpt-oss-safeguard-20b) ──
         sec_res = luminary_safety.inspect_prompt(prompt)
         if not sec_res.safe:
-            print(f"[SECURITY SAFEGUARD BLOCK] Category={sec_res.category} Severity={sec_res.severity} Reason={sec_res.reason}")
+            logger.error(f"[SECURITY SAFEGUARD BLOCK] Category={sec_res.category} Severity={sec_res.severity} Reason={sec_res.reason}")
             self._json(200)
             self.wfile.write(json.dumps({
                 "response": sec_res.safe_alternative,
@@ -792,7 +835,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 specs["platform"] = LUMINARY_SESSION_CONTEXT["last_platform"]
             if not specs.get("colors") and LUMINARY_SESSION_CONTEXT.get("last_specs", {}).get("colors"):
                 specs["colors"] = LUMINARY_SESSION_CONTEXT["last_specs"]["colors"]
-            print(f"[V12] Follow-up detected: {follow_up_type} | Change-only: {is_change_only}")
+            logger.info(f"[V12] Follow-up detected: {follow_up_type} | Change-only: {is_change_only}")
 
         # ── 3. Intercept Image requests ────────────────────────────────────
         is_image_req = ("image" in tag) or (specs["output_type"] == "image") or ("ai image" in lowered)
@@ -800,7 +843,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             # Pre-flight image safety check
             img_safety = luminary_safety.inspect_image_prompt(prompt)
             if not img_safety.safe:
-                print(f"[SAFETY BLOCK IMAGE] Category={img_safety.category} Reason={img_safety.reason}")
+                logger.error(f"[SAFETY BLOCK IMAGE] Category={img_safety.category} Reason={img_safety.reason}")
                 self._json(200)
                 self.wfile.write(json.dumps({
                     "response": img_safety.safe_alternative,
@@ -813,7 +856,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             if follow_up_type == "NEW_TASK":
                 mcq = luminary_intelligence.generate_smart_clarification(prompt, specs)
                 if mcq:
-                    print("[V12] Image prompt incomplete. Returning smart MCQ clarification...")
+                    logger.info("[V12] Image prompt incomplete. Returning smart MCQ clarification...")
                     self._json(200)
                     self.wfile.write(json.dumps({
                         "response": mcq["context"],
@@ -825,9 +868,9 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             # ── V12 Creative Brief Builder (Text Model → Image Model) ──────
             try:
                 creative_brief = _skill_router_module.build_creative_brief(prompt, specs)
-                print(f"[V12] Creative brief built: Campaign='{creative_brief.get('campaign', '')[:60]}'")
+                logger.info(f"[V12] Creative brief built: Campaign='{creative_brief.get('campaign', '')[:60]}'")
             except Exception as e:
-                print(f"[V12] Creative brief error (using fallback): {e}")
+                logger.error(f"[V12] Creative brief error (using fallback): {e}")
                 creative_brief = {}
 
             # Build search context if brands are mentioned
@@ -836,7 +879,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 search_query = f"{specs['subjects'][0]} official brand colors logo hex details" if specs["subjects"] else prompt
                 search_context = luminary_memory.get_cached_research(search_query)
                 if not search_context:
-                    print("Performing image web search for brand details:", search_query)
+                    logger.info("Performing image web search for brand details:", search_query)
                     search_context = web_search(search_query)
                     luminary_memory.cache_research(search_query, search_context)
 
@@ -855,9 +898,9 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 # Override resolution from CD brief (it knows platform-correct dimensions)
                 if cd_brief.dimensions and cd_brief.dimensions != (1080, 1080):
                     specs["resolution"] = list(cd_brief.dimensions)
-                print(f"[V14 CD] Template={cd_brief.template_id} | Dims={cd_brief.dimensions} | Quality={cd_brief.quality_level}")
+                logger.info(f"[V14 CD] Template={cd_brief.template_id} | Dims={cd_brief.dimensions} | Quality={cd_brief.quality_level}")
             except Exception as e:
-                print(f"[V14 CD] Orchestration error (using fallback): {e}")
+                logger.error(f"[V14 CD] Orchestration error (using fallback): {e}")
                 cd_brief = None
 
             # Build enriched prompt from Creative Director layer
@@ -882,7 +925,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     cd_additions.append(f"composition: {cd_brief.composition_notes}")
                 if cd_additions:
                     enriched_prompt = f"{enriched_prompt}, {', '.join(cd_additions)}"
-                    print(f"[V14 CD] Image prompt enhanced with {len(cd_additions)} creative directives")
+                    logger.info(f"[V14 CD] Image prompt enhanced with {len(cd_additions)} creative directives")
 
             # Inject creative brief context if change-only mode
             if is_change_only and LUMINARY_SESSION_CONTEXT["last_brief"]:
@@ -893,11 +936,11 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     f"{prev_brief.get('lighting', '')}, "
                     f"{prev_brief.get('color_palette', '')}"
                 )
-                print(f"[V12] Change-only mode: injecting session context into prompt")
+                logger.info(f"[V12] Change-only mode: injecting session context into prompt")
 
             width, height = specs["resolution"]
             img_count = specs.get("quantity", 1)
-            print(f"[V12] Generating {img_count} images at {width}x{height}")
+            logger.info(f"[V12] Generating {img_count} images at {width}x{height}")
 
             img_urls = []
             image_generation_warning = ""
@@ -906,7 +949,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 try:
                     img_url = generate_jpeg_graphic(variation, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
                 except Exception as img_err:
-                    print(f"[Image Generation Warning] Local image pipeline failed ({img_err}). Handling gracefully...")
+                    logger.error(f"[Image Generation Warning] Local image pipeline failed ({img_err}). Handling gracefully...")
                     img_url = ""
                     image_generation_warning = "\n\n⚠️ **Image Generation Notice**: Local image engine offline or model initializing. Please ensure PyTorch/Diffusers weights are loaded."
                     break
@@ -914,16 +957,16 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 # ── V12 Image QA Loop (max 2 retries on clear failures) ────
                 qa_failures = _run_image_qa_check(img_url, variation, specs)
                 if qa_failures:
-                    print(f"[V12 QA] Issues detected: {qa_failures}. Retrying (attempt 2)...")
+                    logger.error(f"[V12 QA] Issues detected: {qa_failures}. Retrying (attempt 2)...")
                     correction_suffix = ", ".join(qa_failures)
                     corrected_prompt = f"{variation}, CORRECTION: {correction_suffix}, ensure exact specification compliance"
                     retry_url = generate_jpeg_graphic(corrected_prompt, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
                     qa_retry = _run_image_qa_check(retry_url, corrected_prompt, specs)
                     if not qa_retry:
-                        print(f"[V12 QA] Retry passed QA check.")
+                        logger.info(f"[V12 QA] Retry passed QA check.")
                         img_url = retry_url
                     else:
-                        print(f"[V12 QA] Retry still has issues: {qa_retry}. Keeping retry result.")
+                        logger.warning(f"[V12 QA] Retry still has issues: {qa_retry}. Keeping retry result.")
                         img_url = retry_url  # Use retry anyway
 
                 img_urls.append(img_url)
@@ -965,7 +1008,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         if follow_up_type == "NEW_TASK":
             mcq = luminary_intelligence.generate_smart_clarification(prompt, specs)
             if mcq:
-                print("[V12] Prompt incomplete. Returning smart MCQ clarification...")
+                logger.info("[V12] Prompt incomplete. Returning smart MCQ clarification...")
                 self._json(200)
                 self.wfile.write(json.dumps({
                     "response": mcq["context"],
@@ -981,11 +1024,11 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             # Check persistent search cache first
             search_results = luminary_memory.get_cached_research(clean_q)
             if not search_results:
-                print("Performing cached web search for:", clean_q)
+                logger.info("Performing cached web search for:", clean_q)
                 search_results = f"\n\n### LIVE WEB SEARCH RESULTS (Internet Reference Context):\n{web_search(clean_q)}\n"
                 luminary_memory.cache_research(clean_q, search_results)
             else:
-                print("Using cached research for query:", clean_q)
+                logger.info("Using cached research for query:", clean_q)
 
         # ── 5. Setup LLM Prompts with Memory, Skills, and Examples ────────────
         skill_context = select_skill_context(prompt)
@@ -1013,7 +1056,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             task_workflow = luminary_workflows.get_workflow_for_prompt(prompt)
             workflow_context = f"\n\n[STRICT TASK WORKFLOW ENFORCEMENT]\n{task_workflow}\n"
         except Exception as e:
-            print("Workflow error:", e)
+            logger.error("Workflow error:", e)
             workflow_context = ""
 
         # ── V14: Creative Director Production Brief for Text Tasks ─────────────
@@ -1042,9 +1085,9 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     f"Do NOT use generic AI phrases. Do NOT produce placeholder copy.\n"
                     f"Every word must earn its place.\n"
                 )
-                print(f"[V14 CD] Text brief injected: deliverable='{cd_text_brief.deliverable}' template='{cd_text_brief.template_id}'")
+                logger.info(f"[V14 CD] Text brief injected: deliverable='{cd_text_brief.deliverable}' template='{cd_text_brief.template_id}'")
         except Exception as e:
-            print(f"[V14 CD] Text brief error (continuing without): {e}")
+            logger.error(f"[V14 CD] Text brief error (continuing without): {e}")
             cd_text_brief = None
 
         # Build full contextual prompt with CoT planning template + CD brief
@@ -1062,7 +1105,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             
         available = discover_all_ollama_models()
         routed_model = route_model(task_type, available)
-        print(f"[Intelligent Routing] Task='{task_type}' -> Model='{routed_model}'")
+        logger.info(f"[Intelligent Routing] Task='{task_type}' -> Model='{routed_model}'")
 
         response_text = query_ollama(cot_prompt, timeout=300, model_name=routed_model)
 
@@ -1079,7 +1122,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         is_refusal = any(re.search(pat, response_text, re.IGNORECASE) for pat in refusal_patterns)
 
         if is_refusal:
-            print("Ollama model refusal detected! Executing clean recovery query...")
+            logger.info("Ollama model refusal detected! Executing clean recovery query...")
             clean_instruction = (
                 "You are Luminary's senior AI marketing strategist representing a full-service, fully automated AI marketing agency. "
                 "Directly output the requested text, data, or slide structure without apologies or system limitation disclaimers."
@@ -1104,13 +1147,13 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 max_qa_attempts = 3 if is_deep_production else 2
                 
                 if is_deep_production:
-                    print(f"[DEEP PRODUCTION MODE] Active - 5-Pass QA Gate + Self-Healing active (up to {max_qa_attempts} attempts)")
+                    logger.info(f"[DEEP PRODUCTION MODE] Active - 5-Pass QA Gate + Self-Healing active (up to {max_qa_attempts} attempts)")
                     try:
                         import luminary_design_systems as lds
                         design_sys = lds.get_design_system_by_prompt(prompt)
-                        print(f"[V13 Design Systems] Matched design system: {design_sys['title']}")
+                        logger.info(f"[V13 Design Systems] Matched design system: {design_sys['title']}")
                     except Exception as e:
-                        print("Error loading design system:", e)
+                        logger.error("Error loading design system:", e)
                 
                 qa_attempts = 0
                 final_qc_score = 90
@@ -1120,27 +1163,27 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     passed = qa_result["passed"]
                     final_qc_score = qa_result.get("score", 90)
                     
-                    print(f"[{'DEEP ' if is_deep_production else ''}QA Attempt {qa_attempts+1}/{max_qa_attempts}] passed={passed}, score={qa_result['score']}/100")
+                    logger.info(f"[{'DEEP ' if is_deep_production else ''}QA Attempt {qa_attempts+1}/{max_qa_attempts}] passed={passed}, score={qa_result['score']}/100")
                     
                     # ── V14: Creative Director QC layer (in addition to intelligence QA) ──
                     if passed and cd_text_brief is not None:
                         cd_qc = _cd_orchestrator.run_creative_qc(response_text, cd_text_brief, pass_num=qa_attempts+1)
                         final_qc_score = cd_qc.get("score", final_qc_score)
                         if not cd_qc["passed"] and qa_attempts < max_qa_attempts - 1:
-                            print(f"[V14 CD QC] Agency quality check failed (score={cd_qc['score']}). CD initiating revision...")
+                            logger.error(f"[V14 CD QC] Agency quality check failed (score={cd_qc['score']}). CD initiating revision...")
                             healing_prompt = _cd_orchestrator.build_revision_prompt(prompt, response_text, cd_qc)
                             response_text = query_ollama(healing_prompt, timeout=250, model_name=routed_model)
                             qa_attempts += 1
                             continue
                         elif cd_qc["passed"]:
-                            print(f"[V14 CD QC] Agency quality check PASSED (score={cd_qc['score']}/100)")
+                            logger.info(f"[V14 CD QC] Agency quality check PASSED (score={cd_qc['score']}/100)")
                     
                     if passed:
                         break
                         
                     qa_attempts += 1
                     if qa_attempts < max_qa_attempts:
-                        print(f"Validation failed or quality score low. Initiating self-healing retry (Attempt {qa_attempts+1})...")
+                        logger.error(f"Validation failed or quality score low. Initiating self-healing retry (Attempt {qa_attempts+1})...")
                         healing_feedback = "\n".join(qa_result.get("failures", [])) + "\n" + "\n".join(qa_result.get("warnings", []))
                         healing_prompt = (
                             f"### Instruction:\n"
@@ -1151,16 +1194,16 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                         )
                         response_text = query_ollama(healing_prompt, timeout=250, model_name=routed_model)
                     else:
-                        print("Maximum self-healing attempts reached. Delivering best available draft.")
+                        logger.info("Maximum self-healing attempts reached. Delivering best available draft.")
 
                 # Evaluator AI Benchmarking Loop for complex outputs
                 if luminary_intelligence.should_run_evaluator(prompt, response_text) and not is_refusal:
                     eval_prompt = f"### Instruction:\nYou are an elite Creative Director benchmarking this output against marketing agency standards. Ensure it is highly professional, data-driven, and structurally sound. \n\nOutput to evaluate:\n{response_text}\n\nIf the output is already excellent and meets agency standards, output EXACTLY the word 'PASS'. If it fails or is low-quality, output a completely rewritten, highly professional version. Do NOT provide feedback, just output 'PASS' or the improved content.\n### Response:"
-                    print("Running Evaluator AI Benchmark...")
+                    logger.info("Running Evaluator AI Benchmark...")
                     eval_model = route_model("reasoning", available)
                     eval_result = query_ollama(eval_prompt, timeout=300, model_name=eval_model).strip()
                     if not eval_result.startswith("PASS"):
-                        print("Evaluator failed the initial output. Using improved rewrite.")
+                        logger.error("Evaluator failed the initial output. Using improved rewrite.")
                         response_text = eval_result
 
                 # If PPT and images, automatically generate graphics for visual placeholders!
@@ -1219,16 +1262,16 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                         filepath.write_text(html_code, encoding="utf-8")
                         response_text += f"\n\n[Download Generated HTML Website](/generated/{filepath.name})"
                 except Exception as e:
-                    print("Native File generation failed:", e)
+                    logger.error("Native File generation failed:", e)
 
                 # ── 5. QC AI Work Verification & Inspection Gate (gpt-oss-20b) ──
                 if 'filepath' in locals() and filepath.exists():
                     qc_res = luminary_qc_engine.verify_output(prompt, clean_text, str(filepath))
-                    print(f"[QC AI qwen2.5vl] Status={qc_res.status} Score={qc_res.score} Issues={qc_res.issues}")
+                    logger.warning(f"[QC AI qwen2.5vl] Status={qc_res.status} Score={qc_res.score} Issues={qc_res.issues}")
                     
                     # Revision Loop for QC failures
                     if qc_res.status == "REVISE" and qc_res.fix_instructions:
-                        print(f"[QC AI Revision Loop] Applying fix instructions: {qc_res.fix_instructions}")
+                        logger.info(f"[QC AI Revision Loop] Applying fix instructions: {qc_res.fix_instructions}")
                         fix_prompt = f"### Instruction:\nYou generated an asset, but QC check identified missing requirements:\n{qc_res.fix_instructions}\n\nOriginal Prompt:\n{prompt}\n\nRegenerate full revised text:\n### Response:"
                         revised_text = query_ollama(fix_prompt, timeout=250, model_name=routed_model)
                         if revised_text and len(revised_text) > 100:
@@ -1239,12 +1282,12 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                                 file_generator.generate_docx(clean_text, str(filepath), prompt)
                             elif is_sheet:
                                 file_generator.generate_xlsx(clean_text, str(filepath), prompt)
-                            print(f"[QC AI Revision Loop] Asset regenerated successfully: {filepath.name}")
+                            logger.info(f"[QC AI Revision Loop] Asset regenerated successfully: {filepath.name}")
 
                 # ── 6. Output Security Safeguard Gate ──
                 out_sec = luminary_safety.inspect_prompt(response_text)
                 if not out_sec.safe:
-                    print(f"[OUTPUT SECURITY BLOCK] Category={out_sec.category} Reason={out_sec.reason}")
+                    logger.error(f"[OUTPUT SECURITY BLOCK] Category={out_sec.category} Reason={out_sec.reason}")
                     response_text = out_sec.safe_alternative
 
                 # Extract Structured UI Tags
@@ -1255,14 +1298,16 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 if clarify_match:
                     try:
                         clarify_data = json.loads(clarify_match.group(1).strip())
-                    except: pass
+                    except Exception as e:
+                        logger.warning(f"[handle_chat] Failed to parse <clarify> JSON tag: {e}")
                     response_text = response_text.replace(clarify_match.group(0), "")
 
                 suggest_match = re.search(r"<suggest>(.*?)</suggest>", response_text, re.DOTALL)
                 if suggest_match:
                     try:
                         suggest_data = json.loads(suggest_match.group(1).strip())
-                    except: pass
+                    except Exception as e:
+                        logger.warning(f"[handle_chat] Failed to parse <suggest> JSON tag: {e}")
                     response_text = response_text.replace(suggest_match.group(0), "")
 
                 # Post-process: Remove ONLY bare horizontal dividers (---) and empty bullet-only lines.
@@ -1272,7 +1317,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 # Output Moderation check
                 out_safety = luminary_safety.inspect_output(response_text)
                 if not out_safety.safe:
-                    print(f"[SAFETY BLOCK OUTPUT] Category={out_safety.category} Reason={out_safety.reason}")
+                    logger.error(f"[SAFETY BLOCK OUTPUT] Category={out_safety.category} Reason={out_safety.reason}")
                     response_text = out_safety.safe_alternative
 
                 # ── 7. Visible Quality & Confidence Indicator (Legible QC Process) ──
@@ -1379,8 +1424,9 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 result = json.loads(json_match.group(1).strip())
             else:
                 raise Exception("No JSON block found")
-        except:
-            # Fallback
+        except Exception as e:
+            # Fallback — Ollama offline or AI returned non-JSON response
+            logger.warning(f"[handle_scan_brand] AI brand detection failed, using heuristic fallback: {e}")
             name_guess = domain.split(".")[0].title()
             result = {
                 "brandName": name_guess,
@@ -1406,7 +1452,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         img_safety = luminary_safety.inspect_image_prompt(prompt)
         if not img_safety.safe:
             # Log technical details server-side only — NEVER expose to user
-            print(f"[SAFETY BLOCK IMAGE API] Category={img_safety.category} Reason={img_safety.reason}")
+            logger.error(f"[SAFETY BLOCK IMAGE API] Category={img_safety.category} Reason={img_safety.reason}")
             self._json(200)
             self.wfile.write(json.dumps({
                 "image_url": "",
@@ -1537,26 +1583,31 @@ def run():
     try:
         ollama_socket.connect(("127.0.0.1", 11434))
         ollama_socket.close()
-        print("Self-Healing: Ollama engine detected as already running.")
+        logger.info("Self-Healing: Ollama engine detected as already running.")
     except Exception:
-        print("Self-Healing: Ollama engine not detected. Starting headless Ollama server...")
+        logger.info("Self-Healing: Ollama engine not detected. Starting headless Ollama server...")
         try:
-            subprocess.Popen(
-                ["ollama", "serve"],
+            popen_kwargs = dict(
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
             )
+            if os.name == "nt":
+                # Windows: use process group so Ctrl+C doesn't kill child
+                popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+            else:
+                # POSIX (Linux/macOS): CREATE_NEW_PROCESS_GROUP does not exist
+                popen_kwargs["start_new_session"] = True
+            subprocess.Popen(["ollama", "serve"], **popen_kwargs)
             time.sleep(3)  # Allow port binding time
         except Exception as e:
-            print(f"Self-Healing Alert: Failed to auto-start Ollama: {e}")
+            logger.warning(f"Self-Healing Alert: Failed to auto-start Ollama: {e}")
 
     # Launch social sync background thread safely
     try:
         import social_sync
         social_sync.start_sync_thread()
     except Exception as ex:
-        print(f"[Warning] Could not initialize social sync thread: {ex}")
+        logger.warning(f"[Warning] Could not initialize social sync thread: {ex}")
 
     server_address = (SERVER_HOST if SERVER_HOST != "0.0.0.0" else "", SERVER_PORT)
     server = ThreadingHTTPServer(server_address, LuminaryHandler)
@@ -1577,7 +1628,7 @@ def run():
     print("------------------------------------------------------------------------")
     print(f" [ACTIVE TEXT AI ENGINE]       : {MODEL_NAME} (Ollama)")
     print("   Supported Text Hierarchy    : qwen2.5-coder:7b (Primary) | deepseek-coder:6.7b | codellama:7b |")
-    print("                                 qwen2.5:7b | qwen2.5:3b | mistral:7b | llama3:8b | phi3:medium | phi3:mini")
+    logger.info("                                 qwen2.5:7b | qwen2.5:3b | mistral:7b | llama3:8b | phi3:medium | phi3:mini")
     print(" [ACTIVE IMAGE AI ENGINE]      : runwayml/stable-diffusion-v1-5 & SDXL Turbo (Local Hardware Accelerated)")
     print("========================================================================")
     
@@ -1585,11 +1636,11 @@ def run():
         try:
             server.serve_forever()
         except KeyboardInterrupt:
-            print("\n[Server] Shutting down gracefully upon user request...")
+            logger.info("\n[Server] Shutting down gracefully upon user request...")
             server.server_close()
             break
         except Exception as ex:
-            print(f"[Server Resilience Alert] Non-fatal server exception caught: {ex}")
+            logger.error(f"[Server Resilience Alert] Non-fatal server exception caught: {ex}")
             time.sleep(1)
 
 
