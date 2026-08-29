@@ -68,7 +68,7 @@ def _call_gpt_oss_safeguard(prompt: str, is_output: bool = False) -> SecurityRes
         }).encode("utf-8")
 
         req = urllib.request.Request("http://127.0.0.1:11434/api/generate", data=req_data, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=5) as response:
+        with urllib.request.urlopen(req, timeout=30) as response:
             res_json = json.loads(response.read().decode("utf-8"))
             raw_response = res_json.get("response", "")
             

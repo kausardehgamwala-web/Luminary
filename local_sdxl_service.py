@@ -262,8 +262,7 @@ class LocalSDXLService:
                             guidance_scale=guidance_scale,
                             generator=generator
                         )
-
-                                        gen_img = output.images[0]
+                    gen_img = output.images[0]
                     # Post-generation VRAM cleanup
                     if self.device == "cuda":
                         try:
