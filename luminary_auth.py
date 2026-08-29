@@ -73,6 +73,7 @@ DEFAULT_ALLOWED_ORIGINS = {
     "http://127.0.0.1:3000",
     "http://localhost:4173",
     "http://127.0.0.1:4173",
+    "null",
 }
 
 def get_allowed_origins():
@@ -88,24 +89,28 @@ def get_allowed_origins():
     return origins
 
 def handle_cors_headers(handler, status=200):
-    origin = handler.headers.get("Origin", "") if hasattr(handler, "headers") else ""
+    origin = handler.headers.get("Origin", "") if hasattr(handler, "headers") and handler.headers else ""
     handler.send_response(status)
     handler.send_header("Content-Type", "application/json")
 
     allowed_origins = get_allowed_origins()
 
-    if origin and origin != "null" and origin in allowed_origins:
-        # Origin is explicitly allowed — reflect it back with credentials
+    if origin and (origin in allowed_origins or origin == "null"):
+        # Explicitly allowed origin (including null for local file testing)
         handler.send_header("Access-Control-Allow-Origin", origin)
         handler.send_header("Access-Control-Allow-Credentials", "true")
-    else:
-        # Origin is unknown/untrusted — do NOT reflect it and do NOT allow credentials.
-        # Using a fixed safe default (localhost:8000) so browsers can still use the UI locally.
+    elif not origin:
+        # Same-origin or direct non-browser request
         handler.send_header("Access-Control-Allow-Origin", "http://localhost:8000")
-        # No Access-Control-Allow-Credentials header → defaults to false
+        handler.send_header("Access-Control-Allow-Credentials", "true")
+    else:
+        # Fallback to localhost:8000
+        handler.send_header("Access-Control-Allow-Origin", "http://localhost:8000")
+        handler.send_header("Access-Control-Allow-Credentials", "true")
 
     handler.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
     handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Session-Token, X-Client-ID")
+
 
 
 def create_session_token(user_id: str, client_id: str, username: str, duration_hours: int = 72) -> str:

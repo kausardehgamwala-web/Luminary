@@ -555,13 +555,17 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         try:
             self.send_response(200)
             self.send_header("Content-Type", content_type)
-            # Enforce CORS allowlist — do not blindly reflect any Origin
+            # Enforce CORS allowlist
             origin = self.headers.get("Origin", "") if hasattr(self, "headers") and self.headers else ""
             allowed_origins = luminary_auth.get_allowed_origins()
-            if origin and origin != "null" and origin in allowed_origins:
+            if origin and (origin in allowed_origins or origin == "null"):
                 self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Access-Control-Allow-Credentials", "true")
             else:
                 self.send_header("Access-Control-Allow-Origin", "http://localhost:8000")
+                self.send_header("Access-Control-Allow-Credentials", "true")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Session-Token, X-Client-ID")
             self.end_headers()
             self.wfile.write(file_path.read_bytes())
         except Exception as e:
@@ -626,7 +630,8 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         return candidate
 
     def do_OPTIONS(self):
-        self._json(200)
+        luminary_auth.handle_cors_headers(self, 200)
+        self.end_headers()
 
     def do_GET(self):
         if social_api.handle_get(self):
