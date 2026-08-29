@@ -464,7 +464,10 @@ if not os.path.exists(_NUDENET_ONNX_PATH):
     except Exception:
         pass
 
-if not os.path.exists(_NUDENET_ONNX_PATH):
+_WARNED_ONCE = False
+
+if not os.path.exists(_NUDENET_ONNX_PATH) and not _WARNED_ONCE:
+    _WARNED_ONCE = True
     # Loud startup warning — classifier will run in heuristic mode
     logger.warning(
         "\n" + "=" * 70 + "\n"
