@@ -2494,8 +2494,9 @@
       bottom: 0;
       width: 280px;
       z-index: 85;
-      border-right: 0;
-      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      border: none !important;
+      border-right: 0 !important;
+      border-left: none !important;
       background: #0c0a10;
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
@@ -2504,6 +2505,60 @@
       transform: translateX(0);
       opacity: 1;
       box-shadow: none !important;
+    }
+
+    .welcome-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 20px 40px;
+      margin: auto 0;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .welcome-container h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 32px rgba(255, 85, 0, 0.18);
+    }
+
+    .welcome-container p {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+
+    body.light-mode .welcome-container h2 {
+      background: linear-gradient(135deg, #09080b 0%, #334155 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: #09080b;
+      text-shadow: none;
+    }
+
+    body.light-mode .welcome-container p {
+      color: rgba(0, 0, 0, 0.55);
+    }
+
+    .fade-out-up {
+      opacity: 0 !important;
+      transform: translateY(-20px) !important;
+      transition: all 0.4s ease-out !important;
+      pointer-events: none !important;
     }
 
     .dashboard.history-closed .history-panel,
@@ -2580,13 +2635,23 @@
       position: relative;
     }
 
-    .dash-sidebar,
-    .history-panel {
+    .dash-sidebar {
       padding: 28px 20px;
       background: #09080b; /* Fixed fade bleed */
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition), opacity var(--transition), background var(--transition);
+    }
+
+    .history-panel {
+      padding: 28px 20px;
+      background: #09080b;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: none !important;
       display: flex;
       flex-direction: column;
       transition: transform var(--transition), opacity var(--transition), background var(--transition);
@@ -10716,9 +10781,8 @@ body.light-mode .history-item.active {
             <i class="fa-solid fa-chevron-left" style="color:#ffffff; font-size:1.1rem;"></i>
           </button>
           <div class="chat-stage">
-            <div class="workspace-head" id="heroGreetingHead">
-              
-              <h2 id="welcomeHeading">Welcome, Daytona!</h2>
+            <div id="welcome-message" class="welcome-container">
+              <h2 id="welcomeHeading">Welcome to Luminary</h2>
               <p>How can I help you today?</p>
             </div>
             <div class="chat-feed" id="chatFeed"></div>
@@ -11508,12 +11572,25 @@ body.light-mode .history-item.active {
 
     function renderChat() {
       const chat = getActiveChat();
+      const welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
       if (!chat) {
         if (elements.chatFeed) elements.chatFeed.innerHTML = "";
+        if (welcomeEl) {
+          welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+          welcomeEl.style.display = "flex";
+        }
         return;
       }
       if (chat.messages && chat.messages.length > 0) {
-        if (typeof window.hideHeroGreeting === 'function') window.hideHeroGreeting();
+        if (welcomeEl) {
+          welcomeEl.classList.add("fade-out-up");
+          welcomeEl.style.display = "none";
+        }
+      } else {
+        if (welcomeEl) {
+          welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+          welcomeEl.style.display = "flex";
+        }
       }
       if (!chat.messages || !chat.messages.length) {
         if (elements.chatFeed) elements.chatFeed.innerHTML = "";
@@ -11869,31 +11946,20 @@ body.light-mode .history-item.active {
 
     
     window.hideHeroGreeting = function() {
-      const head = document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
-      if (head && !head.classList.contains("transition-out")) {
-        head.classList.add("transition-out");
-        head.style.opacity = "0";
-        head.style.transform = "translateY(-30px) scale(0.95)";
-        head.style.maxHeight = "0px";
-        head.style.margin = "0px";
-        head.style.padding = "0px";
+      const welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
+      if (welcomeEl && !welcomeEl.classList.contains("fade-out-up")) {
+        welcomeEl.classList.add("fade-out-up");
         setTimeout(() => {
-          head.classList.add("hidden");
-          head.style.display = "none";
+          welcomeEl.style.display = "none";
         }, 400);
       }
     };
 
     window.showHeroGreeting = function() {
-      const head = document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
-      if (head) {
-        head.classList.remove("transition-out", "hidden");
-        head.style.display = "block";
-        head.style.opacity = "1";
-        head.style.transform = "translateY(0) scale(1)";
-        head.style.maxHeight = "200px";
-        head.style.margin = "-10px 0 0 0";
-        head.style.padding = "0px";
+      const welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
+      if (welcomeEl) {
+        welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+        welcomeEl.style.display = "flex";
       }
     };
 
