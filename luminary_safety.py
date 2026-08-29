@@ -198,7 +198,7 @@ def inspect_prompt(prompt: str) -> SafetyResult:
     if found_dangerous:
         # Persistent Audit Logging
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=text)
         except Exception:
             pass
         return SafetyResult(
@@ -238,7 +238,7 @@ def inspect_prompt(prompt: str) -> SafetyResult:
     if found_sexual:
         # Persistent Audit Logging
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=text)
         except Exception:
             pass
         return SafetyResult(
@@ -283,7 +283,7 @@ def inspect_prompt(prompt: str) -> SafetyResult:
     if found_profanity:
         # Persistent Audit Logging
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=text)
         except Exception:
             pass
         return SafetyResult(
@@ -299,7 +299,7 @@ def inspect_prompt(prompt: str) -> SafetyResult:
     if found_hate:
         # Persistent Audit Logging
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=text)
         except Exception:
             pass
         return SafetyResult(
@@ -387,7 +387,7 @@ def inspect_output(text: str) -> SafetyResult:
     if found_sexual:
         # Persistent Audit Logging
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=text)
         except Exception:
             pass
         return SafetyResult(
@@ -403,7 +403,7 @@ def inspect_output(text: str) -> SafetyResult:
     if found_profanity:
         # Persistent Audit Logging
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=text)
         except Exception:
             pass
         return SafetyResult(
@@ -419,7 +419,7 @@ def inspect_output(text: str) -> SafetyResult:
     if found_hate:
         # Persistent Audit Logging
         try:
-            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=prompt)
+            db.log_security_audit('client_1', category='blocked', severity='high', reason=normalized[:200], blocked_content=text)
         except Exception:
             pass
         return SafetyResult(
