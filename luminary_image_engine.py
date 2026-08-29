@@ -299,14 +299,12 @@ def _auto_extract_foreground_subject(img):
 # ── 4. MULTI-PROVIDER PRODUCTION IMAGE API CLIENT ───────────────────────────
 
 class ProductionImageEngine:
+    """
+    100% Local Image Production Engine.
+    Executes entirely on device via LocalSDXLService with zero external cloud API dependencies.
+    """
     def __init__(self):
-        # Provider API keys from environment
-        self.bfl_key = os.getenv("BFL_API_KEY") or os.getenv("FLUX_API_KEY")
-        self.replicate_token = os.getenv("REPLICATE_API_TOKEN")
-        self.stability_key = os.getenv("STABILITY_API_KEY")
-        self.ideogram_key = os.getenv("IDEOGRAM_API_KEY")
-        self.openai_key = os.getenv("OPENAI_API_KEY")
-        self.preferred_provider = os.getenv("LUMINARY_IMAGE_PROVIDER", "auto").lower()
+        self.provider = "local_sdxl"
 
     def generate_image(
         self,
@@ -320,247 +318,11 @@ class ProductionImageEngine:
         seed: Optional[int] = None
     ) -> Tuple[bytes, Dict[str, Any]]:
         """
-        Executes production image generation across the best available paid provider,
-        or uses high-definition Flux pipeline.
-        Returns (image_bytes: bytes, metadata: dict).
+        Executes 100% local image generation via LocalSDXLService.
+        Zero cloud API calls, zero billing risk.
         """
-        # Clean prompt without destroying essential punctuation
         clean_prompt = prompt.strip()
-        
-        # 1. Check if Ideogram (best for text/typography/ad layout)
-        if self.ideogram_key and (self.preferred_provider == "ideogram" or any(kw in clean_prompt.lower() for kw in ["text", "headline", "poster", "badge", "ad", "typography"])):
-            try:
-                res, meta = self._generate_ideogram(clean_prompt, width, height, negative_prompt, seed)
-                if res:
-                    return res, meta
-            except Exception as e:
-                logger.warning(f"Ideogram generation failed: {e}")
-
-        # 2. Check if Black Forest Labs Flux 1.1 Pro (BFL API)
-        if self.bfl_key and (self.preferred_provider in ["flux", "bfl", "auto"]):
-            try:
-                res, meta = self._generate_bfl_flux(clean_prompt, width, height, seed)
-                if res:
-                    return res, meta
-            except Exception as e:
-                logger.warning(f"BFL Flux API failed: {e}")
-
-        # 3. Check if Replicate (Flux 1.1 Pro / Flux Kontext)
-        if self.replicate_token and (self.preferred_provider in ["replicate", "flux", "auto"]):
-            try:
-                res, meta = self._generate_replicate_flux(clean_prompt, width, height, reference_image_path, seed)
-                if res:
-                    return res, meta
-            except Exception as e:
-                logger.warning(f"Replicate Flux API failed: {e}")
-
-        # 4. Check if Stability AI (SD3.5 Large / SDXL)
-        if self.stability_key and (self.preferred_provider in ["stability", "sd3", "auto"]):
-            try:
-                res, meta = self._generate_stability(clean_prompt, width, height, negative_prompt, reference_image_path, seed)
-                if res:
-                    return res, meta
-            except Exception as e:
-                logger.warning(f"Stability AI API failed: {e}")
-
-        # 5. Check if OpenAI DALL-E 3
-        if self.openai_key and (self.preferred_provider in ["openai", "dalle", "auto"]):
-            try:
-                res, meta = self._generate_openai_dalle3(clean_prompt, width, height)
-                if res:
-                    return res, meta
-            except Exception as e:
-                logger.warning(f"OpenAI DALL-E 3 API failed: {e}")
-
-        # 6. Local SDXL / Diffusers Pipeline (if available)
-        try:
-            return self._generate_flux_direct(clean_prompt, width, height, negative_prompt, seed)
-        except Exception as e:
-            logger.warning(f"[ImageEngine] Local SDXL pipeline failed or unavailable: {e}")
-
-        # 7. Fallback to OpenAI DALL-E 3 or Stability AI if not already attempted
-        if self.openai_key:
-            try:
-                res, meta = self._generate_openai_dalle3(clean_prompt, width, height)
-                if res:
-                    return res, meta
-            except Exception as e:
-                logger.warning(f"OpenAI DALL-E 3 fallback failed: {e}")
-
-        if self.stability_key:
-            try:
-                res, meta = self._generate_stability(clean_prompt, width, height, negative_prompt, reference_image_path, seed)
-                if res:
-                    return res, meta
-            except Exception as e:
-                logger.warning(f"Stability AI fallback failed: {e}")
-
-        # All providers failed: raise clean exception (NEVER return mock image)
-        raise RuntimeError("All image providers failed. Please verify API keys or local SDXL weights.")
-
-    # ── Provider Implementations ─────────────────────────────────────────────
-
-    def _generate_bfl_flux(self, prompt: str, width: int, height: int, seed: Optional[int]) -> Tuple[bytes, dict]:
-        """Calls official Black Forest Labs BFL API (Flux 1.1 Pro)."""
-        url = "https://api.bfl.ml/v1/flux-pro-1.1"
-        payload = {
-            "prompt": prompt,
-            "width": width,
-            "height": height,
-            "prompt_upsampling": True,
-            "safety_tolerance": 2
-        }
-        if seed:
-            payload["seed"] = seed
-            
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"x-key": self.bfl_key, "Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            task_data = json.loads(resp.read().decode("utf-8"))
-            task_id = task_data.get("id")
-
-        # Poll result
-        poll_url = f"https://api.bfl.ml/v1/get_result?id={task_id}"
-        for _ in range(30):
-            time.sleep(2)
-            p_req = urllib.request.Request(poll_url, headers={"x-key": self.bfl_key})
-            with urllib.request.urlopen(p_req, timeout=20) as p_resp:
-                result_data = json.loads(p_resp.read().decode("utf-8"))
-                if result_data.get("status") == "Ready":
-                    img_url = result_data.get("result", {}).get("sample")
-                    with urllib.request.urlopen(img_url, timeout=30) as img_resp:
-                        return img_resp.read(), {"provider": "bfl_flux_1.1_pro", "task_id": task_id}
-                elif result_data.get("status") in ["Failed", "Error"]:
-                    raise RuntimeError(f"BFL Task Failed: {result_data}")
-        raise TimeoutError("BFL Flux polling timed out.")
-
-    def _generate_ideogram(self, prompt: str, width: int, height: int, negative_prompt: str, seed: Optional[int]) -> Tuple[bytes, dict]:
-        """Calls Ideogram 2.0 API (exceptional typography & ad layout)."""
-        url = "https://api.ideogram.ai/generate"
-        payload = {
-            "image_request": {
-                "prompt": prompt,
-                "aspect_ratio": "ASPECT_16_9" if width > height else ("ASPECT_9_16" if height > width else "ASPECT_1_1"),
-                "model": "V_2",
-                "magic_prompt_option": "AUTO"
-            }
-        }
-        if negative_prompt:
-            payload["image_request"]["negative_prompt"] = negative_prompt
-        if seed:
-            payload["image_request"]["seed"] = seed
-
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Api-Key": self.ideogram_key, "Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req, timeout=45) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            img_url = data["data"][0]["url"]
-            with urllib.request.urlopen(img_url, timeout=30) as img_resp:
-                return img_resp.read(), {"provider": "ideogram_2.0"}
-
-    def _generate_stability(self, prompt: str, width: int, height: int, negative_prompt: str, ref_image: Optional[Path], seed: Optional[int]) -> Tuple[bytes, dict]:
-        """Calls Stability AI SD3.5 / SDXL endpoints."""
-        url = "https://api.stability.ai/v2beta/stable-image/generate/sd3"
-        
-        # Build multipart/form-data request
-        boundary = "----LuminaryBoundary" + str(int(time.time()))
-        body_parts = []
-        
-        body_parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"prompt\"\r\n\r\n{prompt}")
-        body_parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"output_format\"\r\n\r\njpeg")
-        body_parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"mode\"\r\n\r\ntext-to-image")
-        
-        aspect = "16:9" if width > height else ("9:16" if height > width else "1:1")
-        body_parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"aspect_ratio\"\r\n\r\n{aspect}")
-        
-        if negative_prompt:
-            body_parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"negative_prompt\"\r\n\r\n{negative_prompt}")
-        if seed:
-            body_parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"seed\"\r\n\r\n{seed}")
-
-        body_str = "\r\n".join(body_parts) + f"\r\n--{boundary}--\r\n"
-        req = urllib.request.Request(
-            url,
-            data=body_str.encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {self.stability_key}",
-                "Content-Type": f"multipart/form-data; boundary={boundary}",
-                "Accept": "image/*"
-            }
-        )
-        with urllib.request.urlopen(req, timeout=45) as resp:
-            return resp.read(), {"provider": "stability_sd3.5"}
-
-    def _generate_openai_dalle3(self, prompt: str, width: int, height: int) -> Tuple[bytes, dict]:
-        """Calls OpenAI DALL-E 3 API."""
-        url = "https://api.openai.com/v1/images/generations"
-        
-        # Map aspect ratios
-        size = "1024x1024"
-        if width > height:
-            size = "1792x1024"
-        elif height > width:
-            size = "1024x1792"
-            
-        payload = {
-            "model": "dall-e-3",
-            "prompt": prompt,
-            "size": size,
-            "quality": "hd",
-            "n": 1
-        }
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {self.openai_key}",
-                "Content-Type": "application/json"
-            }
-        )
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            img_url = data["data"][0]["url"]
-            with urllib.request.urlopen(img_url, timeout=30) as img_resp:
-                return img_resp.read(), {"provider": "openai_dalle_3"}
-
-    def _generate_replicate_flux(self, prompt: str, width: int, height: int, ref_image: Optional[Path], seed: Optional[int]) -> Tuple[bytes, dict]:
-        """Calls Replicate Flux 1.1 Pro."""
-        url = "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro/predictions"
-        payload = {
-            "input": {
-                "prompt": prompt,
-                "width": width,
-                "height": height,
-                "output_format": "jpg",
-                "output_quality": 95,
-                "safety_tolerance": 2
-            }
-        }
-        if seed:
-            payload["input"]["seed"] = seed
-            
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": f"Token {self.replicate_token}",
-                "Content-Type": "application/json",
-                "Prefer": "wait"
-            }
-        )
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            output_url = data.get("output")
-            if isinstance(output_url, list):
-                output_url = output_url[0]
-            with urllib.request.urlopen(output_url, timeout=30) as img_resp:
-                return img_resp.read(), {"provider": "replicate_flux_1.1_pro"}
+        return self._generate_flux_direct(clean_prompt, width, height, negative_prompt, seed)
 
     def _generate_flux_direct(self, prompt: str, width: int, height: int, negative_prompt: str, seed: Optional[int]) -> Tuple[bytes, dict]:
         """
@@ -578,7 +340,6 @@ class ProductionImageEngine:
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=95)
         return buf.getvalue(), {"provider": "local_sdxl_service", "seed": seed or 42}
-
 
 
 # Global engine singleton
