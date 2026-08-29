@@ -5,6 +5,7 @@ import logging
 import json
 import threading
 import collections
+import traceback
 import urllib.request
 import urllib.parse
 import mimetypes
@@ -1643,82 +1644,105 @@ Return only valid JSON with this schema:
 def run():
     import socket
     import subprocess
-    
-    # Self-healing: Check if Ollama is running and automatically start it if needed
-    ollama_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     try:
-        ollama_socket.connect(("127.0.0.1", 11434))
-        ollama_socket.close()
-        logger.info("Self-Healing: Ollama engine detected as already running.")
-    except Exception:
-        logger.info("Self-Healing: Ollama engine not detected. Starting headless Ollama server...")
+        # Self-healing: Check if Ollama is running and automatically start it if needed
+        ollama_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            popen_kwargs = dict(
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            if os.name == "nt":
-                # Windows: use process group so Ctrl+C doesn't kill child
-                popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
-            else:
-                # POSIX (Linux/macOS): CREATE_NEW_PROCESS_GROUP does not exist
-                popen_kwargs["start_new_session"] = True
-            subprocess.Popen(["ollama", "serve"], **popen_kwargs)
-            time.sleep(3)  # Allow port binding time
-        except Exception as e:
-            logger.warning(f"Self-Healing Alert: Failed to auto-start Ollama: {e}")
+            ollama_socket.connect(("127.0.0.1", 11434))
+            ollama_socket.close()
+            logger.info("Self-Healing: Ollama engine detected as already running.")
+        except Exception:
+            logger.info("Self-Healing: Ollama engine not detected. Starting headless Ollama server...")
+            try:
+                popen_kwargs = dict(
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                if os.name == "nt":
+                    # Windows: use process group so Ctrl+C doesn't kill child
+                    popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+                else:
+                    # POSIX (Linux/macOS): CREATE_NEW_PROCESS_GROUP does not exist
+                    popen_kwargs["start_new_session"] = True
+                subprocess.Popen(["ollama", "serve"], **popen_kwargs)
+                time.sleep(3)  # Allow port binding time
+            except Exception as e:
+                logger.warning(f"Self-Healing Alert: Failed to auto-start Ollama: {e}")
 
-    # Launch social sync background thread safely
-    try:
-        import social_sync
-        social_sync.start_sync_thread()
-    except Exception as ex:
-        logger.warning(f"[Warning] Could not initialize social sync thread: {ex}")
-
-    try:
-        import local_sdxl_service
-        logger.info("[Startup] Initiating background download/load of SDXL image model...")
-        local_sdxl_service.sdxl_service.async_preload_model()
-    except Exception as e:
-        logger.error(f"Failed to initiate SDXL background load: {e}")
-
-    server_address = (SERVER_HOST if SERVER_HOST != "0.0.0.0" else "", SERVER_PORT)
-    server = ThreadingHTTPServer(server_address, LuminaryHandler)
-    print("========================================================================")
-    print(f"   LUMINARY AI ENTERPRISE BACKEND + CLIENT CONSOLE (Port {SERVER_PORT})")
-    print(f"   Website URL : http://localhost:{SERVER_PORT}/")
-    print(f"   Health Check: http://localhost:{SERVER_PORT}/health")
-    print("========================================================================")
-    print(" [PROGRAMMED AI AGENCY ROLES & ORCHESTRATION FLEET]")
-    print("   * Creative Director AI      -> luminary_creative_director.py (Briefing, Art Direction & Prompt Architecture)")
-    print("   * Agency Orchestrator AI    -> luminary_agency_orchestrator.py (Task Intent, Quality Control & Revision Loops)")
-    print("   * Skill Router AI           -> luminary_skill_router.py (Intent Classification & Multi-Platform Dispatch)")
-    print("   * Copywriter AI             -> server.py (High-Converting Copy, PPTX, Articles & Social Posts)")
-    print("   * Prompt Engineer AI        -> luminary_intelligence.py (Spec Expansion & MCQ Clarification Engine)")
-    print("   * Quality Control & QA AI   -> luminary_qc_engine.py (Multimodal Inspection & Deliverable Verification)")
-    print("   * Safety & Safeguard Gate   -> luminary_safety.py (Prompt Safety, Compliance & Toxicity Guard)")
-    print("   * Brand Asset Analyst AI    -> luminary_asset_engine.py (Multi-Modal Guideline & Palette Ingestion)")
-    print("   * Channel Strategist AI     -> social_sync.py (Omnichannel Auto-Publishing & Analytics)")
-    print("------------------------------------------------------------------------")
-    print(f" [ACTIVE TEXT AI ENGINE]       : {MODEL_NAME} (Ollama)")
-    print("   Supported Text Hierarchy    : qwen2.5-coder:7b (Primary) | deepseek-coder:6.7b | codellama:7b |")
-    print("                                 qwen2.5:7b | qwen2.5:3b | mistral:7b | llama3:8b | phi3:medium | phi3:mini")
-    print(" [ACTIVE IMAGE AI ENGINE]      : runwayml/stable-diffusion-v1-5 & SDXL Turbo (Local Hardware Accelerated)")
-    print("========================================================================")
-    
-    while True:
+        # Launch social sync background thread safely
         try:
-            server.serve_forever()
-        except KeyboardInterrupt:
-            logger.info("\n[Server] Shutting down gracefully upon user request...")
-            server.server_close()
-            break
+            import social_sync
+            social_sync.start_sync_thread()
         except Exception as ex:
-            logger.error(f"[Server Resilience Alert] Non-fatal server exception caught: {ex}")
-            time.sleep(1)
+            logger.warning(f"[Warning] Could not initialize social sync thread: {ex}")
+
+        try:
+            import local_sdxl_service
+            logger.info("[Startup] Initiating background download/load of SDXL image model...")
+            local_sdxl_service.sdxl_service.async_preload_model()
+        except Exception as e:
+            logger.error(f"Failed to initiate SDXL background load: {e}")
+
+        server_address = (SERVER_HOST if SERVER_HOST != "0.0.0.0" else "", SERVER_PORT)
+        server = ThreadingHTTPServer(server_address, LuminaryHandler)
+        print("========================================================================")
+        print(f"   LUMINARY AI ENTERPRISE BACKEND + CLIENT CONSOLE (Port {SERVER_PORT})")
+        print(f"   Website URL : http://localhost:{SERVER_PORT}/")
+        print(f"   Health Check: http://localhost:{SERVER_PORT}/health")
+        print("========================================================================")
+        print(" [PROGRAMMED AI AGENCY ROLES & ORCHESTRATION FLEET]")
+        print("   * Creative Director AI      -> luminary_creative_director.py (Briefing, Art Direction & Prompt Architecture)")
+        print("   * Agency Orchestrator AI    -> luminary_agency_orchestrator.py (Task Intent, Quality Control & Revision Loops)")
+        print("   * Skill Router AI           -> luminary_skill_router.py (Intent Classification & Multi-Platform Dispatch)")
+        print("   * Copywriter AI             -> server.py (High-Converting Copy, PPTX, Articles & Social Posts)")
+        print("   * Prompt Engineer AI        -> luminary_intelligence.py (Spec Expansion & MCQ Clarification Engine)")
+        print("   * Quality Control & QA AI   -> luminary_qc_engine.py (Multimodal Inspection & Deliverable Verification)")
+        print("   * Safety & Safeguard Gate   -> luminary_safety.py (Prompt Safety, Compliance & Toxicity Guard)")
+        print("   * Brand Asset Analyst AI    -> luminary_asset_engine.py (Multi-Modal Guideline & Palette Ingestion)")
+        print("   * Channel Strategist AI     -> social_sync.py (Omnichannel Auto-Publishing & Analytics)")
+        print("------------------------------------------------------------------------")
+        print(f" [ACTIVE TEXT AI ENGINE]       : {MODEL_NAME} (Ollama)")
+        print("   Supported Text Hierarchy    : qwen2.5-coder:7b (Primary) | deepseek-coder:6.7b | codellama:7b |")
+        print("                                 qwen2.5:7b | qwen2.5:3b | mistral:7b | llama3:8b | phi3:medium | phi3:mini")
+        print(" [ACTIVE IMAGE AI ENGINE]      : runwayml/stable-diffusion-v1-5 & SDXL Turbo (Local Hardware Accelerated)")
+        print("========================================================================")
+
+        while True:
+            try:
+                server.serve_forever()
+            except KeyboardInterrupt:
+                logger.info("\n[Server] Shutting down gracefully upon user request...")
+                server.server_close()
+                break
+            except Exception as ex:
+                logger.error(f"[Server Resilience Alert] Non-fatal server exception caught: {ex}")
+                time.sleep(1)
+
+    except Exception as fatal_err:
+        # ── FATAL CRASH HANDLER ───────────────────────────────────────────────
+        # 1. Log full traceback through the logging system (survives even if
+        #    the terminal scrollback is lost).
+        logger.critical(f"[FATAL STARTUP CRASH] {fatal_err}", exc_info=True)
+
+        # 2. Also write the traceback to a file on disk so it persists across
+        #    restarts and can be inspected at any time.
+        crash_log_path = APP_ROOT / "last_crash.log"
+        try:
+            with open(crash_log_path, "w", encoding="utf-8") as _cl:
+                _cl.write(
+                    f"LUMINARY FATAL CRASH LOG\n"
+                    f"========================\n"
+                    f"Error: {fatal_err}\n\n"
+                    f"{traceback.format_exc()}"
+                )
+        except Exception as _write_err:
+            logger.error(f"[FATAL] Could not write crash log to {crash_log_path}: {_write_err}")
+
+        # 3. Re-raise so automation/scripts get a non-zero exit code.
+        raise
 
 
 if __name__ == "__main__":
     run()
-
 
