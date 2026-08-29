@@ -34,7 +34,171 @@
           css += '#settingsModal { display: flex !important; }';
         }
         if (css) {
-          document.write(`<style id="instant-route-style">${css}</style>`);
+          document.write(`<style id="instant-route-style">${css}
+    /* ==========================================================================
+       PREMIUM ULTRA-CLEAN WHITE & ORANGE AGENCY THEME (LIGHT THEME FIRST-CLASS)
+       ========================================================================== */
+    #landingView,
+    .landing-page,
+    section#landingView {
+      background: radial-gradient(circle at 50% -15%, rgba(255, 85, 0, 0.08), transparent 55%),
+                  radial-gradient(circle at 10% 35%, rgba(255, 140, 64, 0.04), transparent 45%),
+                  radial-gradient(circle at 90% 65%, rgba(255, 85, 0, 0.03), transparent 45%),
+                  #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      font-family: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif !important;
+      min-height: 100vh !important;
+      overflow-x: hidden !important;
+    }
+
+    #landingView * {
+      box-sizing: border-box;
+    }
+
+    /* 1. Translucent Floating Navigation Bar */
+    .landing-nav {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 18px 54px !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+      background: rgba(255, 255, 255, 0.92) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-bottom: 1px solid rgba(255, 85, 0, 0.12) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+    }
+    .landing-nav a {
+      color: #1a1a1a !important;
+      font-weight: 600 !important;
+      font-size: 0.95rem !important;
+      text-decoration: none !important;
+      transition: all 0.2s ease !important;
+    }
+    .landing-nav a:hover {
+      color: var(--orange) !important;
+    }
+
+    /* 2. Hero Section & Typography */
+    .landing-hero {
+      text-align: center !important;
+      padding: 70px 24px 50px 24px !important;
+      max-width: 1040px !important;
+      margin: 0 auto !important;
+    }
+    .landing-hero .hero-tag {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 6px 16px !important;
+      border-radius: 20px !important;
+      background: rgba(255, 85, 0, 0.08) !important;
+      border: 1px solid rgba(255, 85, 0, 0.25) !important;
+      color: var(--orange) !important;
+      font-size: 0.82rem !important;
+      font-weight: 700 !important;
+      margin-bottom: 24px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+    }
+    .landing-hero h1 {
+      font-size: 3.8rem !important;
+      font-weight: 800 !important;
+      line-height: 1.1 !important;
+      letter-spacing: -0.035em !important;
+      color: #050505 !important;
+      margin: 0 0 20px 0 !important;
+    }
+    .landing-hero h1 span.gradient-text,
+    .landing-hero h1 span.highlight {
+      background: linear-gradient(135deg, #ff5500 0%, #ff7700 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+    .landing-hero p {
+      font-size: 1.25rem !important;
+      color: #4a4a4a !important;
+      max-width: 740px !important;
+      margin: 0 auto 36px auto !important;
+      line-height: 1.6 !important;
+      font-weight: 400 !important;
+    }
+
+    /* 3. Bold Luminary Orange CTA Buttons & Smooth Hover Transitions */
+    .landing-cta-btn,
+    .landing-nav-cta,
+    .btn-primary,
+    .primary-btn {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 12px !important;
+      padding: 12px 28px !important;
+      font-weight: 700 !important;
+      font-size: 1rem !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 8px 24px rgba(255, 85, 0, 0.22) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+    }
+    .landing-cta-btn:hover,
+    .landing-nav-cta:hover,
+    .btn-primary:hover,
+    .primary-btn:hover {
+      background: #ff661a !important;
+      background-color: #ff661a !important;
+      transform: translateY(-4px) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.35) !important;
+      color: #ffffff !important;
+    }
+
+    /* 4. Elimination of All Dark Blocks in Features, Comparison Columns & Footer */
+    .feature-card,
+    .comparison-card,
+    .pricing-card,
+    .stat-card,
+    .eco-node,
+    .testimonial-card,
+    .landing-footer,
+    footer {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .feature-card:hover,
+    .comparison-card:hover,
+    .pricing-card:hover,
+    .stat-card:hover {
+      transform: translateY(-4px) !important;
+      border-color: var(--orange) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.12) !important;
+    }
+
+    .landing-footer,
+    footer {
+      border-top: 1px solid rgba(255, 85, 0, 0.12) !important;
+      background: #faf9f6 !important;
+      color: #4a4a4a !important;
+      padding: 40px 54px !important;
+    }
+
+    .pricing-card.pro {
+      border: 2px solid var(--orange) !important;
+      box-shadow: 0 8px 28px rgba(255, 85, 0, 0.15) !important;
+    }
+
+</style>`);
         }
       } catch(e) {}
     })();
@@ -1276,6 +1440,170 @@
       display: flex;
       align-items: center;
       gap: 5px;
+    }
+
+
+    /* ==========================================================================
+       PREMIUM ULTRA-CLEAN WHITE & ORANGE AGENCY THEME (LIGHT THEME FIRST-CLASS)
+       ========================================================================== */
+    #landingView,
+    .landing-page,
+    section#landingView {
+      background: radial-gradient(circle at 50% -15%, rgba(255, 85, 0, 0.08), transparent 55%),
+                  radial-gradient(circle at 10% 35%, rgba(255, 140, 64, 0.04), transparent 45%),
+                  radial-gradient(circle at 90% 65%, rgba(255, 85, 0, 0.03), transparent 45%),
+                  #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      font-family: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif !important;
+      min-height: 100vh !important;
+      overflow-x: hidden !important;
+    }
+
+    #landingView * {
+      box-sizing: border-box;
+    }
+
+    /* 1. Translucent Floating Navigation Bar */
+    .landing-nav {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 18px 54px !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+      background: rgba(255, 255, 255, 0.92) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-bottom: 1px solid rgba(255, 85, 0, 0.12) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+    }
+    .landing-nav a {
+      color: #1a1a1a !important;
+      font-weight: 600 !important;
+      font-size: 0.95rem !important;
+      text-decoration: none !important;
+      transition: all 0.2s ease !important;
+    }
+    .landing-nav a:hover {
+      color: var(--orange) !important;
+    }
+
+    /* 2. Hero Section & Typography */
+    .landing-hero {
+      text-align: center !important;
+      padding: 70px 24px 50px 24px !important;
+      max-width: 1040px !important;
+      margin: 0 auto !important;
+    }
+    .landing-hero .hero-tag {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 6px 16px !important;
+      border-radius: 20px !important;
+      background: rgba(255, 85, 0, 0.08) !important;
+      border: 1px solid rgba(255, 85, 0, 0.25) !important;
+      color: var(--orange) !important;
+      font-size: 0.82rem !important;
+      font-weight: 700 !important;
+      margin-bottom: 24px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+    }
+    .landing-hero h1 {
+      font-size: 3.8rem !important;
+      font-weight: 800 !important;
+      line-height: 1.1 !important;
+      letter-spacing: -0.035em !important;
+      color: #050505 !important;
+      margin: 0 0 20px 0 !important;
+    }
+    .landing-hero h1 span.gradient-text,
+    .landing-hero h1 span.highlight {
+      background: linear-gradient(135deg, #ff5500 0%, #ff7700 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+    .landing-hero p {
+      font-size: 1.25rem !important;
+      color: #4a4a4a !important;
+      max-width: 740px !important;
+      margin: 0 auto 36px auto !important;
+      line-height: 1.6 !important;
+      font-weight: 400 !important;
+    }
+
+    /* 3. Bold Luminary Orange CTA Buttons & Smooth Hover Transitions */
+    .landing-cta-btn,
+    .landing-nav-cta,
+    .btn-primary,
+    .primary-btn {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 12px !important;
+      padding: 12px 28px !important;
+      font-weight: 700 !important;
+      font-size: 1rem !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 8px 24px rgba(255, 85, 0, 0.22) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+    }
+    .landing-cta-btn:hover,
+    .landing-nav-cta:hover,
+    .btn-primary:hover,
+    .primary-btn:hover {
+      background: #ff661a !important;
+      background-color: #ff661a !important;
+      transform: translateY(-4px) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.35) !important;
+      color: #ffffff !important;
+    }
+
+    /* 4. Elimination of All Dark Blocks in Features, Comparison Columns & Footer */
+    .feature-card,
+    .comparison-card,
+    .pricing-card,
+    .stat-card,
+    .eco-node,
+    .testimonial-card,
+    .landing-footer,
+    footer {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .feature-card:hover,
+    .comparison-card:hover,
+    .pricing-card:hover,
+    .stat-card:hover {
+      transform: translateY(-4px) !important;
+      border-color: var(--orange) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.12) !important;
+    }
+
+    .landing-footer,
+    footer {
+      border-top: 1px solid rgba(255, 85, 0, 0.12) !important;
+      background: #faf9f6 !important;
+      color: #4a4a4a !important;
+      padding: 40px 54px !important;
+    }
+
+    .pricing-card.pro {
+      border: 2px solid var(--orange) !important;
+      box-shadow: 0 8px 28px rgba(255, 85, 0, 0.15) !important;
     }
 
 </style>');
@@ -6630,6 +6958,170 @@ body.light-mode .history-item.active {
       gap: 5px;
     }
 
+
+    /* ==========================================================================
+       PREMIUM ULTRA-CLEAN WHITE & ORANGE AGENCY THEME (LIGHT THEME FIRST-CLASS)
+       ========================================================================== */
+    #landingView,
+    .landing-page,
+    section#landingView {
+      background: radial-gradient(circle at 50% -15%, rgba(255, 85, 0, 0.08), transparent 55%),
+                  radial-gradient(circle at 10% 35%, rgba(255, 140, 64, 0.04), transparent 45%),
+                  radial-gradient(circle at 90% 65%, rgba(255, 85, 0, 0.03), transparent 45%),
+                  #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      font-family: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif !important;
+      min-height: 100vh !important;
+      overflow-x: hidden !important;
+    }
+
+    #landingView * {
+      box-sizing: border-box;
+    }
+
+    /* 1. Translucent Floating Navigation Bar */
+    .landing-nav {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 18px 54px !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+      background: rgba(255, 255, 255, 0.92) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-bottom: 1px solid rgba(255, 85, 0, 0.12) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+    }
+    .landing-nav a {
+      color: #1a1a1a !important;
+      font-weight: 600 !important;
+      font-size: 0.95rem !important;
+      text-decoration: none !important;
+      transition: all 0.2s ease !important;
+    }
+    .landing-nav a:hover {
+      color: var(--orange) !important;
+    }
+
+    /* 2. Hero Section & Typography */
+    .landing-hero {
+      text-align: center !important;
+      padding: 70px 24px 50px 24px !important;
+      max-width: 1040px !important;
+      margin: 0 auto !important;
+    }
+    .landing-hero .hero-tag {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 6px 16px !important;
+      border-radius: 20px !important;
+      background: rgba(255, 85, 0, 0.08) !important;
+      border: 1px solid rgba(255, 85, 0, 0.25) !important;
+      color: var(--orange) !important;
+      font-size: 0.82rem !important;
+      font-weight: 700 !important;
+      margin-bottom: 24px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+    }
+    .landing-hero h1 {
+      font-size: 3.8rem !important;
+      font-weight: 800 !important;
+      line-height: 1.1 !important;
+      letter-spacing: -0.035em !important;
+      color: #050505 !important;
+      margin: 0 0 20px 0 !important;
+    }
+    .landing-hero h1 span.gradient-text,
+    .landing-hero h1 span.highlight {
+      background: linear-gradient(135deg, #ff5500 0%, #ff7700 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+    .landing-hero p {
+      font-size: 1.25rem !important;
+      color: #4a4a4a !important;
+      max-width: 740px !important;
+      margin: 0 auto 36px auto !important;
+      line-height: 1.6 !important;
+      font-weight: 400 !important;
+    }
+
+    /* 3. Bold Luminary Orange CTA Buttons & Smooth Hover Transitions */
+    .landing-cta-btn,
+    .landing-nav-cta,
+    .btn-primary,
+    .primary-btn {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 12px !important;
+      padding: 12px 28px !important;
+      font-weight: 700 !important;
+      font-size: 1rem !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 8px 24px rgba(255, 85, 0, 0.22) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+    }
+    .landing-cta-btn:hover,
+    .landing-nav-cta:hover,
+    .btn-primary:hover,
+    .primary-btn:hover {
+      background: #ff661a !important;
+      background-color: #ff661a !important;
+      transform: translateY(-4px) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.35) !important;
+      color: #ffffff !important;
+    }
+
+    /* 4. Elimination of All Dark Blocks in Features, Comparison Columns & Footer */
+    .feature-card,
+    .comparison-card,
+    .pricing-card,
+    .stat-card,
+    .eco-node,
+    .testimonial-card,
+    .landing-footer,
+    footer {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .feature-card:hover,
+    .comparison-card:hover,
+    .pricing-card:hover,
+    .stat-card:hover {
+      transform: translateY(-4px) !important;
+      border-color: var(--orange) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.12) !important;
+    }
+
+    .landing-footer,
+    footer {
+      border-top: 1px solid rgba(255, 85, 0, 0.12) !important;
+      background: #faf9f6 !important;
+      color: #4a4a4a !important;
+      padding: 40px 54px !important;
+    }
+
+    .pricing-card.pro {
+      border: 2px solid var(--orange) !important;
+      box-shadow: 0 8px 28px rgba(255, 85, 0, 0.15) !important;
+    }
+
 </style>
 <script>
     window.showView = function(name) {
@@ -9504,6 +9996,170 @@ body.light-mode .history-item.active {
       display: flex;
       align-items: center;
       gap: 5px;
+    }
+
+
+    /* ==========================================================================
+       PREMIUM ULTRA-CLEAN WHITE & ORANGE AGENCY THEME (LIGHT THEME FIRST-CLASS)
+       ========================================================================== */
+    #landingView,
+    .landing-page,
+    section#landingView {
+      background: radial-gradient(circle at 50% -15%, rgba(255, 85, 0, 0.08), transparent 55%),
+                  radial-gradient(circle at 10% 35%, rgba(255, 140, 64, 0.04), transparent 45%),
+                  radial-gradient(circle at 90% 65%, rgba(255, 85, 0, 0.03), transparent 45%),
+                  #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      font-family: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif !important;
+      min-height: 100vh !important;
+      overflow-x: hidden !important;
+    }
+
+    #landingView * {
+      box-sizing: border-box;
+    }
+
+    /* 1. Translucent Floating Navigation Bar */
+    .landing-nav {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 18px 54px !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+      background: rgba(255, 255, 255, 0.92) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-bottom: 1px solid rgba(255, 85, 0, 0.12) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+    }
+    .landing-nav a {
+      color: #1a1a1a !important;
+      font-weight: 600 !important;
+      font-size: 0.95rem !important;
+      text-decoration: none !important;
+      transition: all 0.2s ease !important;
+    }
+    .landing-nav a:hover {
+      color: var(--orange) !important;
+    }
+
+    /* 2. Hero Section & Typography */
+    .landing-hero {
+      text-align: center !important;
+      padding: 70px 24px 50px 24px !important;
+      max-width: 1040px !important;
+      margin: 0 auto !important;
+    }
+    .landing-hero .hero-tag {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 6px 16px !important;
+      border-radius: 20px !important;
+      background: rgba(255, 85, 0, 0.08) !important;
+      border: 1px solid rgba(255, 85, 0, 0.25) !important;
+      color: var(--orange) !important;
+      font-size: 0.82rem !important;
+      font-weight: 700 !important;
+      margin-bottom: 24px !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+    }
+    .landing-hero h1 {
+      font-size: 3.8rem !important;
+      font-weight: 800 !important;
+      line-height: 1.1 !important;
+      letter-spacing: -0.035em !important;
+      color: #050505 !important;
+      margin: 0 0 20px 0 !important;
+    }
+    .landing-hero h1 span.gradient-text,
+    .landing-hero h1 span.highlight {
+      background: linear-gradient(135deg, #ff5500 0%, #ff7700 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+    .landing-hero p {
+      font-size: 1.25rem !important;
+      color: #4a4a4a !important;
+      max-width: 740px !important;
+      margin: 0 auto 36px auto !important;
+      line-height: 1.6 !important;
+      font-weight: 400 !important;
+    }
+
+    /* 3. Bold Luminary Orange CTA Buttons & Smooth Hover Transitions */
+    .landing-cta-btn,
+    .landing-nav-cta,
+    .btn-primary,
+    .primary-btn {
+      background: var(--orange) !important;
+      background-color: #ff5500 !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 12px !important;
+      padding: 12px 28px !important;
+      font-weight: 700 !important;
+      font-size: 1rem !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 8px 24px rgba(255, 85, 0, 0.22) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+    }
+    .landing-cta-btn:hover,
+    .landing-nav-cta:hover,
+    .btn-primary:hover,
+    .primary-btn:hover {
+      background: #ff661a !important;
+      background-color: #ff661a !important;
+      transform: translateY(-4px) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.35) !important;
+      color: #ffffff !important;
+    }
+
+    /* 4. Elimination of All Dark Blocks in Features, Comparison Columns & Footer */
+    .feature-card,
+    .comparison-card,
+    .pricing-card,
+    .stat-card,
+    .eco-node,
+    .testimonial-card,
+    .landing-footer,
+    footer {
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #1a1a1a !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .feature-card:hover,
+    .comparison-card:hover,
+    .pricing-card:hover,
+    .stat-card:hover {
+      transform: translateY(-4px) !important;
+      border-color: var(--orange) !important;
+      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.12) !important;
+    }
+
+    .landing-footer,
+    footer {
+      border-top: 1px solid rgba(255, 85, 0, 0.12) !important;
+      background: #faf9f6 !important;
+      color: #4a4a4a !important;
+      padding: 40px 54px !important;
+    }
+
+    .pricing-card.pro {
+      border: 2px solid var(--orange) !important;
+      box-shadow: 0 8px 28px rgba(255, 85, 0, 0.15) !important;
     }
 
 </style>
