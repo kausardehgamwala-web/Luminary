@@ -288,6 +288,13 @@ class LocalSDXLService:
                     if loras:
                         self.apply_loras(loras)
 
+                    # 7-minute (420s) hard safety ceiling guard to prevent multi-hour hardware runaway
+                    def _step_timeout_guard(pipe_obj, step_idx, timestep, cb_kwargs):
+                        if time.time() - start_time > 420:
+                            logger.warning(f"[SDXL Service] Hard 7-minute safety ceiling reached at step {step_idx + 1}. Halting generation gracefully.")
+                            raise TimeoutError(f"Image generation reached the 7-minute hardware safety limit ({int(time.time() - start_time)}s elapsed).")
+                        return cb_kwargs
+
                     # Handle IP-Adapter reference product image
                     if reference_image_path and Path(reference_image_path).exists():
                         ref_img = Image.open(reference_image_path).convert("RGB")
@@ -307,7 +314,8 @@ class LocalSDXLService:
                             height=height,
                             num_inference_steps=eff_steps,
                             guidance_scale=guidance_scale,
-                            generator=generator
+                            generator=generator,
+                            callback_on_step_end=_step_timeout_guard
                         )
                     else:
                         output = self.pipeline(
@@ -317,7 +325,8 @@ class LocalSDXLService:
                             height=height,
                             num_inference_steps=eff_steps,
                             guidance_scale=guidance_scale,
-                            generator=generator
+                            generator=generator,
+                            callback_on_step_end=_step_timeout_guard
                         )
                     gen_img = output.images[0]
                     # Post-generation VRAM cleanup
