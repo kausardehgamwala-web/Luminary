@@ -326,17 +326,27 @@ class ProductionImageEngine:
 
     def _generate_flux_direct(self, prompt: str, width: int, height: int, negative_prompt: str, seed: Optional[int]) -> Tuple[bytes, dict]:
         """
-        Local SDXL High-Definition Generation.
+        Local SDXL High-Definition Generation with CPU-safe native resolution cap and high-fidelity upscaling.
         """
         import io
         import local_sdxl_service
+
+        # Cap native generation resolution to prevent CPU freezes/timeouts
+        native_w = min(1024, max(512, width))
+        native_h = min(1024, max(512, height))
+
         img = local_sdxl_service.sdxl_service.generate(
             prompt=prompt,
             negative_prompt=negative_prompt,
-            width=width,
-            height=height,
+            width=native_w,
+            height=native_h,
             seed=seed
         )
+
+        # Upscale to the originally requested dimensions if larger than native generation
+        if width > native_w or height > native_h:
+            img = local_sdxl_service.upscale_image_for_print(img, width, height)
+
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=95)
         return buf.getvalue(), {"provider": "local_sdxl_service", "seed": seed or 42}

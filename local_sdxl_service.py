@@ -104,6 +104,15 @@ class LocalSDXLService:
         self.is_downloading = False
         self.download_thread = None
 
+        # Cap PyTorch CPU threads to leave 1-2 cores free for HTTP server threads
+        try:
+            import torch
+            num_threads = max(1, (os.cpu_count() or 4) - 2)
+            torch.set_num_threads(num_threads)
+            logger.info(f"[SDXL Service] PyTorch CPU threads set to {num_threads} (leaving cores free for HTTP server)")
+        except Exception:
+            pass
+
     def _has_cuda(self) -> bool:
         try:
             import torch
