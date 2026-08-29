@@ -538,6 +538,39 @@ def generate_comprehensive_report(topic, prompt_details):
         "3. Review weekly progress dashboards and optimize performance loops."
     )
 
+def sanitize_html_for_serving(html_text: str) -> str:
+    """
+    Code Scrubber (Pre-Render Failsafe):
+    Scans HTML responses before transmission, automatically stripping any raw
+    JavaScript fragments, leaked syntax, or broken IIFE closers.
+    """
+    if not html_text:
+        return html_text
+
+    # Comprehensive regex matching any trailing JS IIFE closing fragments
+    pattern = r"['\"]\s*\)\s*;\s*[\}\s]*catch\s*\(\s*e\s*\)\s*\{[\s\S]*?\}\s*\)\s*\(\s*\)\s*;?"
+    html_text = re.sub(pattern, "", html_text)
+
+    # General catch block IIFE closer: } catch(e) {} })(); or catch(e) {} })();
+    pattern2 = r"[\}\s]*catch\s*\(\s*e\s*\)\s*\{[\s\S]*?\}\s*\)\s*\(\s*\)\s*;?"
+    html_text = re.sub(pattern2, "", html_text)
+
+    # Literal cleanups
+    literal_frags = [
+        "'); } } catch(e) {} })();",
+        "'); } catch(e) {} })();",
+        "'); } catch(e){} })();",
+        "');}}catch(e){}})();",
+        "); } } catch(e) {} })();",
+        "); } catch(e) {} })();",
+        "} } catch(e) {} })();",
+        "} catch(e) {} })();",
+    ]
+    for frag in literal_frags:
+        html_text = html_text.replace(frag, "")
+
+    return html_text
+
 
 class LuminaryHandler(BaseHTTPRequestHandler):
     def _json(self, status=200):
@@ -553,6 +586,16 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 pass
             return
         try:
+            raw_bytes = file_path.read_bytes()
+            # Apply pre-render code scrubber for HTML files to guarantee no stray JS leaks into visible UI
+            if "text/html" in content_type.lower() or file_path.suffix.lower() == ".html":
+                try:
+                    html_str = raw_bytes.decode("utf-8", errors="ignore")
+                    cleaned_html = sanitize_html_for_serving(html_str)
+                    raw_bytes = cleaned_html.encode("utf-8")
+                except Exception as scrub_err:
+                    logger.warning(f"[Code Scrubber] Error sanitizing HTML: {scrub_err}")
+
             self.send_response(200)
             self.send_header("Content-Type", content_type)
             # Enforce CORS allowlist
@@ -567,7 +610,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Session-Token, X-Client-ID")
             self.end_headers()
-            self.wfile.write(file_path.read_bytes())
+            self.wfile.write(raw_bytes)
         except Exception as e:
             logger.warning(f"Connection aborted while serving {file_path}: {e}")
 

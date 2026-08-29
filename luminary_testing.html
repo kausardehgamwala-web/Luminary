@@ -7599,8 +7599,6 @@ body.light-mode .history-item.active {
       }
     };
 
-</script>
-<script>
     window.submitSignupForm = function() {
       try {
         if (window.doSubmitSignupForm) {
@@ -7624,13 +7622,6 @@ body.light-mode .history-item.active {
       } catch (err) {
         console.error("Login error fallback:", err);
         window.showView("dashboard");
-      }
-    };
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
       }
     };
 
@@ -12494,48 +12485,6 @@ body.light-mode .history-item.active {
       showView("landing");
     }
 
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
-</script>
-<script>
-    window.submitSignupForm = function() {
-      try {
-        if (window.doSubmitSignupForm) {
-          window.doSubmitSignupForm();
-        } else {
-          window.showView("dashboard");
-        }
-      } catch (err) {
-        console.error("Signup error fallback:", err);
-        window.showView("dashboard");
-      }
-    };
-
-    window.submitLoginForm = function() {
-      try {
-        if (window.doSubmitLoginForm) {
-          window.doSubmitLoginForm();
-        } else {
-          window.showView("dashboard");
-        }
-      } catch (err) {
-        console.error("Login error fallback:", err);
-        window.showView("dashboard");
-      }
-    };
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
 </script>
 
 
@@ -13202,14 +13151,6 @@ body.light-mode .history-item.active {
     bindAllInteractiveButtons();
   }
 })();
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
 </script>
 
 
@@ -13946,15 +13887,6 @@ body.light-mode .history-item.active {
       console.warn("URL Params parse error:", e);
     }
   }
-
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
 </script>
 
 
