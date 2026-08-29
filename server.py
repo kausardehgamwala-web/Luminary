@@ -17,7 +17,7 @@ if str(APP_ROOT / "skill_runtime") not in sys.path:
     sys.path.insert(0, str(APP_ROOT / "skill_runtime"))
 
 import luminary_skill_router as _skill_router_module
-import luminary_creative_director as _cd_orchestrator
+import luminary_agency_orchestrator as _cd_orchestrator
 import luminary_auth
 import luminary_safety
 import luminary_intelligence
