@@ -262,7 +262,7 @@ def web_search(query):
     return "Web search is currently unavailable."
 
 
-def query_ollama(prompt, json_mode=False, timeout=300, model_name=None):
+def query_ollama(prompt, json_mode=False, timeout=120, model_name=None, num_predict=1024):
     proxy_support = urllib.request.ProxyHandler({})
     opener = urllib.request.build_opener(proxy_support)
     target_model = model_name if model_name else MODEL_NAME
@@ -271,7 +271,7 @@ def query_ollama(prompt, json_mode=False, timeout=300, model_name=None):
         "prompt": prompt,
         "stream": False,
         "options": {
-            "num_predict": 16384,
+            "num_predict": num_predict,
             "temperature": 0.4
         }
     }
@@ -776,6 +776,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"detail": "Not Found"}).encode("utf-8"))
 
     def handle_chat(self, body):
+        chat_start_time = time.time()
         prompt = body.get("prompt", "")
         
         # ── V13: Advanced Attachment Understanding Engine Integration ────
@@ -1129,12 +1130,27 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             logger.error(f"[V14 CD] Text brief error (continuing without): {e}")
             cd_text_brief = None
 
-        # Build full contextual prompt with CoT planning template + CD brief
-        full_context = f"{skill_context}\n\n{memory_context}\n\n{few_shot}\n\n{search_results}{history_context}{workflow_context}{cd_text_brief_context}"
-        cot_prompt = luminary_intelligence.build_planning_prompt(prompt, specs, full_context)
+        out_type = specs.get("output_type", "text")
+
+        # Build clean contextual prompt for high-throughput, agency-grade generation
+        client_dirs = ("\nClient Directives:\n" + "\n".join(f"- {d}" for d in specs["client_directives"])) if specs.get("client_directives") else ""
+        context_snippets = "\n".join(filter(None, [search_results.strip() if search_results else "", history_context.strip() if history_context else "", memory_context.strip() if memory_context else ""]))
+        if context_snippets:
+            context_snippets = f"Context & Research:\n{context_snippets}\n\n"
+
+        cot_prompt = (
+            f"### Instruction:\n"
+            f"You are Luminary's senior AI marketing strategist and creative director representing an elite digital agency.\n"
+            f"Deliver publication-ready, exhaustive, agency-grade content for the following brief.\n"
+            f"MANDATE: Directly generate the complete, production-ready deliverable with all requested slides, sections, and details fully written out. Do not write conversational pleasantries, introductory chat, or requests for more information.\n\n"
+            f"{context_snippets}"
+            f"Deliverable Type: {out_type.upper()}\n"
+            f"Style & Tone: {specs.get('style', 'professional luxury')}{client_dirs}\n\n"
+            f"User Brief:\n{prompt}\n\n"
+            f"### Response:"
+        )
 
         # ── 6. Query local Ollama Model with Intelligent Dynamic Routing ───────
-        out_type = specs.get("output_type", "text")
         if out_type in ["website", "code"] or "code" in prompt.lower() or "html" in prompt.lower():
             task_type = "coding"
         elif out_type in ["pptx", "docx", "campaign", "strategy"] or "analyze" in prompt.lower() or "report" in prompt.lower():
@@ -1146,17 +1162,20 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         routed_model = route_model(task_type, available)
         logger.info(f"[Intelligent Routing] Task='{task_type}' -> Model='{routed_model}'")
 
-        response_text = query_ollama(cot_prompt, timeout=300, model_name=routed_model)
+        task_num_predict = 750 if (out_type in ["pptx", "docx", "xlsx"] or any(k in lowered for k in ["ppt", "presentation", "deck", "slides", "doc", "docx", "report", "sheet", "spreadsheet", "excel", "xlsx"])) else 600
+        initial_timeout = 160 if task_num_predict == 750 else 120
+        response_text = query_ollama(cot_prompt, timeout=initial_timeout, model_name=routed_model, num_predict=task_num_predict)
+        logger.info(f"[Initial Generation Result] model={routed_model}, length={len(response_text) if response_text else 0}, snippet={repr(response_text[:100]) if response_text else 'None'}")
 
         # Self-healing for local model refusals / OpenAI pre-trained disclaimers
         refusal_patterns = [
-            r"as\s+(?:an|a)\s+AI(?:\s+model)?",
-            r"not\s+equipped",
-            r"programming\s+and\s+coding\s+assistance",
-            r"cannot\s+create\s+(?:powerpoint|ppt|presentation|document|image)",
-            r"don't\s+have\s+the\s+ability",
-            r"I'm\s+sorry",
-            r"OpenAI"
+            r"as\s+(?:an|a)\s+(?:large\s+)?language\s+model",
+            r"as\s+(?:an|a)\s+AI\s+(?:language\s+)?model\b",
+            r"i\s+am\s+(?:an|a)\s+AI\s+(?:language\s+)?model\b",
+            r"i\s+cannot\s+(?:create|generate|write)\s+(?:powerpoint|ppt|presentation|document|image)",
+            r"i\s+don't\s+have\s+the\s+ability\s+to\b",
+            r"i\s+am\s+not\s+equipped\s+to\b",
+            r"as\s+an\s+AI\s+developed\s+by\s+OpenAI"
         ]
         is_refusal = any(re.search(pat, response_text, re.IGNORECASE) for pat in refusal_patterns)
 
@@ -1167,88 +1186,116 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 "Directly output the requested text, data, or slide structure without apologies or system limitation disclaimers."
             )
             retry_prompt = f"### Instruction:\n{clean_instruction}\n\nUser request:\n{prompt}\n\n### Response:"
-            response_text = query_ollama(retry_prompt, timeout=120, model_name=routed_model)
+            retry_res = query_ollama(retry_prompt, timeout=initial_timeout, model_name=routed_model, num_predict=task_num_predict)
+            if retry_res and "Offline" not in retry_res and "Could not connect" not in retry_res and len(retry_res) > 50:
+                response_text = retry_res
 
-            # High-conviction fallback if Ollama times out or is unreachable
-            if not response_text or "Error connecting to Ollama" in response_text:
-                response_text = (
-                    "⚠️ **Generation Temporarily Unavailable**: The local AI engine (Ollama) is currently unreachable or offline. "
-                    "Please verify that Ollama is running locally on http://127.0.0.1:11434 with your configured models."
-                )
-                clarify_data = None
-                suggest_data = None
-                qc_score_val = 0
-                qc_revisions_val = 0
-            else:
-                # ── V13: Deep Production Mode & Self-Healing Loop ──────────────────
-                premium_keywords = ["agency quality", "product campaign", "luxury brand", "world class", "awwwards", "premium", "deep production", "extreme quality", "canva quality", "figma quality", "apple style", "commercial grade"]
-                is_deep_production = any(pw in lowered for pw in premium_keywords) or (specs.get("quality_level") == "luxury_premium")
-                max_qa_attempts = 3 if is_deep_production else 2
+        clarify_data = None
+        suggest_data = None
+        final_qc_score = 90
+        qa_attempts = 0
+
+        # High-conviction fallback if Ollama times out or is unreachable
+        if not response_text or "Error connecting to Ollama" in response_text or "AI Text Engine Offline" in response_text:
+            response_text = (
+                "⚠️ **Generation Temporarily Unavailable**: The local AI engine (Ollama) is currently unreachable or offline. "
+                "Please verify that Ollama is running locally on http://127.0.0.1:11434 with your configured models."
+            )
+            final_qc_score = 0
+            qa_attempts = 0
+        else:
+            # ── V13: Deep Production Mode & Self-Healing Loop ──────────────────
+            premium_keywords = ["agency quality", "product campaign", "luxury brand", "world class", "awwwards", "premium", "deep production", "extreme quality", "canva quality", "figma quality", "apple style", "commercial grade"]
+            is_deep_production = any(pw in lowered for pw in premium_keywords) or (specs.get("quality_level") == "luxury_premium")
+            
+            # Fix 1 & Fix 3: Strict overall request time budget + reduced max QA attempts
+            is_doc_ppt_sheet = (specs.get("output_type") in ["pptx", "docx", "xlsx"]) or any(kw in lowered for kw in ["ppt", "presentation", "deck", "slides", "doc", "docx", "report", "brief", "sheet", "spreadsheet", "excel", "xlsx"])
+            request_budget = 240.0 if is_doc_ppt_sheet else 90.0
+            max_qa_attempts = 2 if is_deep_production else 1
+            
+            if is_deep_production:
+                logger.info(f"[DEEP PRODUCTION MODE] Active - 5-Pass QA Gate + Self-Healing active (up to {max_qa_attempts} attempts, budget={request_budget}s)")
+                try:
+                    import luminary_design_systems as lds
+                    design_sys = lds.get_design_system_by_prompt(prompt)
+                    logger.info(f"[V13 Design Systems] Matched design system: {design_sys['title']}")
+                except Exception as e:
+                    logger.error("Error loading design system: %s", e)
+            
+            qa_attempts = 0
+            final_qc_score = 90
+            while qa_attempts < max_qa_attempts:
+                # Fix 1: Hard overall elapsed-time check before running/retrying QA
+                elapsed_chat = time.time() - chat_start_time
+                if elapsed_chat > request_budget:
+                    logger.info(f"[Time Budget] Skipping further QC/healing attempts — {elapsed_chat:.1f}s elapsed (budget: {request_budget}s), using best draft so far.")
+                    break
+
+                # ── 100% Fix: Enforce the 5-Pass Extreme QA Gate ──
+                qa_result = luminary_intelligence.run_5_pass_qa(response_text, specs)
+                passed = qa_result["passed"]
+                final_qc_score = qa_result.get("score", 90)
                 
-                if is_deep_production:
-                    logger.info(f"[DEEP PRODUCTION MODE] Active - 5-Pass QA Gate + Self-Healing active (up to {max_qa_attempts} attempts)")
-                    try:
-                        import luminary_design_systems as lds
-                        design_sys = lds.get_design_system_by_prompt(prompt)
-                        logger.info(f"[V13 Design Systems] Matched design system: {design_sys['title']}")
-                    except Exception as e:
-                        logger.error("Error loading design system: %s", e)
+                logger.info(f"[{'DEEP ' if is_deep_production else ''}QA Attempt {qa_attempts+1}/{max_qa_attempts}] passed={passed}, score={qa_result['score']}/100")
                 
-                qa_attempts = 0
-                final_qc_score = 90
-                while qa_attempts < max_qa_attempts:
-                    # ── 100% Fix: Enforce the 5-Pass Extreme QA Gate ──
-                    qa_result = luminary_intelligence.run_5_pass_qa(response_text, specs)
-                    passed = qa_result["passed"]
-                    final_qc_score = qa_result.get("score", 90)
-                    
-                    logger.info(f"[{'DEEP ' if is_deep_production else ''}QA Attempt {qa_attempts+1}/{max_qa_attempts}] passed={passed}, score={qa_result['score']}/100")
-                    
-                    # ── V14: Creative Director QC layer (in addition to intelligence QA) ──
-                    if passed and cd_text_brief is not None:
-                        cd_qc = _cd_orchestrator.run_creative_qc(response_text, cd_text_brief, pass_num=qa_attempts+1)
-                        final_qc_score = cd_qc.get("score", final_qc_score)
-                        if not cd_qc["passed"] and qa_attempts < max_qa_attempts - 1:
-                            logger.error(f"[V14 CD QC] Agency quality check failed (score={cd_qc['score']}). CD initiating revision...")
-                            healing_prompt = _cd_orchestrator.build_revision_prompt(prompt, response_text, cd_qc)
-                            response_text = query_ollama(healing_prompt, timeout=250, model_name=routed_model)
+                # ── V14: Creative Director QC layer (in addition to intelligence QA) ──
+                if passed and cd_text_brief is not None:
+                    cd_qc = _cd_orchestrator.run_creative_qc(response_text, cd_text_brief, pass_num=qa_attempts+1)
+                    final_qc_score = cd_qc.get("score", final_qc_score)
+                    if not cd_qc["passed"] and qa_attempts < max_qa_attempts - 1:
+                        if time.time() - chat_start_time > (request_budget * 0.75):
+                            logger.info(f"[Time Budget] Skipping CD revision — {time.time() - chat_start_time:.1f}s elapsed.")
+                            break
+                        logger.error(f"[V14 CD QC] Agency quality check failed (score={cd_qc['score']}). CD initiating revision...")
+                        healing_prompt = _cd_orchestrator.build_revision_prompt(prompt, response_text, cd_qc)
+                        retry_text = query_ollama(healing_prompt, timeout=90, model_name=routed_model, num_predict=task_num_predict)
+                        if retry_text and "Offline" not in retry_text and "Could not connect" not in retry_text and len(retry_text) > 50:
+                            response_text = retry_text
                             qa_attempts += 1
                             continue
-                        elif cd_qc["passed"]:
-                            logger.info(f"[V14 CD QC] Agency quality check PASSED (score={cd_qc['score']}/100)")
+                        else:
+                            logger.info("[Time Budget] CD revision timed out or failed. Preserving previous draft.")
+                    elif cd_qc["passed"]:
+                        logger.info(f"[V14 CD QC] Agency quality check PASSED (score={cd_qc['score']}/100)")
+                
+                if passed:
+                    break
                     
-                    if passed:
+                qa_attempts += 1
+                if qa_attempts < max_qa_attempts:
+                    if time.time() - chat_start_time > (request_budget * 0.75):
+                        logger.info(f"[Time Budget] Skipping self-healing retry — {time.time() - chat_start_time:.1f}s elapsed.")
                         break
-                        
-                    qa_attempts += 1
-                    if qa_attempts < max_qa_attempts:
-                        logger.error(f"Validation failed or quality score low. Initiating self-healing retry (Attempt {qa_attempts+1})...")
-                        healing_feedback = "\n".join(qa_result.get("failures", [])) + "\n" + "\n".join(qa_result.get("warnings", []))
-                        healing_prompt = (
-                            f"### Instruction:\n"
-                            f"You are revising your previous output to meet strict agency benchmarks. "
-                            f"Please correct the following errors:\n{healing_feedback}\n\n"
-                            f"Previous Output:\n{response_text}\n\n"
-                            f"Revised Output:"
-                        )
-                        response_text = query_ollama(healing_prompt, timeout=250, model_name=routed_model)
+                    logger.error(f"Validation failed or quality score low. Initiating self-healing retry (Attempt {qa_attempts+1})...")
+                    healing_feedback = "\n".join(qa_result.get("failures", [])) + "\n" + "\n".join(qa_result.get("warnings", []))
+                    healing_prompt = (
+                        f"### Instruction:\n"
+                        f"You are revising your previous output to meet strict agency benchmarks. "
+                        f"Please correct the following errors:\n{healing_feedback}\n\n"
+                        f"Previous Output:\n{response_text}\n\n"
+                        f"Revised Output:"
+                    )
+                    retry_text = query_ollama(healing_prompt, timeout=90, model_name=routed_model, num_predict=task_num_predict)
+                    if retry_text and "Offline" not in retry_text and "Could not connect" not in retry_text and len(retry_text) > 50:
+                        response_text = retry_text
                     else:
-                        logger.info("Maximum self-healing attempts reached. Delivering best available draft.")
+                        logger.info("[Time Budget] Healing retry timed out or failed. Preserving previous draft.")
+                else:
+                    logger.info("Maximum self-healing attempts reached. Delivering best available draft.")
 
-                # Evaluator AI Benchmarking Loop for complex outputs
-                if luminary_intelligence.should_run_evaluator(prompt, response_text) and not is_refusal:
-                    eval_prompt = f"### Instruction:\nYou are an elite Creative Director benchmarking this output against marketing agency standards. Ensure it is highly professional, data-driven, and structurally sound. \n\nOutput to evaluate:\n{response_text}\n\nIf the output is already excellent and meets agency standards, output EXACTLY the word 'PASS'. If it fails or is low-quality, output a completely rewritten, highly professional version. Do NOT provide feedback, just output 'PASS' or the improved content.\n### Response:"
-                    logger.info("Running Evaluator AI Benchmark...")
-                    eval_model = route_model("reasoning", available)
-                    eval_result = query_ollama(eval_prompt, timeout=300, model_name=eval_model).strip()
-                    if not eval_result.startswith("PASS"):
-                        logger.error("Evaluator failed the initial output. Using improved rewrite.")
-                        response_text = eval_result
+            # Fix 2: Redundant Evaluator AI Benchmarking Loop completely removed (5-Pass QA + CD QC is the system of record)
 
-                # If PPT and images, automatically generate graphics for visual placeholders!
-                if any(kw in lowered for kw in ["ppt", "presentation", "deck", "slides"]) and any(kw in lowered for kw in ["image", "photo", "picture", "visual", "graphic", "generate"]):
-                    placeholders = re.findall(r'\[(?:Visual|Image):\s*(.*?)\]', response_text, re.IGNORECASE)
+            # Fix 4: If PPT and images, check time budget before generating synchronous slide visuals
+            if any(kw in lowered for kw in ["ppt", "presentation", "deck", "slides"]) and any(kw in lowered for kw in ["image", "photo", "picture", "visual", "graphic", "generate"]):
+                placeholders = re.findall(r'\[(?:Visual|Image):\s*(.*?)\]', response_text, re.IGNORECASE)
+                elapsed_before_images = time.time() - chat_start_time
+                if elapsed_before_images > (request_budget * 0.5):
+                    logger.info(f"[Time Budget] Skipping synchronous inline image generation ({elapsed_before_images:.1f}s elapsed > {request_budget*0.5:.0f}s half-budget). Keeping slide visual notes in deck.")
+                else:
                     for placeholder in placeholders:
+                        if time.time() - chat_start_time > (request_budget * 0.85):
+                            logger.info(f"[Time Budget] Halting further slide image generation to preserve response deadline.")
+                            break
                         # Pre-flight check on the slide image placeholder prompt
                         img_safety = luminary_safety.inspect_image_prompt(placeholder)
                         if img_safety.safe:
@@ -1268,162 +1315,159 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                             flags=re.IGNORECASE
                         )
 
-                # Native File Generation Interception
-                try:
-                    generated_dir = Path(__file__).resolve().parent / "generated"
-                    generated_dir.mkdir(exist_ok=True)
-                    clean_text = re.sub(r"<clarify>.*?</clarify>|<suggest>.*?</suggest>", "", response_text, flags=re.DOTALL)
+            # Native File Generation Interception
+            try:
+                generated_dir = Path(__file__).resolve().parent / "generated"
+                generated_dir.mkdir(exist_ok=True)
+                clean_text = re.sub(r"<clarify>.*?</clarify>|<suggest>.*?</suggest>", "", response_text, flags=re.DOTALL)
 
-                    is_ppt = (specs["output_type"] == "pptx")
-                    is_doc = (specs["output_type"] == "docx")
-                    is_sheet = (specs["output_type"] == "xlsx")
-                    is_web = (specs["output_type"] in ["website", "code", "html"]) or ("website" in prompt.lower() and "html" in response_text.lower())
+                is_ppt = (specs["output_type"] == "pptx")
+                is_doc = (specs["output_type"] == "docx")
+                is_sheet = (specs["output_type"] == "xlsx")
+                is_web = (specs["output_type"] in ["website", "code", "html"]) or ("website" in prompt.lower() and "html" in response_text.lower())
 
-                    if is_ppt:
-                        filepath = generated_dir / f"presentation_{int(time.time())}.pptx"
-                        file_generator.generate_pptx(clean_text, str(filepath), prompt)
-                        response_text += f"\n\n[Download Generated PPTX](/generated/{filepath.name})"
-                    elif is_doc:
-                        filepath = generated_dir / f"document_{int(time.time())}.docx"
-                        file_generator.generate_docx(clean_text, str(filepath), prompt)
-                        response_text += f"\n\n[Download Generated DOCX](/generated/{filepath.name})"
-                    elif is_sheet:
-                        filepath = generated_dir / f"spreadsheet_{int(time.time())}.xlsx"
-                        file_generator.generate_xlsx(clean_text, str(filepath), prompt)
-                        response_text += f"\n\n[Download Generated XLSX](/generated/{filepath.name})"
-                    elif is_web:
-                        filepath = generated_dir / f"website_{int(time.time())}.html"
-                        html_code_match = re.search(r"```html\s*([\s\S]*?)```", clean_text, re.IGNORECASE)
-                        if html_code_match:
-                            html_code = html_code_match.group(1).strip()
-                        else:
-                            html_code = clean_text.strip()
-                        filepath.write_text(html_code, encoding="utf-8")
-                        response_text += f"\n\n[Download Generated HTML Website](/generated/{filepath.name})"
-                except Exception as e:
-                    logger.error("Native File generation failed: %s", e)
+                if is_ppt:
+                    filepath = generated_dir / f"presentation_{int(time.time())}.pptx"
+                    file_generator.generate_pptx(clean_text, str(filepath), prompt)
+                    response_text += f"\n\n[Download Generated PPTX](/generated/{filepath.name})"
+                elif is_doc:
+                    filepath = generated_dir / f"document_{int(time.time())}.docx"
+                    file_generator.generate_docx(clean_text, str(filepath), prompt)
+                    response_text += f"\n\n[Download Generated DOCX](/generated/{filepath.name})"
+                elif is_sheet:
+                    filepath = generated_dir / f"spreadsheet_{int(time.time())}.xlsx"
+                    file_generator.generate_xlsx(clean_text, str(filepath), prompt)
+                    response_text += f"\n\n[Download Generated XLSX](/generated/{filepath.name})"
+                elif is_web:
+                    filepath = generated_dir / f"website_{int(time.time())}.html"
+                    html_code_match = re.search(r"```html\s*([\s\S]*?)```", clean_text, re.IGNORECASE)
+                    if html_code_match:
+                        html_code = html_code_match.group(1).strip()
+                    else:
+                        html_code = clean_text.strip()
+                    filepath.write_text(html_code, encoding="utf-8")
+                    response_text += f"\n\n[Download Generated HTML Website](/generated/{filepath.name})"
+            except Exception as e:
+                logger.error("Native File generation failed: %s", e)
 
-                # ── 5. QC AI Work Verification & Inspection Gate (gpt-oss-20b) ──
-                qc_badge = ""
-                if 'filepath' in locals() and filepath.exists():
-                    qc_res = luminary_qc_engine.verify_output(prompt, clean_text, str(filepath))
-                    logger.warning(f"[QC AI qwen2.5vl] Status={qc_res.status} Score={qc_res.score} Issues={qc_res.issues}")
+            # ── 5. QC AI Work Verification & Inspection Gate (gpt-oss-20b) ──
+            qc_badge = ""
+            if 'filepath' in locals() and filepath.exists():
+                qc_res = luminary_qc_engine.verify_output(prompt, clean_text, str(filepath))
+                logger.warning(f"[QC AI qwen2.5vl] Status={qc_res.status} Score={qc_res.score} Issues={qc_res.issues}")
+                
+                # Revision Loop for QC failures (REVISE)
+                if qc_res.status == "REVISE" and qc_res.fix_instructions and (time.time() - chat_start_time < request_budget):
+                    logger.info(f"[QC AI Revision Loop] Applying fix instructions: {qc_res.fix_instructions}")
+                    # Wire Agency Orchestrator revision prompt if brief available
+                    if 'cd_text_brief' in locals() and cd_text_brief is not None:
+                        qc_dict = {"status": "REVISE", "score": qc_res.score, "issues": qc_res.issues, "fix_instructions": qc_res.fix_instructions}
+                        fix_prompt = _cd_orchestrator.build_revision_prompt(prompt, clean_text, qc_dict)
+                    else:
+                        fix_prompt = f"### Instruction:\nYou generated an asset, but QC check identified missing requirements:\n{qc_res.fix_instructions}\n\nOriginal Prompt:\n{prompt}\n\nRegenerate full revised text:\n### Response:"
                     
-                    # Revision Loop for QC failures (REVISE)
-                    if qc_res.status == "REVISE" and qc_res.fix_instructions:
-                        logger.info(f"[QC AI Revision Loop] Applying fix instructions: {qc_res.fix_instructions}")
-                        # Wire Agency Orchestrator revision prompt if brief available
-                        if 'cd_text_brief' in locals() and cd_text_brief is not None:
-                            qc_dict = {"status": "REVISE", "score": qc_res.score, "issues": qc_res.issues, "fix_instructions": qc_res.fix_instructions}
-                            fix_prompt = _cd_orchestrator.build_revision_prompt(prompt, clean_text, qc_dict)
-                        else:
-                            fix_prompt = f"### Instruction:\nYou generated an asset, but QC check identified missing requirements:\n{qc_res.fix_instructions}\n\nOriginal Prompt:\n{prompt}\n\nRegenerate full revised text:\n### Response:"
-                        
-                        revised_text = query_ollama(fix_prompt, timeout=250, model_name=routed_model)
-                        if revised_text and len(revised_text) > 100:
-                            clean_text = re.sub(r"<clarify>.*?</clarify>|<suggest>.*?</suggest>", "", revised_text, flags=re.DOTALL)
-                            if is_ppt:
-                                file_generator.generate_pptx(clean_text, str(filepath), prompt)
-                            elif is_doc:
-                                file_generator.generate_docx(clean_text, str(filepath), prompt)
-                            elif is_sheet:
-                                file_generator.generate_xlsx(clean_text, str(filepath), prompt)
-                            logger.info(f"[QC AI Revision Loop] Asset regenerated. Re-verifying new deliverable: {filepath.name}")
-                            # RE-VERIFY the new regenerated deliverable
-                            qc_res = luminary_qc_engine.verify_output(prompt, clean_text, str(filepath))
-                            logger.info(f"[QC AI Post-Retry Verification] Status={qc_res.status} Score={qc_res.score}")
-                            qa_attempts += 1
+                    revised_text = query_ollama(fix_prompt, timeout=90, model_name=routed_model, num_predict=task_num_predict)
+                    if revised_text and "Offline" not in revised_text and "Could not connect" not in revised_text and len(revised_text) > 100:
+                        clean_text = re.sub(r"<clarify>.*?</clarify>|<suggest>.*?</suggest>", "", revised_text, flags=re.DOTALL)
+                        if is_ppt:
+                            file_generator.generate_pptx(clean_text, str(filepath), prompt)
+                        elif is_doc:
+                            file_generator.generate_docx(clean_text, str(filepath), prompt)
+                        elif is_sheet:
+                            file_generator.generate_xlsx(clean_text, str(filepath), prompt)
+                        logger.info(f"[QC AI Revision Loop] Asset regenerated. Re-verifying new deliverable: {filepath.name}")
+                        # RE-VERIFY the new regenerated deliverable
+                        qc_res = luminary_qc_engine.verify_output(prompt, clean_text, str(filepath))
+                        logger.info(f"[QC AI Post-Retry Verification] Status={qc_res.status} Score={qc_res.score}")
+                        qa_attempts += 1
 
-                    # Update final_qc_score with actual post-generation score
-                    final_qc_score = qc_res.score
+                # Update final_qc_score with actual post-generation score
+                final_qc_score = qc_res.score
 
-                    # Branch on all QCResult.status values
-                    if qc_res.status == "PASS":
-                        rev_text = "First Pass" if qa_attempts == 0 else f"{qa_attempts} revision(s)"
-                        qc_badge = f"\n\n*✓ Agency Quality Verified: Passed QC Benchmark {final_qc_score}/100 ({rev_text})*"
-                    elif qc_res.status == "QC_UNAVAILABLE":
-                        qc_badge = f"\n\n*⚠️ Quality Notice: Deliverable generated but Unverified (QC Engine Offline)*"
-                    elif qc_res.status == "REJECT":
-                        issues_str = "; ".join(qc_res.issues) if qc_res.issues else "Quality benchmark failure"
-                        qc_badge = f"\n\n*⚠️ Quality Alert: Deliverable Did Not Pass QC Gate ({final_qc_score}/100 - {issues_str})*"
-                    else: # REVISE still pending after retry
-                        qc_badge = f"\n\n*⚠️ Quality Notice: Deliverable Needs Revision ({final_qc_score}/100)*"
-                else:
+                # Branch on all QCResult.status values
+                if qc_res.status == "PASS":
                     rev_text = "First Pass" if qa_attempts == 0 else f"{qa_attempts} revision(s)"
                     qc_badge = f"\n\n*✓ Agency Quality Verified: Passed QC Benchmark {final_qc_score}/100 ({rev_text})*"
+                elif qc_res.status == "QC_UNAVAILABLE":
+                    qc_badge = f"\n\n*⚠️ Quality Notice: Deliverable generated but Unverified (QC Engine Offline)*"
+                elif qc_res.status == "REJECT":
+                    issues_str = "; ".join(qc_res.issues) if qc_res.issues else "Quality benchmark failure"
+                    qc_badge = f"\n\n*⚠️ Quality Alert: Deliverable Did Not Pass QC Gate ({final_qc_score}/100 - {issues_str})*"
+                else: # REVISE still pending after retry
+                    qc_badge = f"\n\n*⚠️ Quality Notice: Deliverable Needs Revision ({final_qc_score}/100)*"
+            else:
+                rev_text = "First Pass" if qa_attempts == 0 else f"{qa_attempts} revision(s)"
+                qc_badge = f"\n\n*✓ Agency Quality Verified: Passed QC Benchmark {final_qc_score}/100 ({rev_text})*"
 
-                # ── 6. Output Security Safeguard Gate ──
-                out_sec = luminary_safety.inspect_prompt(response_text)
-                if not out_sec.safe:
-                    logger.error(f"[OUTPUT SECURITY BLOCK] Category={out_sec.category} Reason={out_sec.reason}")
-                    response_text = out_sec.safe_alternative
+            # ── 6. Output Security Safeguard Gate ──
+            out_sec = luminary_safety.inspect_prompt(response_text)
+            if not out_sec.safe:
+                logger.error(f"[OUTPUT SECURITY BLOCK] Category={out_sec.category} Reason={out_sec.reason}")
+                response_text = out_sec.safe_alternative
 
-                # Extract Structured UI Tags
-                clarify_data = None
-                suggest_data = None
+            # Extract Structured UI Tags
+            clarify_match = re.search(r"<clarify>(.*?)</clarify>", response_text, re.DOTALL)
+            if clarify_match:
+                try:
+                    clarify_data = json.loads(clarify_match.group(1).strip())
+                except Exception as e:
+                    logger.warning(f"[handle_chat] Failed to parse <clarify> JSON tag: {e}")
+                response_text = response_text.replace(clarify_match.group(0), "")
 
-                clarify_match = re.search(r"<clarify>(.*?)</clarify>", response_text, re.DOTALL)
-                if clarify_match:
-                    try:
-                        clarify_data = json.loads(clarify_match.group(1).strip())
-                    except Exception as e:
-                        logger.warning(f"[handle_chat] Failed to parse <clarify> JSON tag: {e}")
-                    response_text = response_text.replace(clarify_match.group(0), "")
+            suggest_match = re.search(r"<suggest>(.*?)</suggest>", response_text, re.DOTALL)
+            if suggest_match:
+                try:
+                    suggest_data = json.loads(suggest_match.group(1).strip())
+                except Exception as e:
+                    logger.warning(f"[handle_chat] Failed to parse <suggest> JSON tag: {e}")
+                response_text = response_text.replace(suggest_match.group(0), "")
 
-                suggest_match = re.search(r"<suggest>(.*?)</suggest>", response_text, re.DOTALL)
-                if suggest_match:
-                    try:
-                        suggest_data = json.loads(suggest_match.group(1).strip())
-                    except Exception as e:
-                        logger.warning(f"[handle_chat] Failed to parse <suggest> JSON tag: {e}")
-                    response_text = response_text.replace(suggest_match.group(0), "")
+            # Post-process: Remove ONLY bare horizontal dividers (---) and empty bullet-only lines.
+            response_text = re.sub(r'^-{3,}\s*$', '', response_text, flags=re.MULTILINE)
+            response_text = re.sub(r'^#\s*$', '', response_text, flags=re.MULTILINE)
 
-                # Post-process: Remove ONLY bare horizontal dividers (---) and empty bullet-only lines.
-                response_text = re.sub(r'^-{3,}\s*$', '', response_text, flags=re.MULTILINE)
-                response_text = re.sub(r'^#\s*$', '', response_text, flags=re.MULTILINE)
+            # Output Moderation check
+            out_safety = luminary_safety.inspect_output(response_text)
+            if not out_safety.safe:
+                logger.error(f"[SAFETY BLOCK OUTPUT] Category={out_safety.category} Reason={out_safety.reason}")
+                response_text = out_safety.safe_alternative
 
-                # Output Moderation check
-                out_safety = luminary_safety.inspect_output(response_text)
-                if not out_safety.safe:
-                    logger.error(f"[SAFETY BLOCK OUTPUT] Category={out_safety.category} Reason={out_safety.reason}")
-                    response_text = out_safety.safe_alternative
+            # ── 7. Visible Quality & Confidence Indicator (Legible QC Process) ──
+            response_text += qc_badge
 
-                # ── 7. Visible Quality & Confidence Indicator (Legible QC Process) ──
-                response_text += qc_badge
+            # Log interaction to persistent memory
+            luminary_memory.log_interaction(prompt, response_text[:200])
 
-                # Log interaction to persistent memory
-                luminary_memory.log_interaction(prompt, response_text[:200])
+            # V12: Generate smart contextual suggestions for text deliverables if none extracted
+            if not suggest_data:
+                auto_suggestions = luminary_intelligence.generate_smart_suggestions(
+                    prompt, specs, specs.get("output_type", "text")
+                )
+                if auto_suggestions:
+                    suggest_data = {"chips": auto_suggestions}
 
-                # V12: Generate smart contextual suggestions for text deliverables if none extracted
-                if not suggest_data:
-                    auto_suggestions = luminary_intelligence.generate_smart_suggestions(
-                        prompt, specs, specs.get("output_type", "text")
-                    )
-                    if auto_suggestions:
-                        suggest_data = {"chips": auto_suggestions}
+            # V12: Save session context for follow-up continuity
+            LUMINARY_SESSION_CONTEXT.update({
+                "last_prompt": prompt,
+                "last_brief": {},
+                "last_specs": specs,
+                "last_image_url": "",
+                "last_output_type": specs.get("output_type", "text"),
+                "last_platform": specs.get("platform", "general"),
+                "last_brand": specs.get("brand_name", ""),
+            })
 
-                # V12: Save session context for follow-up continuity
-                LUMINARY_SESSION_CONTEXT.update({
-                    "last_prompt": prompt,
-                    "last_brief": {},
-                    "last_specs": specs,
-                    "last_image_url": "",
-                    "last_output_type": specs.get("output_type", "text"),
-                    "last_platform": specs.get("platform", "general"),
-                    "last_brand": specs.get("brand_name", ""),
-                })
-
-            self._json(200)
-            self.wfile.write(json.dumps({
-                "response": response_text.strip(),
-                "clarification_needed": clarify_data,
-                "smart_suggestion": suggest_data,
-                "qc_confidence": {
-                    "score": final_qc_score if 'final_qc_score' in locals() else 95,
-                    "revisions": qa_attempts if 'qa_attempts' in locals() else 0,
-                    "status": "Passed Agency QC Gate"
-                }
-            }).encode("utf-8"))
+        self._json(200)
+        self.wfile.write(json.dumps({
+            "response": response_text.strip(),
+            "clarification_needed": clarify_data,
+            "smart_suggestion": suggest_data,
+            "qc_confidence": {
+                "score": final_qc_score,
+                "revisions": qa_attempts,
+                "status": "Passed Agency QC Gate"
+            }
+        }).encode("utf-8"))
 
     def handle_scrape_brand(self, body):
         url = body.get("url", "").strip()
