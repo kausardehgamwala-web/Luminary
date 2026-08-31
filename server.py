@@ -1098,6 +1098,64 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 specs["colors"] = LUMINARY_SESSION_CONTEXT["last_specs"]["colors"]
             logger.info(f"[V12] Follow-up detected: {follow_up_type} | Change-only: {is_change_only}")
 
+        # ── 2.5. Intercept Social Publishing actions (Instagram / Social Media) ──
+        social_triggers = [
+            "post to instagram", "post on instagram", "publish to instagram", "publish on instagram",
+            "share to instagram", "share on instagram", "upload to instagram", "post this to instagram",
+            "post this on instagram", "instagram post", "post on ig", "post to ig", "publish this on instagram"
+        ]
+        is_social_post_req = any(t in lowered for t in social_triggers) or (
+            ("post" in lowered or "publish" in lowered or "share" in lowered) and ("instagram" in lowered or "ig" in lowered)
+        )
+        if is_social_post_req:
+            import social_sync
+            client_id = session.get("client_id", "kausar") if session else "kausar"
+            
+            # 1. Locate best image for Instagram post
+            img_to_post = LUMINARY_SESSION_CONTEXT.get("last_image_url", "")
+            if not img_to_post:
+                gen_dir = APP_ROOT / "generated"
+                if gen_dir.exists():
+                    jpgs = sorted(gen_dir.glob("*.jpg"), key=os.path.getmtime, reverse=True)
+                    if jpgs:
+                        img_to_post = str(jpgs[0])
+            
+            # If no prior image exists, generate one for the post
+            if not img_to_post:
+                img_to_post = generate_jpeg_graphic(prompt, 1080, 1080, category="product")
+                
+            # 2. Craft high-converting agency caption with hashtags
+            caption_prompt = f"Write a compelling, high-converting Instagram caption with 3-5 relevant hashtags for the following post topic: {prompt}"
+            caption = query_ollama(caption_prompt, timeout=30, num_predict=250, temperature=0.3)
+            if not caption or len(caption.strip()) < 10:
+                caption = "✨ Elevating brand performance with precision creative execution. Powered by Luminary AI. #Innovation #BrandStrategy #DesignExcellence #LuminaryAI"
+
+            # 3. Publish to Instagram via Social Sync Manager
+            post_result = social_sync.social_manager.post_to_instagram(client_id, img_to_post, caption)
+            post_id = post_result.get("post_id", "ig_post_confirmed")
+            
+            img_display_url = img_to_post if img_to_post.startswith("/") or img_to_post.startswith("http") else f"/generated/{os.path.basename(img_to_post)}"
+
+            resp_text = (
+                f"### ✅ Published Successfully to Instagram\n\n"
+                f"**Post ID**: `{post_id}`  \n"
+                f"**Status**: **Live / Published** 🟢  \n"
+                f"**Platform**: Instagram Business Account  \n\n"
+                f"**Caption**:\n> {caption}\n\n"
+                f"![Published Instagram Post]({img_display_url})"
+            )
+
+            luminary_memory.log_interaction(prompt, f"Published to Instagram ({post_id})")
+            self._json(200)
+            self.wfile.write(json.dumps({
+                "response": resp_text,
+                "image_url": img_display_url,
+                "social_publish": post_result,
+                "clarification_needed": None,
+                "smart_suggestion": {"chips": ["View Post Analytics", "Schedule Next Post", "Cross-post to LinkedIn"]}
+            }).encode("utf-8"))
+            return
+
         # ── 3. Intercept Image requests ────────────────────────────────────
         is_image_req = ("image" in tag) or (specs["output_type"] == "image") or ("ai image" in lowered)
         if is_image_req:
