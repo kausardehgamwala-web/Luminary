@@ -364,7 +364,7 @@ MODEL_HIERARCHY = [
 ]
 
 
-def query_ollama(prompt, json_mode=False, timeout=None, model_name=None, num_predict=1024, fallback_on_error=True):
+def query_ollama(prompt, json_mode=False, timeout=None, model_name=None, num_predict=1024, fallback_on_error=True, temperature=0.2):
     if timeout is None:
         timeout = OLLAMA_TIMEOUT
     proxy_support = urllib.request.ProxyHandler({})
@@ -392,7 +392,7 @@ def query_ollama(prompt, json_mode=False, timeout=None, model_name=None, num_pre
             "stream": False,
             "options": {
                 "num_predict": num_predict,
-                "temperature": 0.4,
+                "temperature": float(temperature),
                 "max_tokens": MAX_TOKENS
             }
         }

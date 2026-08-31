@@ -10419,7 +10419,7 @@ body.light-mode .history-item.active {
       const imgMatches = [];
       raw = raw.replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, url) => {
         imgMatches.push({ alt, url: resolveUrl(url) });
-        return `\\x00IMG${imgMatches.length - 1}\\x00`;
+        return `__LUMINARY_IMG_${imgMatches.length - 1}__`;
       });
 
       let formatted = escapeHtml(raw);
@@ -10434,28 +10434,30 @@ body.light-mode .history-item.active {
       if (imgMatches.length === 1) {
         const { alt, url } = imgMatches[0];
         const fname = url.split('/').pop().split('?')[0] || 'image.jpg';
-        formatted = formatted.replace(/\\x00IMG0\\x00/, `
+        formatted = formatted.replace('__LUMINARY_IMG_0__', `
           <div style="margin-top:8px;">
-            <img src="${url}" alt="${escapeHtml(alt)}" onclick="openLightbox('${url}','${escapeHtml(fname)}')" style="max-width: 220px; max-height: 170px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); display:block;">
-            <div style="margin-top:6px;">
-              <a href="${url}" download="${escapeHtml(fname)}" class="img-carousel-btn" style="text-decoration:none; display:inline-block; padding:6px 12px; font-size:0.8rem; border-radius:8px; background:var(--orange); color:#fff; font-weight:700;">Download</a>
+            <img src="${url}" alt="${escapeHtml(alt)}" onclick="openLightbox('${url}','${escapeHtml(fname)}')" style="max-width: 320px; max-height: 240px; width:100%; object-fit: cover; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); display:block; box-shadow:0 4px 16px rgba(0,0,0,0.25);">
+            <div style="margin-top:8px;">
+              <a href="${url}" download="${escapeHtml(fname)}" class="img-carousel-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:0.85rem; border-radius:8px; background:var(--orange); color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(255,85,0,0.3);">
+                <i class="fa-solid fa-download"></i> Download Image
+              </a>
             </div>
           </div>`);
       } else if (imgMatches.length > 1) {
         const galleryItems = imgMatches.map(({ alt, url }, i) => {
           const fname = url.split('/').pop().split('?')[0] || `image_${i+1}.jpg`;
           return `
-            <div class="img-carousel-item">
-              <img src="${url}" alt="${escapeHtml(alt)}" onclick="openLightbox('${url}','${escapeHtml(fname)}')" style="width: 150px; height: 115px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12);">
+            <div class="img-carousel-item" style="margin-right:8px;">
+              <img src="${url}" alt="${escapeHtml(alt)}" onclick="openLightbox('${url}','${escapeHtml(fname)}')" style="width: 180px; height: 135px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12);">
               <div class="img-carousel-overlay">
                 <span class="img-carousel-label">${i + 1}/${imgMatches.length}</span>
                 <a href="${url}" download="${escapeHtml(fname)}" class="img-carousel-btn" style="text-decoration:none;">Download</a>
               </div>
             </div>`;
         }).join('');
-        const gallery = `<div class="img-carousel">${galleryItems}</div>`;
+        const gallery = `<div class="img-carousel" style="display:flex; overflow-x:auto; padding:8px 0;">${galleryItems}</div>`;
         for (let i = 0; i < imgMatches.length; i++) {
-          formatted = formatted.replace(new RegExp(`\\\\x00IMG${i}\\\\x00`, 'g'), '');
+          formatted = formatted.replace(`__LUMINARY_IMG_${i}__`, '');
         }
         formatted += gallery;
       }
