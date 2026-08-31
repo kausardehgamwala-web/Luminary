@@ -1702,39 +1702,58 @@
     }
 
 
-/* ─── LUMINARY BUTTON VIBRANCY & REVIVAL SYSTEM ─── */
-.btn, .primary-btn, .hero-btn-primary, #newChatBtn, #new-chat-btn, .login-btn, .signup-btn, .disconnect-btn, .btn-disconnect {
+/* ─── ULTIMATE BUTTON VIBRANCY & REVIVAL SYSTEM ─── */
+button, .btn, .primary-btn, .hero-btn-primary, #newChatBtn, #new-chat-btn, 
+.login-btn, .signup-btn, .disconnect-btn, .btn-disconnect, .social-disconnect-btn,
+.luminary-nav-cta, .investor-cta-banner .hero-btn-primary {
   opacity: 1 !important;
   transition: all 0.2s ease-in-out !important;
 }
 
-.hero-btn-primary, .primary-btn, #newChatBtn, .login-btn, .signup-btn {
+/* Primary Action Buttons: Solid Vibrant Brand Orange */
+.hero-btn-primary, .primary-btn, #newChatBtn, #new-chat-btn, 
+.login-btn, .signup-btn, .luminary-nav-cta, button[onclick*="submitLoginForm"], 
+button[onclick*="submitSignupForm"], button[onclick*="openSignupView"], .primary-btn.full-width {
+  background: #FF5500 !important;
   background-color: #FF5500 !important;
   color: #ffffff !important;
   border: 1px solid #FF5500 !important;
-  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.35) !important;
   font-weight: 700 !important;
+  opacity: 1 !important;
 }
 
-.hero-btn-primary:hover, .primary-btn:hover, #newChatBtn:hover, .login-btn:hover, .signup-btn:hover {
+.hero-btn-primary:hover, .primary-btn:hover, #newChatBtn:hover, #new-chat-btn:hover, 
+.login-btn:hover, .signup-btn:hover, .luminary-nav-cta:hover, button[onclick*="submitLoginForm"]:hover, 
+button[onclick*="submitSignupForm"]:hover, .primary-btn.full-width:hover {
+  background: #FF6611 !important;
+  background-color: #FF6611 !important;
+  color: #ffffff !important;
   transform: translateY(-1px) !important;
   filter: brightness(1.1) !important;
-  box-shadow: 0 8px 24px rgba(255, 85, 0, 0.45) !important;
+  box-shadow: 0 8px 24px rgba(255, 85, 0, 0.5) !important;
 }
 
-.disconnect-btn, .btn-disconnect, button.disconnect, .social-disconnect-btn {
+/* Destructive Action Buttons: Solid Rich Crimson */
+.disconnect-btn, .btn-disconnect, button.disconnect, .social-disconnect-btn, 
+button[onclick*="disconnectSocialPlatform"], button[onclick*="disconnect"] {
+  background: #E63946 !important;
   background-color: #E63946 !important;
   color: #ffffff !important;
   border: 1px solid #E63946 !important;
-  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3) !important;
   opacity: 1 !important;
   font-weight: 700 !important;
 }
 
-.disconnect-btn:hover, .btn-disconnect:hover, button.disconnect:hover, .social-disconnect-btn:hover {
+.disconnect-btn:hover, .btn-disconnect:hover, button.disconnect:hover, 
+.social-disconnect-btn:hover, button[onclick*="disconnectSocialPlatform"]:hover {
+  background: #D62839 !important;
+  background-color: #D62839 !important;
+  color: #ffffff !important;
   transform: translateY(-1px) !important;
   filter: brightness(1.1) !important;
-  box-shadow: 0 6px 18px rgba(230, 57, 70, 0.4) !important;
+  box-shadow: 0 6px 18px rgba(230, 57, 70, 0.45) !important;
 }
 
 </style>
