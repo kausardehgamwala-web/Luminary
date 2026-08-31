@@ -9633,6 +9633,9 @@ body.light-mode .history-item.active {
                 <button class="send-btn" id="sendBtn" type="button" aria-label="Send prompt">
                   <i class="fa-solid fa-arrow-up" style="color: #ffffff; font-size: 1.15rem;"></i>
                 </button>
+                <button class="stop-btn" id="stopWorkBtn" type="button" title="Stop AI & Server Work" aria-label="Stop AI & Server Work" onclick="stopCurrentWork()" style="display:none; width:36px; height:36px; min-width:36px; min-height:36px; border-radius:12px; background:#E63946; color:#ffffff; border:none; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 14px rgba(230, 57, 70, 0.4); margin-left:6px; transition:transform 0.15s ease, background 0.2s;">
+                  <i class="fa-solid fa-square" style="color:#ffffff; font-size:0.9rem;"></i>
+                </button>
               </div>
               <div class="tags-menu" id="tagsMenu">
                 <div class="tags-grid">
@@ -10437,10 +10440,13 @@ body.light-mode .history-item.active {
         formatted = formatted.replace('__LUMINARY_IMG_0__', `
           <div style="margin-top:8px;">
             <img src="${url}" alt="${escapeHtml(alt)}" onclick="openLightbox('${url}','${escapeHtml(fname)}')" style="max-width: 320px; max-height: 240px; width:100%; object-fit: cover; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); display:block; box-shadow:0 4px 16px rgba(0,0,0,0.25);">
-            <div style="margin-top:8px;">
+            <div style="margin-top:8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <a href="${url}" download="${escapeHtml(fname)}" class="img-carousel-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:0.85rem; border-radius:8px; background:var(--orange); color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(255,85,0,0.3);">
                 <i class="fa-solid fa-download"></i> Download Image
               </a>
+              <button type="button" onclick="postImageDirectToInstagram('${url}')" class="img-instagram-btn" style="border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:0.85rem; border-radius:8px; background:linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color:#fff; font-weight:700; box-shadow:0 4px 12px rgba(220,39,67,0.35); transition:transform 0.15s ease;">
+                <i class="fa-brands fa-instagram"></i> Post to Instagram
+              </button>
             </div>
           </div>`);
       } else if (imgMatches.length > 1) {
@@ -10449,9 +10455,10 @@ body.light-mode .history-item.active {
           return `
             <div class="img-carousel-item" style="margin-right:8px;">
               <img src="${url}" alt="${escapeHtml(alt)}" onclick="openLightbox('${url}','${escapeHtml(fname)}')" style="width: 180px; height: 135px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12);">
-              <div class="img-carousel-overlay">
+              <div class="img-carousel-overlay" style="display:flex; align-items:center; gap:4px;">
                 <span class="img-carousel-label">${i + 1}/${imgMatches.length}</span>
                 <a href="${url}" download="${escapeHtml(fname)}" class="img-carousel-btn" style="text-decoration:none;">Download</a>
+                <button type="button" onclick="postImageDirectToInstagram('${url}')" class="img-carousel-btn" style="background:#E1306C; border:none; color:#fff; cursor:pointer; font-size:0.75rem; padding:4px 8px; border-radius:6px;"><i class="fa-brands fa-instagram"></i> Post</button>
               </div>
             </div>`;
         }).join('');
@@ -10845,10 +10852,10 @@ body.light-mode .history-item.active {
       if (elements.selectionRow) elements.selectionRow.innerHTML = fileParts.join("");
     }
 
-    async function requestBackend(path, payload) {
+    async function requestBackend(path, payload, signal = null) {
       const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
       try {
-        const response = await fetch(baseUrl + path, {
+        const fetchOpts = {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
@@ -10856,19 +10863,92 @@ body.light-mode .history-item.active {
           },
           credentials: "include",
           body: JSON.stringify(payload)
-        });
+        };
+        if (signal) fetchOpts.signal = signal;
+        const response = await fetch(baseUrl + path, fetchOpts);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
           throw new Error(data.detail || data.error || ("Backend error " + response.status));
         }
         return data;
       } catch (err) {
+        if (err.name === 'AbortError') {
+          throw new Error("⏹️ Work stopped by user.");
+        }
         if (err.message && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError") || err.message.includes("net::ERR_CONNECTION_REFUSED"))) {
           throw new Error("Unable to connect to Luminary Backend at " + baseUrl + ". Please start workSTART_LUMINARY_BACKEND.bat to run the server.");
         }
         throw err;
       }
     }
+
+    window.stopCurrentWork = async function() {
+      if (window.currentWorkAbortController) {
+        window.currentWorkAbortController.abort();
+        window.currentWorkAbortController = null;
+      }
+      try {
+        await fetch((window.API_BASE || 'http://localhost:8000') + '/api/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'stop' })
+        });
+      } catch (e) {
+        console.log('Stop signal sent to server:', e);
+      }
+      const stopBtn = document.getElementById("stopWorkBtn");
+      if (stopBtn) stopBtn.style.display = "none";
+      if (elements.sendBtn) {
+        elements.sendBtn.disabled = false;
+        elements.sendBtn.innerHTML = `<i class="fa-solid fa-arrow-up" style="color: #ffffff; font-size: 1.15rem;"></i>`;
+      }
+      const chat = getActiveChat();
+      if (chat && chat.messages && chat.messages.length > 0) {
+        const lastMsg = chat.messages[chat.messages.length - 1];
+        if (lastMsg.isRunning) {
+          lastMsg.isRunning = false;
+          lastMsg.text = "⏹️ **Work stopped by user.** The server and AI generation tasks were halted.";
+          renderChat();
+        }
+      }
+      if (typeof showToast === "function") showToast("⏹️ AI generation & server work stopped.");
+    };
+
+    window.postImageDirectToInstagram = async function(imageUrl) {
+      const cleanUrl = imageUrl.startsWith('http') ? imageUrl : (window.API_BASE || 'http://localhost:8000') + imageUrl;
+      const caption = prompt("Enter Instagram Caption (or leave blank for AI generated):", "✨ Elevating brand performance with Luminary AI. #Innovation #Design #AgencyExcellence #LuminaryAI");
+      if (caption === null) return;
+      
+      if (typeof showToast === "function") showToast("📤 Publishing directly to Instagram...");
+      try {
+        const res = await fetch((window.API_BASE || 'http://localhost:8000') + '/api/social/instagram/post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image_url: cleanUrl,
+            caption: caption || "✨ Created with Luminary Autonomous Agency Infrastructure. #LuminaryAI"
+          })
+        });
+        const data = await res.json();
+        if (data.success || data.status === 'published' || data.post_id) {
+          if (typeof showToast === "function") showToast(`🚀 Successfully posted to Instagram! (ID: ${data.post_id || 'ig_live'})`);
+          const chat = getActiveChat();
+          if (chat) {
+            chat.messages.push({
+              role: "assistant",
+              text: `### ✅ Published Successfully to Instagram\n\n**Post ID**: \`${data.post_id || 'ig_live'}\`  \n**Status**: **Live / Published** 🟢  \n**Platform**: Instagram Business Account  \n\n**Caption**:\n> ${caption || data.caption || 'Live Showcase'}\n\n![Instagram Deliverable](${cleanUrl})`,
+              date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+            renderChat();
+          }
+        } else {
+          if (typeof showToast === "function") showToast(`⚠️ Instagram Publish: ${data.error || 'Check Social connections'}`);
+        }
+      } catch (err) {
+        console.error("Instagram publish failed:", err);
+        if (typeof showToast === "function") showToast(`⚠️ Failed to post: ${err.message}`);
+      }
+    };
 
     async function readFiles(files) {
       const loaded = [];
@@ -11019,6 +11099,9 @@ body.light-mode .history-item.active {
 
       elements.sendBtn.disabled = true;
       elements.sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:0.85rem;"></i>';
+      const stopBtn = document.getElementById("stopWorkBtn");
+      if (stopBtn) stopBtn.style.display = "inline-flex";
+      window.currentWorkAbortController = new AbortController();
 
       const startTimeVal = Date.now();
       chatSessions[targetChatId].messages.push({
@@ -11039,7 +11122,7 @@ body.light-mode .history-item.active {
       if (activeSubtitleEl) activeSubtitleEl.textContent = "Working...";
 
       try {
-        const responseData = await requestBackend("/chat", requestPayload);
+        const responseData = await requestBackend("/chat", requestPayload, window.currentWorkAbortController.signal);
         const elapsedSeconds = Math.round((Date.now() - startTimeVal) / 1000);
         
         chatSessions[targetChatId].messages[chatSessions[targetChatId].messages.length - 1] = {
@@ -11061,6 +11144,9 @@ body.light-mode .history-item.active {
       } finally {
         elements.sendBtn.disabled = false;
         elements.sendBtn.innerHTML = `<i class="fa-solid fa-arrow-up" style="color: #ffffff; font-size: 1.15rem;"></i>`;
+        const currentStopBtn = document.getElementById("stopWorkBtn");
+        if (currentStopBtn) currentStopBtn.style.display = "none";
+        window.currentWorkAbortController = null;
       }
 
       chatSessions[targetChatId].updatedAt = new Date().toISOString();

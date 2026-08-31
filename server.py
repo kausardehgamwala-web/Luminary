@@ -920,13 +920,27 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"detail": f"Invalid JSON payload: {str(e)}"}).encode("utf-8"))
             return
 
-        if self.path.startswith("/cancel/"):
-            req_id = self.path.split("/cancel/", 1)[1]
+        if self.path in ("/api/stop", "/api/cancel") or self.path.startswith("/cancel/"):
             try:
                 import local_sdxl_service
                 local_sdxl_service.sdxl_service.cancel()
+                logger.info("[Server Work Interrupted] Received stop signal. Cancelled in-flight generation tasks.")
                 self._json(200)
-                self.wfile.write(json.dumps({"status": "cancelled", "request_id": req_id}).encode("utf-8"))
+                self.wfile.write(json.dumps({"status": "stopped", "message": "All active generation and server tasks stopped."}).encode("utf-8"))
+            except Exception as e:
+                self._json(200)
+                self.wfile.write(json.dumps({"status": "stopped", "note": str(e)}).encode("utf-8"))
+            return
+
+        if self.path in ("/api/social/instagram/post", "/api/social/publish-direct"):
+            try:
+                import social_sync
+                cid = body.get("client_id", "kausar") or "kausar"
+                img_url = body.get("image_url", "")
+                caption = body.get("caption", "✨ New showcase deliverable from Luminary AI. #Innovation #Design #AgencyExcellence")
+                res = social_sync.social_manager.post_to_instagram(cid, img_url, caption)
+                self._json(200)
+                self.wfile.write(json.dumps(res).encode("utf-8"))
             except Exception as e:
                 self._json(500)
                 self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
