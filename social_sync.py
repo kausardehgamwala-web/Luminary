@@ -241,7 +241,8 @@ class SocialManager:
         post_req = {
             "text": caption,
             "publish_now": True,
-            "targets": [{"account_id": socapi_account_id}]
+            "content_type": "feed",
+            "targets": [{"account_id": socapi_account_id, "content_type": "feed"}]
         }
         if media_id:
             post_req["media_ids"] = [media_id]
@@ -285,10 +286,10 @@ def sync_social_data():
             # Fetch remote accounts from SocialAPI
             remote_accounts = {}
             try:
-                accounts_data = social_api.api_request("GET", "/accounts")
+                accounts_data = social_api.api_request("GET", "/accounts", suppress_log=True)
                 remote_accounts = {acc["id"]: acc for acc in accounts_data.get("data", []) if "id" in acc}
             except Exception as e:
-                logger.warning(f"[Social Sync] Remote SocialAPI probe notice: {e}")
+                logger.debug(f"[Social Sync] Remote accounts sync probe notice: {e}")
 
             conn = db.get_connection()
             cursor = conn.cursor()

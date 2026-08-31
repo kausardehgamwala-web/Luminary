@@ -54,7 +54,7 @@ def _json_response(handler, status, data):
     handler.end_headers()
     handler.wfile.write(json.dumps(data).encode("utf-8"))
 
-def api_request(method, endpoint, data=None):
+def api_request(method, endpoint, data=None, suppress_log=False):
     api_key = get_socapi_key()
     url = f"{SOCAPI_BASE_URL}{endpoint}"
     headers = {
@@ -74,10 +74,12 @@ def api_request(method, endpoint, data=None):
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         err_msg = e.read().decode("utf-8")
-        logger.error(f"SocialAPI HTTP Error {e.code}: {err_msg}")
+        if not suppress_log:
+            logger.warning(f"SocialAPI HTTP Notice {e.code}: {err_msg}")
         raise e
     except Exception as e:
-        logger.error(f"SocialAPI Error: {e}")
+        if not suppress_log:
+            logger.warning(f"SocialAPI Notice: {e}")
         raise e
 
 def upload_media_bytes(file_bytes, file_name, mime_type):
