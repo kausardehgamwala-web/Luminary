@@ -147,6 +147,11 @@ def generate_pptx(markdown_text: str, output_path: str, prompt: str = None) -> s
     """
     Parses structured Markdown into a high-converting agency PPTX presentation.
     """
+    try:
+        import ppt_generator
+        return ppt_generator.generate_ppt_file(markdown_text, output_path, prompt=prompt)
+    except Exception as e:
+        pass
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
