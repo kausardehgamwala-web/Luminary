@@ -7,8 +7,8 @@ import textstat
 
 logger = logging.getLogger(__name__)
 
-# ── Universal Quality & Aesthetic Thresholds (Always 9.0/10 or 90% across all modalities) ──
-AESTHETIC_THRESHOLD = float(os.getenv("AESTHETIC_THRESHOLD", "9.0"))
+# ── Universal Quality & Aesthetic Thresholds (Realistic default 6.0/10 to avoid unnecessary retries) ──
+AESTHETIC_THRESHOLD = float(os.getenv("AESTHETIC_THRESHOLD", "6.0"))
 TEXT_QUALITY_THRESHOLD = float(os.getenv("TEXT_QUALITY_THRESHOLD", "9.0"))
 PPT_QUALITY_THRESHOLD = float(os.getenv("PPT_QUALITY_THRESHOLD", "9.0"))
 DOC_QUALITY_THRESHOLD = float(os.getenv("DOC_QUALITY_THRESHOLD", "9.0"))

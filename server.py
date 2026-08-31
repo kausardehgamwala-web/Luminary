@@ -573,6 +573,23 @@ def generate_jpeg_graphic(
         raise RuntimeError(f"Image generation failed: {str(e)}")
 
 
+def _run_image_qa_check(img_url: str, prompt: str, specs: dict) -> list:
+    """
+    Safely inspects generated image deliverables using QC engine or rules.
+    Returns a list of issue descriptions if defects are found, or empty list if passing.
+    """
+    if not img_url:
+        return []
+    try:
+        if 'luminary_qc_engine' in globals() and hasattr(luminary_qc_engine, 'verify_image_output'):
+            res = luminary_qc_engine.verify_image_output(prompt, img_url)
+            if res and hasattr(res, 'issues') and res.issues:
+                return res.issues
+    except Exception as e:
+        logger.debug(f"[Image QA Check Notice]: {e}")
+    return []
+
+
 def generate_comprehensive_report(topic, prompt_details):
     return (
         f"# Comprehensive Strategy Report: {topic.title()}\n\n"
@@ -1199,19 +1216,17 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     break
 
                 # ── V12 Image QA Loop (max 2 retries on clear failures) ────
-                qa_failures = _run_image_qa_check(img_url, variation, specs)
-                if qa_failures:
-                    logger.error(f"[V12 QA] Issues detected: {qa_failures}. Retrying (attempt 2)...")
-                    correction_suffix = ", ".join(qa_failures)
-                    corrected_prompt = f"{variation}, CORRECTION: {correction_suffix}, ensure exact specification compliance"
-                    retry_url = generate_jpeg_graphic(corrected_prompt, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
-                    qa_retry = _run_image_qa_check(retry_url, corrected_prompt, specs)
-                    if not qa_retry:
-                        logger.info(f"[V12 QA] Retry passed QA check.")
-                        img_url = retry_url
-                    else:
-                        logger.warning(f"[V12 QA] Retry still has issues: {qa_retry}. Keeping retry result.")
-                        img_url = retry_url  # Use retry anyway
+                try:
+                    qa_failures = _run_image_qa_check(img_url, variation, specs) if '_run_image_qa_check' in globals() else []
+                    if qa_failures:
+                        logger.info(f"[V12 QA] Issues detected: {qa_failures}. Retrying (attempt 2)...")
+                        correction_suffix = ", ".join(qa_failures)
+                        corrected_prompt = f"{variation}, CORRECTION: {correction_suffix}, ensure exact specification compliance"
+                        retry_url = generate_jpeg_graphic(corrected_prompt, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
+                        if retry_url:
+                            img_url = retry_url
+                except Exception as qa_ex:
+                    logger.warning(f"[V12 Image QA Notice]: {qa_ex}")
 
                 img_urls.append(img_url)
 

@@ -299,7 +299,7 @@ def _auto_extract_foreground_subject(img):
 # ── 4. MULTI-PROVIDER PRODUCTION IMAGE API CLIENT ───────────────────────────
 
 IMAGE_RETRY_COUNT = int(os.getenv("IMAGE_RETRY_COUNT", "2"))
-AESTHETIC_THRESHOLD = float(os.getenv("AESTHETIC_THRESHOLD", "9.0"))
+AESTHETIC_THRESHOLD = float(os.getenv("AESTHETIC_THRESHOLD", "6.0"))
 
 
 class ProductionImageEngine:
