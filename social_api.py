@@ -119,25 +119,24 @@ def handle_get(handler):
         parsed_url = urllib.parse.urlparse(path)
         query = urllib.parse.parse_qs(parsed_url.query)
         session = luminary_auth.get_authenticated_session(handler)
-        client_id = query.get("client_id", [None])[0] or (session.get("client_id", "1") if session else "1")
+        client_id = query.get("client_id", [None])[0] or (session.get("client_id", "kausar") if session else "kausar") or "kausar"
         brand_name_input = query.get("brand_name", [query.get("account_name", [f"Client {client_id}"])[0]])[0]
         if not client_id:
             _json_response(handler, 400, {"error": "Missing client_id"})
             return True
             
-        conn = db.get_connection()
-        cursor = conn.cursor()
+        try:
+            import social_sync
+            connections = social_sync.social_manager.get_live_connections(client_id)
+        except Exception as e:
+            logger.error(f"[Live Connections Error] Fallback to raw DB query: {e}")
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM social_connections WHERE client_id = ?", (client_id,))
+            rows = cursor.fetchall()
+            connections = [dict(row) for row in rows]
+            conn.close()
 
-        # Ensure client record exists
-        cursor.execute("SELECT id FROM clients WHERE id = ?", (client_id,))
-        if not cursor.fetchone():
-            cursor.execute("INSERT INTO clients (id, name) VALUES (?, ?)", (client_id, brand_name_input))
-            conn.commit()
-
-        cursor.execute("SELECT * FROM social_connections WHERE client_id = ?", (client_id,))
-        rows = cursor.fetchall()
-        connections = [dict(row) for row in rows]
-        conn.close()
         _json_response(handler, 200, {"connections": connections})
         return True
 
@@ -416,6 +415,20 @@ def handle_post(handler, body, session=None):
         session = luminary_auth.get_authenticated_session(handler)
     client_id = str(body.get('client_id') or (session.get('client_id') if session else 'kausar') or 'kausar').strip()
     path = handler.path
+
+    if path == "/api/social/disconnect" or path == "/api/social/unlink":
+        platform = body.get("platform")
+        if not platform:
+            _json_response(handler, 400, {"error": "Missing platform"})
+            return True
+        try:
+            import social_sync
+            social_sync.social_manager.disconnect(client_id, platform)
+            _json_response(handler, 200, {"status": "success", "disconnected": True, "platform": platform})
+        except Exception as e:
+            logger.error(f"[Disconnect Error]: {e}")
+            _json_response(handler, 500, {"error": f"Failed to disconnect platform: {e}"})
+        return True
 
     if path == "/api/social/init_brand":
         # client_id derived from authenticated session

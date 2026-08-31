@@ -915,8 +915,12 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
             return
 
-        # Enforce Authentication on all mutating / data-returning API endpoints
         session = luminary_auth.get_authenticated_session(self)
+
+        if social_api.handle_post(self, body, session=session):
+            return
+
+        # Enforce Authentication on remaining mutating / data-returning API endpoints
         if not session:
             self._json(401)
             self.wfile.write(json.dumps({"detail": "Unauthorized: Valid session token or authentication required"}).encode("utf-8"))
@@ -925,9 +929,6 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         # Securely derive tenant boundary from authenticated session (not trusted from client body)
         self.authenticated_client_id = str(session.get("client_id", "1"))
         self.authenticated_user_id = str(session.get("user_id", "usr_1"))
-
-        if social_api.handle_post(self, body, session=session):
-            return
 
         if self.path == "/api/feedback":
             try:
