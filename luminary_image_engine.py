@@ -298,6 +298,10 @@ def _auto_extract_foreground_subject(img):
 
 # ── 4. MULTI-PROVIDER PRODUCTION IMAGE API CLIENT ───────────────────────────
 
+IMAGE_RETRY_COUNT = int(os.getenv("IMAGE_RETRY_COUNT", "2"))
+AESTHETIC_THRESHOLD = float(os.getenv("AESTHETIC_THRESHOLD", "9.0"))
+
+
 class ProductionImageEngine:
     """
     100% Local Image Production Engine.
@@ -315,41 +319,123 @@ class ProductionImageEngine:
         reference_image_path: Optional[Path] = None,
         category: str = "product",
         is_print: bool = False,
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
+        request_id: Optional[str] = None,
+        num_inference_steps: Optional[int] = None
     ) -> Tuple[bytes, Dict[str, Any]]:
         """
         Executes 100% local image generation via LocalSDXLService.
-        Zero cloud API calls, zero billing risk.
         """
         clean_prompt = prompt.strip()
-        return self._generate_flux_direct(clean_prompt, width, height, negative_prompt, seed)
+        return self._generate_flux_direct(clean_prompt, width, height, negative_prompt, seed, request_id=request_id, num_inference_steps=num_inference_steps)
 
-    def _generate_flux_direct(self, prompt: str, width: int, height: int, negative_prompt: str, seed: Optional[int]) -> Tuple[bytes, dict]:
+    def _generate_flux_direct(
+        self,
+        prompt: str,
+        width: int,
+        height: int,
+        negative_prompt: str,
+        seed: Optional[int],
+        request_id: Optional[str] = None,
+        num_inference_steps: Optional[int] = None
+    ) -> Tuple[bytes, dict]:
         """
-        Local SDXL High-Definition Generation with CPU-safe native resolution cap and high-fidelity upscaling.
+        Local SDXL Generation with quality control retries, safety gate, and aesthetic scoring.
         """
         import io
+        import tempfile
+        import logging
         import local_sdxl_service
+        import content_safety
+        import quality_control
+        import luminary_logging
 
-        # Cap native generation resolution to prevent CPU freezes/timeouts (768px quality floor)
-        native_w = min(768, max(512, width))
-        native_h = min(768, max(512, height))
+        logger = logging.getLogger("luminary_image_engine")
 
-        img = local_sdxl_service.sdxl_service.generate(
-            prompt=prompt,
-            negative_prompt=negative_prompt,
-            width=native_w,
-            height=native_h,
-            seed=seed
-        )
+        target_w = max(256, width)
+        target_h = max(256, height)
+        start_time = time.time()
 
-        # Upscale to the originally requested dimensions if larger than native generation
-        if width > native_w or height > native_h:
-            img = local_sdxl_service.upscale_image_for_print(img, width, height)
+        max_attempts = max(1, IMAGE_RETRY_COUNT + 1)
+        current_prompt = prompt
+        last_img = None
+        last_score = 0.0
+
+        for attempt in range(max_attempts):
+            if attempt > 0:
+                current_prompt = "high quality, professional, sharp, detailed, " + prompt
+                logger.info(f"[Image Engine] Retry attempt {attempt+1}/{max_attempts} with prompt: {current_prompt}")
+
+            try:
+                img = local_sdxl_service.sdxl_service.generate(
+                    prompt=current_prompt,
+                    negative_prompt=negative_prompt,
+                    width=target_w,
+                    height=target_h,
+                    num_inference_steps=num_inference_steps,
+                    seed=seed,
+                    request_id=request_id
+                )
+            except MemoryError as mem_err:
+                logger.error(f"[Image Engine OOM] Memory Error generating {target_w}x{target_h} image: {mem_err}")
+                raise MemoryError(f"Image generation OOM – requested size {target_w}x{target_h} is too large for available RAM/VRAM.") from mem_err
+            except Exception as exc:
+                logger.error(f"[Image Engine Error] Failed to generate {target_w}x{target_h} image: {exc}")
+                raise RuntimeError(f"Image generation failed for requested resolution {target_w}x{target_h}: {exc}") from exc
+
+            last_img = img
+            # Save to temporary file for safety and quality screening
+            tmp_path = None
+            try:
+                with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                    img.save(tmp.name, format="JPEG", quality=95)
+                    tmp_path = tmp.name
+
+                # Safety Check
+                is_safe, safety_reason, confidence = content_safety.safety_engine.check_image(tmp_path)
+                if not is_safe:
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
+                    raise ValueError(f"Generated image blocked by Content Safety Gate: {safety_reason}")
+
+                # Aesthetic Score
+                score = quality_control.aesthetic_scorer.score_image(tmp_path)
+                last_score = score
+            finally:
+                if tmp_path and os.path.exists(tmp_path):
+                    try:
+                        os.remove(tmp_path)
+                    except Exception:
+                        pass
+
+            if score >= AESTHETIC_THRESHOLD or attempt == max_attempts - 1:
+                duration = round(time.time() - start_time, 2)
+                luminary_logging.log_structured_event({
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "request_id": request_id,
+                    "type": "image",
+                    "prompt": current_prompt,
+                    "model": "local_sdxl",
+                    "resolution": f"{target_w}x{target_h}",
+                    "steps": local_sdxl_service.DEFAULT_STEPS,
+                    "duration": duration,
+                    "aesthetic_score": score,
+                    "safety_pass": True,
+                    "attempts": attempt + 1
+                })
+                break
+            else:
+                logger.warning(f"[Image Engine] Aesthetic score {score:.2f} < threshold {AESTHETIC_THRESHOLD}. Retrying generation...")
 
         buf = io.BytesIO()
-        img.save(buf, format="JPEG", quality=95)
-        return buf.getvalue(), {"provider": "local_sdxl_service", "seed": seed or 42}
+        last_img.save(buf, format="JPEG", quality=95)
+        return buf.getvalue(), {
+            "provider": "local_sdxl_service",
+            "seed": seed or 42,
+            "aesthetic_score": last_score,
+            "safety_pass": True,
+            "attempts": attempt + 1
+        }
 
 
 # Global engine singleton

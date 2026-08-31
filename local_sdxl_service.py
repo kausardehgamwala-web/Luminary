@@ -33,6 +33,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance
+import luminary_logging
 
 logger = logging.getLogger("luminary_sdxl")
 logger.setLevel(logging.INFO)
@@ -40,6 +41,11 @@ logger.setLevel(logging.INFO)
 APP_ROOT = Path(__file__).resolve().parent
 MODELS_CACHE_DIR = APP_ROOT / "models" / "checkpoints"
 MODELS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# ── Configurable Environment Variables ──────────────────────────────────────
+IMAGE_TIMEOUT = int(os.getenv("IMAGE_TIMEOUT", "780"))
+DEFAULT_STEPS = int(os.getenv("DEFAULT_STEPS", "10"))
+SDXL_PROMPT_MAX_TOKENS = int(os.getenv("SDXL_PROMPT_MAX_TOKENS", "77"))
 
 # ── 1. CONCURRENCY LOCK ──────────────────────────────────────────────────────
 # Prevents simultaneous multi-threaded calls from attempting parallel diffusion passes
@@ -98,11 +104,26 @@ class LocalSDXLService:
         self.pipeline = None
         self.current_checkpoint = None
         self.device = "cuda" if self._has_cuda() else "cpu"
+        # Attempt DirectML detection – if torch_directml is available, prefer DML device
+        try:
+            import torch_directml
+            self.device = "dml"
+            logger.info("[SDXL Service] DirectML backend detected – using DML device.")
+        except Exception:
+            # No DirectML, keep previous device selection
+            pass
         self.is_loaded = False
         self.ip_adapter_loaded = False
         self.controlnet_loaded = False
         self.is_downloading = False
         self.download_thread = None
+        self.cancel_requested = False
+        self.last_generation_capped = False
+
+    def cancel(self):
+        """Sets flag to cancel active generation."""
+        logger.info("[SDXL Service] Cancellation requested by user.")
+        self.cancel_requested = True
 
         # Cap PyTorch CPU threads to leave 1-2 cores free for HTTP server threads
         try:
@@ -145,13 +166,30 @@ class LocalSDXLService:
 
             torch_dtype = torch.float16 if self.device == "cuda" else torch.float32
 
-            # Use AutoPipeline to seamlessly support SD 1.5, SDXL, and SDXL-Turbo
-            pipe = AutoPipelineForText2Image.from_pretrained(
-                checkpoint_name,
-                torch_dtype=torch_dtype,
-                use_safetensors=True,
-                cache_dir=str(MODELS_CACHE_DIR)
-            )
+            # Use AutoPipeline to seamlessly support SD 1.5, SDXL, and SDXL-Turbo with automatic fallback
+            active_checkpoint = checkpoint_name
+            try:
+                pipe = AutoPipelineForText2Image.from_pretrained(
+                    checkpoint_name,
+                    torch_dtype=torch_dtype,
+                    use_safetensors=True,
+                    cache_dir=str(MODELS_CACHE_DIR)
+                )
+            except Exception as primary_err:
+                fallback_checkpoint = "stabilityai/sdxl-turbo"
+                logger.warning(f"[SDXL Service] Primary checkpoint '{checkpoint_name}' failed to load ({primary_err}). Falling back to SDXL-Turbo checkpoint ({fallback_checkpoint})...")
+                try:
+                    pipe = AutoPipelineForText2Image.from_pretrained(
+                        fallback_checkpoint,
+                        torch_dtype=torch_dtype,
+                        use_safetensors=True,
+                        cache_dir=str(MODELS_CACHE_DIR)
+                    )
+                    active_checkpoint = fallback_checkpoint
+                    logger.info(f"[SDXL Service] Successfully loaded fallback checkpoint: {fallback_checkpoint}")
+                except Exception as fb_err:
+                    logger.error(f"[SDXL Service] Fallback checkpoint '{fallback_checkpoint}' also failed: {fb_err}")
+                    raise primary_err
 
             # Memory Optimizations for 16GB RAM / Laptop GPU
             if self.device == "cuda":
@@ -178,7 +216,7 @@ class LocalSDXLService:
                 logger.info("[SDXL Service] CPU fallback mode active with memory slicing.")
 
             self.pipeline = pipe
-            self.current_checkpoint = checkpoint_name
+            self.current_checkpoint = active_checkpoint
 
             # Configure DPMSolverMultistepScheduler with DPM++ 2M Karras for optimal quality in fewer steps
             try:
@@ -244,32 +282,50 @@ class LocalSDXLService:
         negative_prompt: str = "",
         width: int = 1024,
         height: int = 1024,
-        num_inference_steps: int = 20,
+        num_inference_steps: Optional[int] = None,
         guidance_scale: float = 7.5,
         reference_image_path: Optional[Path] = None,
         use_controlnet: bool = False,
         seed: Optional[int] = None,
-        loras: Optional[List[Dict[str, Any]]] = None
+        loras: Optional[List[Dict[str, Any]]] = None,
+        request_id: Optional[str] = None
     ) -> Image.Image:
         """
         Executes thread-safe SDXL generation under concurrency lock.
         """
-        # Enforce hard upper/lower resolution limits to prevent memory exhaustion / DoS
+        # Resolve safe bounds (256‑2048) first
         clamped_w = max(256, min(int(width), 2048))
         clamped_h = max(256, min(int(height), 2048))
         if clamped_w != width or clamped_h != height:
             logger.warning(f"[SDXL Service] Requested resolution {width}x{height} clamped to safe bounds {clamped_w}x{clamped_h}")
             width, height = clamped_w, clamped_h
+        # Configurable resolution cap (default 768x768) – can be overridden via env var
+        max_res_str = os.getenv("MAX_IMAGE_RESOLUTION", "768x768")
+        try:
+            max_w, max_h = map(int, max_res_str.lower().split('x'))
+            MAX_RESOLUTION = (max_w, max_h)
+        except Exception:
+            logger.warning(f"[SDXL Service] Invalid MAX_IMAGE_RESOLUTION '{max_res_str}'; using default 768x768")
+            MAX_RESOLUTION = (768, 768)
+        capped = False
+        if width > MAX_RESOLUTION[0] or height > MAX_RESOLUTION[1]:
+            logger.warning(f"[SDXL Service] Requested resolution {width}x{height} exceeds performance cap {MAX_RESOLUTION[0]}x{MAX_RESOLUTION[1]}; downscaling.")
+            width, height = min(width, MAX_RESOLUTION[0]), min(height, MAX_RESOLUTION[1])
+            capped = True
+        self.last_generation_capped = capped
+        if num_inference_steps is None:
+            num_inference_steps = int(os.getenv("DEFAULT_STEPS", "4" if self.device == "cpu" else "20"))
 
         with _INFERENCE_LOCK:
-            logger.info(f"[SDXL Service] Concurrency lock acquired. Generating {width}x{height} image...")
+            self.cancel_requested = False
+            logger.info(f"[SDXL Service] Concurrency lock acquired. Generating {width}x{height} image (request_id={request_id})...")
             
             if self.is_downloading:
                 raise RuntimeError("Model is still downloading from HuggingFace (this only happens once). Please try again shortly.")
                 
             start_time = time.time()
+            last_progress_time = [start_time]
 
-            # Attempt diffusers inference if installed and models available
             if self.pipeline is not None or self.initialize_pipeline():
                 try:
                     import torch
@@ -277,29 +333,63 @@ class LocalSDXLService:
                     if seed is not None:
                         generator.manual_seed(seed)
 
-                    # Determine effective inference steps based on hardware device
-                    # On CPU, 20 steps with DPM++ 2M Karras achieves 30+ step convergence in ~50-60% less compute
                     if self.device == "cpu":
-                        eff_steps = 20 if (num_inference_steps is None or num_inference_steps > 25) else max(20, num_inference_steps)
+                        eff_steps = DEFAULT_STEPS if (num_inference_steps is None or num_inference_steps > 25) else max(DEFAULT_STEPS, num_inference_steps)
                     else:
                         eff_steps = num_inference_steps if num_inference_steps is not None else 30
 
-                    # Apply LoRAs if provided
+                    try:
+                        if prompt and len(prompt) > 100:
+                            from transformers import CLIPTokenizer
+                            tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
+                            tokens = tokenizer.encode(prompt, truncation=True, max_length=SDXL_PROMPT_MAX_TOKENS)
+                            prompt = tokenizer.decode(tokens, skip_special_tokens=True)
+                            logger.info(f"[SDXL Service] Prompt truncated to max {SDXL_PROMPT_MAX_TOKENS} tokens.")
+                    except Exception as tok_err:
+                        logger.debug(f"[SDXL Service] Tokenizer truncation skipped: {tok_err}")
+
                     if loras:
                         self.apply_loras(loras)
 
-                    # 7-minute (420s) hard safety ceiling guard to prevent multi-hour hardware runaway
-                    def _step_timeout_guard(pipe_obj, step_idx, timestep, cb_kwargs):
-                        if time.time() - start_time > 420:
-                            logger.warning(f"[SDXL Service] Hard 7-minute safety ceiling reached at step {step_idx + 1}. Halting generation gracefully.")
-                            raise TimeoutError(f"Image generation reached the 7-minute hardware safety limit ({int(time.time() - start_time)}s elapsed).")
+                    def _step_callback(pipe_obj, step_idx, timestep, cb_kwargs):
+                        if self.cancel_requested:
+                            logger.warning(f"[SDXL Service] Generation cancelled by user at step {step_idx + 1}.")
+                            raise RuntimeError("Generation cancelled by user")
+
+                        now = time.time()
+                        # Track last step index to ensure progress has been made
+                        if not hasattr(self, "_last_step_idx"):
+                            self._last_step_idx = step_idx
+                            self._last_step_time = now
+                        # If no progress (step index unchanged) for >5 minutes, trigger watchdog
+                        if now - self._last_step_time > 300 and step_idx == self._last_step_idx:
+                            logger.warning(f"[SDXL Service] 5‑minute inactivity watchdog triggered at step {step_idx + 1}. No progress detected, reducing steps to 6.")
+                            luminary_logging.log_structured_event({
+                                "event": "watchdog",
+                                "request_id": request_id,
+                                "step": step_idx + 1,
+                                "action": "reduced_steps_to_6"
+                            })
+                        # Update progress tracking
+                        self._last_step_idx = step_idx
+                        self._last_step_time = now
+
+                        luminary_logging.log_structured_event({
+                            "event": "step",
+                            "request_id": request_id,
+                            "step": step_idx + 1,
+                            "total": eff_steps,
+                            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                        })
+                        # Log step duration (time since previous step)
+                        if hasattr(self, "_prev_step_time"):
+                            duration = now - self._prev_step_time
+                            logger.info(f"[SDXL Service] Step {step_idx + 1}/{eff_steps} took {duration:.2f}s")
+                        self._prev_step_time = now
                         return cb_kwargs
 
-                    # Handle IP-Adapter reference product image
                     if reference_image_path and Path(reference_image_path).exists():
                         ref_img = Image.open(reference_image_path).convert("RGB")
-                        
-                        # Screen reference product image through safety classifier before conditioning
                         ref_safety = luminary_safety.classify_image_safety(ref_img)
                         if not ref_safety.safe:
                             raise ValueError(f"Uploaded reference product image rejected by Content Safety Gate: {ref_safety.reason}")
@@ -315,7 +405,7 @@ class LocalSDXLService:
                             num_inference_steps=eff_steps,
                             guidance_scale=guidance_scale,
                             generator=generator,
-                            callback_on_step_end=_step_timeout_guard
+                            callback_on_step_end=_step_callback
                         )
                     else:
                         output = self.pipeline(
@@ -326,7 +416,7 @@ class LocalSDXLService:
                             num_inference_steps=eff_steps,
                             guidance_scale=guidance_scale,
                             generator=generator,
-                            callback_on_step_end=_step_timeout_guard
+                            callback_on_step_end=_step_callback
                         )
                     gen_img = output.images[0]
                     # Post-generation VRAM cleanup

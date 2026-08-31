@@ -40,3 +40,9 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Runtime outputs & scratch
+generated/
+scratch/
+memory/
+*.zip

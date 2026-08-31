@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Dict, Any, List, Optional, Tuple
+from dotenv import load_dotenv
 
 APP_ROOT = Path(__file__).resolve().parent
 if str(APP_ROOT / "skill_runtime") not in sys.path:
@@ -42,10 +43,30 @@ import luminary_asset_engine
 import luminary_workflows
 import file_generator
 import social_api
+import content_safety
+import quality_control
+import luminary_logging
+import job_manager
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("luminary_server")
+load_dotenv()
 
+# Configurable environment variables with defaults
+MAX_TOKENS = int(os.getenv('MAX_TOKENS', '700'))
+IMAGE_TIMEOUT = int(os.getenv('IMAGE_TIMEOUT', '900'))
+OLLAMA_TIMEOUT = int(os.getenv('OLLAMA_TIMEOUT', '180'))
+DEFAULT_STEPS = int(os.getenv('DEFAULT_STEPS', '4'))
+SDXL_PROMPT_MAX_TOKENS = int(os.getenv('SDXL_PROMPT_MAX_TOKENS', '77'))
+# New per-endpoint output token limits
+CHAT_OUTPUT_TOKENS = int(os.getenv('CHAT_OUTPUT_TOKENS', '1024'))
+DOC_OUTPUT_TOKENS = int(os.getenv('DOC_OUTPUT_TOKENS', '2048'))
+PPT_OUTPUT_TOKENS = int(os.getenv('PPT_OUTPUT_TOKENS', '2048'))
+SHEET_OUTPUT_TOKENS = int(os.getenv('SHEET_OUTPUT_TOKENS', '2048'))
+PROMPT_BUILDER_MAX_TOKENS = int(os.getenv('PROMPT_BUILDER_MAX_TOKENS', '1024'))
+FALLBACK_CAP = int(os.getenv('FALLBACK_CAP', '1024'))
+
+logger.info(f"[Token Limits] CHAT_OUTPUT_TOKENS={CHAT_OUTPUT_TOKENS} DOC_OUTPUT_TOKENS={DOC_OUTPUT_TOKENS} PPT_OUTPUT_TOKENS={PPT_OUTPUT_TOKENS} SHEET_OUTPUT_TOKENS={SHEET_OUTPUT_TOKENS} PROMPT_BUILDER_MAX_TOKENS={PROMPT_BUILDER_MAX_TOKENS} SDXL_PROMPT_MAX_TOKENS={SDXL_PROMPT_MAX_TOKENS} FALLBACK_MAX_TOKENS={FALLBACK_CAP}")
 # ── Environment Configurable Endpoints ──────────────────────────────────────
 OLLAMA_BASE_URL = os.getenv("OLLAMA_HOST", os.getenv("OLLAMA_URL", "http://localhost:11434")).rstrip("/")
 OLLAMA_URL = f"{OLLAMA_BASE_URL}/api/generate"
@@ -119,8 +140,14 @@ APP_ROOT = Path(__file__).resolve().parent
 APP_FILE = APP_ROOT / "luminary.html"
 
 def discover_ollama_model():
+    env_model = os.getenv("PRIMARY_MODEL", os.getenv("OLLAMA_MODEL", "")).strip()
     models_to_check = [
         "qwen2.5-coder:7b",
+        "qwen2.5-coder:1.5b",
+        "deepseek-r1:8b",
+        "deepseek-r1:7b",
+        "deepseek-r1:1.5b",
+        "deepseek-r1",
         "deepseek-coder:6.7b",
         "codellama:7b",
         "qwen2.5:7b",
@@ -129,21 +156,28 @@ def discover_ollama_model():
         "llama3:8b",
         "phi3:medium",
         "phi3:mini",
-        "qwen2.5-coder:1.5b",
     ]
     try:
         req = urllib.request.Request(f"{OLLAMA_BASE_URL}/api/tags", headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             installed = [m.get("name", "") for m in data.get("models", [])]
+            if env_model:
+                for inst in installed:
+                    if env_model == inst or env_model in inst:
+                        logger.info(f"[Ollama Config] Using configured PRIMARY_MODEL: {inst}")
+                        return inst
             for candidate in models_to_check:
-                if any(candidate in m for m in installed):
-                    return candidate
+                for inst in installed:
+                    if candidate == inst or candidate in inst:
+                        logger.info(f"[Ollama Model Discovery] Discovered model: {inst}")
+                        return inst
             if installed:
                 return installed[0].split(":")[0]
-    except Exception:
+    except Exception as e:
+        logger.warning(f"[Ollama Model Discovery] Error querying tags: {e}")
         pass
-    return os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
+    return env_model or os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
 
 MODEL_NAME = discover_ollama_model()
 
@@ -162,15 +196,34 @@ def route_model(task_type: str, available_models: list) -> str:
         available_models = discover_all_ollama_models(timeout=10)
     if not available_models:
         return MODEL_NAME
+        
+    env_model = os.getenv("PRIMARY_MODEL", "").strip()
+    if env_model:
+        for m in available_models:
+            if env_model == m or env_model in m:
+                return m
+
     if task_type == "coding":
         for m in available_models:
             if "coder" in m or "code" in m:
                 return m
     elif task_type == "reasoning":
         for m in available_models:
-            if any(k in m for k in ["llama3", "mistral", "qwen", "phi3"]):
+            if "qwen2.5-coder:7b" in m:
                 return m
-    return available_models[0] if available_models else MODEL_NAME
+            if "deepseek-r1" in m:
+                return m
+            if any(k in m for k in ["llama3", "mistral", "qwen2.5:7b", "phi3"]):
+                return m
+    elif task_type == "writing":
+        for m in available_models:
+            if "qwen2.5-coder:7b" in m:
+                return m
+            if "qwen2.5-coder:1.5b" in m:
+                return m
+            if any(k in m for k in ["qwen2.5:7b", "llama3", "mistral"]):
+                return m
+    return MODEL_NAME if MODEL_NAME in available_models else (available_models[0] if available_models else MODEL_NAME)
 
 APP_ROOT = Path(__file__).resolve().parent
 APP_FILE = APP_ROOT / "luminary.html"
@@ -262,17 +315,60 @@ def web_search(query):
     return "Web search is currently unavailable."
 
 
-def query_ollama(prompt, json_mode=False, timeout=120, model_name=None, num_predict=1024):
+_HF_PIPELINE = None
+_HF_MODEL_NAME = None
+
+def query_fallback(prompt: str, max_tokens: int = MAX_TOKENS, json_mode: bool = False) -> str:
+    """
+    Hugging Face Transformers fallback engine for text generation when Ollama is offline/unavailable.
+    Attempts distilgpt2 first, then microsoft/DialoGPT-small. If both fail, returns clear error message.
+    """
+    global _HF_PIPELINE, _HF_MODEL_NAME
+    if _HF_PIPELINE is None:
+        try:
+            from transformers import pipeline
+            for model_candidate in ["distilgpt2", "microsoft/DialoGPT-small"]:
+                try:
+                    logger.info(f"[HF Fallback] Initializing text generation pipeline with '{model_candidate}'...")
+                    _HF_PIPELINE = pipeline("text-generation", model=model_candidate)
+                    _HF_MODEL_NAME = model_candidate
+                    logger.info(f"[HF Fallback] Successfully initialized '{model_candidate}'.")
+                    break
+                except Exception as m_err:
+                    logger.warning(f"[HF Fallback] Failed loading model '{model_candidate}': {m_err}")
+        except Exception as t_err:
+            logger.error(f"[HF Fallback Error] Could not import or initialize Hugging Face transformers: {t_err}")
+
+    if _HF_PIPELINE is not None:
+        try:
+            res = _HF_PIPELINE(prompt, max_new_tokens=min(max_tokens, FALLBACK_CAP), do_sample=True, pad_token_id=50256)
+            if res and len(res) > 0 and "generated_text" in res[0]:
+                generated_text = res[0]["generated_text"]
+                logger.info(f"[HF Fallback] Successfully generated response using {_HF_MODEL_NAME}.")
+                return generated_text[:max_tokens]
+        except Exception as gen_err:
+            logger.error(f"[HF Fallback Error] Text generation failed with {_HF_MODEL_NAME}: {gen_err}")
+
+    if json_mode:
+        return "{}"
+    return "Text AI unavailable"
+
+
+def query_ollama(prompt, json_mode=False, timeout=None, model_name=None, num_predict=1024, fallback_on_error=True):
+    if timeout is None:
+        timeout = OLLAMA_TIMEOUT
     proxy_support = urllib.request.ProxyHandler({})
     opener = urllib.request.build_opener(proxy_support)
     target_model = model_name if model_name else MODEL_NAME
+    logger.info(f"[Ollama Call] Requesting model '{target_model}' (timeout={timeout}s, num_predict={num_predict})...")
     payload = {
         "model": target_model,
         "prompt": prompt,
         "stream": False,
         "options": {
             "num_predict": num_predict,
-            "temperature": 0.4
+            "temperature": 0.4,
+            "max_tokens": MAX_TOKENS
         }
     }
     if json_mode:
@@ -284,24 +380,29 @@ def query_ollama(prompt, json_mode=False, timeout=120, model_name=None, num_pred
     )
     
     try:
+        t0 = time.time()
         with opener.open(req, timeout=timeout) as response:
             data = json.loads(response.read().decode("utf-8"))
+            elapsed = time.time() - t0
+            logger.info(f"[Ollama Success] Model '{target_model}' responded in {elapsed:.2f}s.")
             return data.get("response", "")
     except urllib.error.HTTPError as http_err:
         if http_err.code == 404:
             logger.warning(f"[Ollama Status] Model '{target_model}' not found in Ollama — pull it with: ollama pull {target_model}")
-            if json_mode:
-                return "{}"
-            return f"⚠️ Model Not Found: Model '{target_model}' is not installed in Ollama. Run 'ollama pull {target_model}' to download it."
-        logger.warning(f"[Ollama Status] Ollama HTTP error {http_err.code}: {http_err.reason} for model '{target_model}'")
-        if json_mode:
-            return "{}"
-        return f"⚠️ AI Text Engine Error: Ollama HTTP {http_err.code} ({http_err.reason})."
+            logger.error(f"[Ollama Error] Model '{target_model}' not found in Ollama.")
+        else:
+            logger.warning(f"[Ollama Status] Ollama HTTP error {http_err.code}: {http_err.reason} for model '{target_model}'")
+        if fallback_on_error:
+            logger.info("[Ollama Fallback] Switching to Hugging Face fallback engine.")
+            return query_fallback(prompt, max_tokens=MAX_TOKENS, json_mode=json_mode)
+        return "{}" if json_mode else ""
     except Exception as exc:
-        logger.warning(f"[Ollama Status] Could not connect to Ollama ({exc}). Service may be offline or model downloading.")
-        if json_mode:
-            return "{}"
-        return "⚠️ AI Text Engine Offline: Unable to connect to Ollama. Please ensure the service is running."
+        logger.error(f"[Ollama Error] Ollama call failed for model '{target_model}': {exc}")
+        if fallback_on_error:
+            logger.info("[Ollama Fallback] Switching to Hugging Face fallback engine.")
+            return query_fallback(prompt, max_tokens=MAX_TOKENS, json_mode=json_mode)
+        return "{}" if json_mode else ""
+
 
 
 def parse_json_response(text):
@@ -377,7 +478,8 @@ def generate_jpeg_graphic(
     negative_prompt: str = "",
     bypass_refinement: bool = True,
     reference_image_path: Optional[str] = None,
-    category: str = "product"
+    category: str = "product",
+    steps: Optional[int] = None
 ) -> str:
     """
     Generates production-grade agency image assets.
@@ -416,7 +518,8 @@ def generate_jpeg_graphic(
             negative_prompt=negative_prompt,
             reference_image_path=ref_path_obj,
             category=category,
-            is_print=is_print
+            is_print=is_print,
+            num_inference_steps=steps
         )
         
         out_file.write_bytes(image_bytes)
@@ -560,7 +663,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         SAFE_EXTENSIONS = {
             ".html", ".css", ".js", ".ico", ".png", ".jpg", ".jpeg",
             ".gif", ".svg", ".webp", ".woff", ".woff2", ".ttf", ".eot",
-            ".mp4", ".webm", ".pdf", ".json",
+            ".mp4", ".webm", ".pdf", ".json", ".docx", ".pptx", ".xlsx",
         }
         # Dangerous extensions that must NEVER be served regardless of location
         BLOCKED_EXTENSIONS = {
@@ -618,6 +721,29 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path.startswith("/progress/"):
+            req_id = self.path.split("/progress/", 1)[1]
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Connection", "keep-alive")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            log_path = Path("logs/luminary.log")
+            if log_path.exists():
+                try:
+                    with open(log_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            if req_id in line:
+                                try:
+                                    self.wfile.write(f"data: {line.strip()}\n\n".encode("utf-8"))
+                                    self.wfile.flush()
+                                except (ConnectionAbortedError, BrokenPipeError, ConnectionResetError):
+                                    logger.info(f"[SSE Progress] Client disconnected for request {req_id}")
+                                    break
+                except Exception as ex:
+                    logger.error(f"[SSE Progress Error] {ex}")
+            return
         if social_api.handle_get(self):
             return
         if self.path in ("/template-catalog", "/template_catalog", "/api/templates/catalog", "/luminary_template_catalog.html", "/generated/luminary_template_catalog.html"):
@@ -640,17 +766,53 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                 fallback_html = "<!DOCTYPE html><html><head><style>body{background:#08070b;color:#faf8f5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;}.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:40px;border-radius:24px;max-width:440px;}h3{color:#ff5500;margin-bottom:12px;}p{color:rgba(250,248,245,0.6);}</style></head><body><div class=\"card\"><h3>No Template Items Found</h3><p>The Template Catalogue is currently generating or updating. Please try again in a few moments.</p></div></body></html>"
                 self.wfile.write(fallback_html.encode("utf-8"))
                 return
+        if self.path in ("/token_limits", "/api/token_limits"):
+            self._json(200)
+            self.wfile.write(json.dumps({
+                "CHAT_OUTPUT_TOKENS": CHAT_OUTPUT_TOKENS,
+                "DOC_OUTPUT_TOKENS": DOC_OUTPUT_TOKENS,
+                "PPT_OUTPUT_TOKENS": PPT_OUTPUT_TOKENS,
+                "SHEET_OUTPUT_TOKENS": SHEET_OUTPUT_TOKENS,
+                "PROMPT_BUILDER_MAX_TOKENS": PROMPT_BUILDER_MAX_TOKENS,
+                "SDXL_PROMPT_MAX_TOKENS": SDXL_PROMPT_MAX_TOKENS,
+                "FALLBACK_CAP": FALLBACK_CAP
+            }).encode("utf-8"))
+            return
+
+        if self.path.startswith("/job-status/"):
+            job_id = self.path.split("/job-status/", 1)[1].split("?", 1)[0]
+            job = job_manager.job_manager.get_job(job_id)
+            if not job:
+                self._json(404)
+                self.wfile.write(json.dumps({"detail": "Job not found"}).encode("utf-8"))
+                return
+            self._json(200)
+            job_data = job.to_dict()
+            if job.result and isinstance(job.result, dict) and "warning" in job.result:
+                job_data["warning"] = job.result["warning"]
+            self.wfile.write(json.dumps(job_data).encode("utf-8"))
+            return
+
+        if self.path.startswith("/image-result/"):
+            job_id = self.path.split("/image-result/", 1)[1].split("?", 1)[0]
+            job = job_manager.job_manager.get_job(job_id)
+            if not job or job.status != "ready" or not job.result or not job.result.get("image_url"):
+                self._json(404)
+                self.wfile.write(json.dumps({"detail": "Image result not ready or not found"}).encode("utf-8"))
+                return
+            img_rel = job.result["image_url"].split("?", 1)[0].lstrip("/")
+            target_path = (APP_ROOT / img_rel).resolve()
+            if target_path.exists():
+                self._serve_file(target_path, "image/jpeg")
+            else:
+                self._json(404)
+                self.wfile.write(json.dumps({"detail": "Generated image file not found on disk"}).encode("utf-8"))
+            return
         if self.path in ("/", "/luminary.html"):
             self._serve_file(APP_FILE, "text/html; charset=utf-8")
             return
-        if self.path in ("/health", "/api/health"):
-            self._json(200)
-            self.wfile.write(json.dumps({"status": "ok", "model": MODEL_NAME}).encode("utf-8"))
-            return
-        if self.path == "/api/health/dependencies":
+        if self.path in ("/health", "/api/health", "/api/health/dependencies"):
             import time
-            import db
-            # Check Ollama
             ollama_status = {"status": "down", "latency_ms": 0}
             t0 = time.time()
             try:
@@ -661,12 +823,14 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             except Exception as ex:
                 ollama_status["error"] = str(ex)
                 
-            # Check Local SDXL / Image Engine
             sdxl_status = {"status": "available", "device": "local_pipeline"}
             
             self._json(200)
             self.wfile.write(json.dumps({
                 "status": "ok" if ollama_status["status"] == "healthy" else "degraded",
+                "ollama_status": ollama_status["status"],
+                "image_pipeline_status": sdxl_status["status"],
+                "model": MODEL_NAME,
                 "dependencies": {
                     "ollama_llm": ollama_status,
                     "local_sdxl": sdxl_status,
@@ -711,6 +875,18 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"detail": f"Invalid JSON payload: {str(e)}"}).encode("utf-8"))
             return
 
+        if self.path.startswith("/cancel/"):
+            req_id = self.path.split("/cancel/", 1)[1]
+            try:
+                import local_sdxl_service
+                local_sdxl_service.sdxl_service.cancel()
+                self._json(200)
+                self.wfile.write(json.dumps({"status": "cancelled", "request_id": req_id}).encode("utf-8"))
+            except Exception as e:
+                self._json(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
+
         # Enforce Authentication on all mutating / data-returning API endpoints
         session = luminary_auth.get_authenticated_session(self)
         if not session:
@@ -747,7 +923,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             return
 
         # Enforce rate limiting on generation-heavy endpoints
-        if self.path in ("/chat", "/generate-image", "/blog/generate"):
+        if self.path in ("/chat", "/generate-image", "/image-job", "/blog/generate"):
             allowed, retry_after = GENERATION_RATE_LIMITER.is_allowed(self.authenticated_client_id)
             if not allowed:
                 self._json(429)
@@ -761,6 +937,8 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             self.handle_chat(body)
         elif self.path == "/generate-image":
             self.handle_generate_image(body)
+        elif self.path == "/image-job":
+            self.handle_image_job(body)
         elif self.path == "/audit":
             self.handle_audit(body)
         elif self.path == "/blog/topics":
@@ -821,8 +999,8 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         lowered = prompt.lower()
         tag = body.get("tag", "").lower()
 
-        # ── 0. Input Safety & Safeguard Gate (gpt-oss-safeguard-20b) ──
-        sec_res = luminary_safety.inspect_prompt(prompt)
+        # ── 0. Input Safety & Safeguard Gate (AI Security Safeguard Evaluator) ──
+        sec_res = luminary_safety.inspect_prompt_with_model(prompt, model_query_fn=query_ollama)
         if not sec_res.safe:
             logger.error(f"[SECURITY SAFEGUARD BLOCK] Category={sec_res.category} Severity={sec_res.severity} Reason={sec_res.reason}")
             self._json(200)
@@ -1162,9 +1340,16 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         routed_model = route_model(task_type, available)
         logger.info(f"[Intelligent Routing] Task='{task_type}' -> Model='{routed_model}'")
 
-        task_num_predict = 750 if (out_type in ["pptx", "docx", "xlsx"] or any(k in lowered for k in ["ppt", "presentation", "deck", "slides", "doc", "docx", "report", "sheet", "spreadsheet", "excel", "xlsx"])) else 600
-        initial_timeout = 160 if task_num_predict == 750 else 120
-        response_text = query_ollama(cot_prompt, timeout=initial_timeout, model_name=routed_model, num_predict=task_num_predict)
+        # Determine appropriate output token limit per endpoint
+        if out_type == "text":
+            token_limit = CHAT_OUTPUT_TOKENS
+        elif out_type in ["pptx", "docx", "xlsx"]:
+            token_limit = DOC_OUTPUT_TOKENS
+        else:
+            token_limit = CHAT_OUTPUT_TOKENS  # fallback for other types
+        # Timeout scaling based on token count (larger outputs may need more time)
+        initial_timeout = max(OLLAMA_TIMEOUT, int(token_limit * 0.1) + 90)
+        response_text = query_ollama(cot_prompt, timeout=initial_timeout, model_name=routed_model, num_predict=token_limit)
         logger.info(f"[Initial Generation Result] model={routed_model}, length={len(response_text) if response_text else 0}, snippet={repr(response_text[:100]) if response_text else 'None'}")
 
         # Self-healing for local model refusals / OpenAI pre-trained disclaimers
@@ -1528,7 +1713,7 @@ class LuminaryHandler(BaseHTTPRequestHandler):
             "Format the output as a clean JSON object with keys: 'brandName', 'businessType', 'coreValue', 'brandTone', 'brandSummary'. Respond ONLY with raw JSON."
         )
         try:
-            ai_resp = query_ollama(brand_query, timeout=10)
+            ai_resp = query_ollama(brand_query, timeout=OLLAMA_TIMEOUT, fallback_on_error=False)
             # Find json block
             json_match = re.search(r"(\{.*?\})", ai_resp, re.DOTALL)
             if json_match:
@@ -1559,17 +1744,18 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         elif resolution == "720p":
             width, height = 1280, 720
             
-        # Pre-flight check on the image prompt
         img_safety = luminary_safety.inspect_image_prompt(prompt)
         if not img_safety.safe:
-            # Log technical details server-side only — NEVER expose to user
             logger.error(f"[SAFETY BLOCK IMAGE API] Category={img_safety.category} Reason={img_safety.reason}")
-            self._json(200)
-            self.wfile.write(json.dumps({
-                "image_url": "",
-                "status": "blocked",
-                "reason": img_safety.safe_alternative
-            }).encode("utf-8"))
+            try:
+                self._json(200)
+                self.wfile.write(json.dumps({
+                    "image_url": "",
+                    "status": "blocked",
+                    "reason": img_safety.safe_alternative
+                }).encode("utf-8"))
+            except (ConnectionAbortedError, BrokenPipeError, ConnectionResetError) as e:
+                logger.warning(f"[handle_generate_image] Client disconnected during safety response: {e}")
             return
 
         specs = luminary_intelligence.parse_prompt_specs(prompt)
@@ -1578,9 +1764,102 @@ class LuminaryHandler(BaseHTTPRequestHandler):
         enriched_prompt = enriched_data["positive"]
         negative_prompt = enriched_data["negative"]
 
-        img_url = generate_jpeg_graphic(enriched_prompt, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
-        self._json(200)
-        self.wfile.write(json.dumps({"image_url": img_url, "status": "success"}).encode("utf-8"))
+        try:
+            img_url = generate_jpeg_graphic(enriched_prompt, width, height, negative_prompt=negative_prompt, bypass_refinement=True)
+            self._json(200)
+            self.wfile.write(json.dumps({"image_url": img_url, "status": "success"}).encode("utf-8"))
+        except (ConnectionAbortedError, BrokenPipeError, ConnectionResetError) as sock_err:
+            logger.warning(f"[handle_generate_image] Client disconnected during image delivery: {sock_err}")
+        except Exception as gen_err:
+            logger.error(f"[handle_generate_image] Generation failed: {gen_err}")
+            try:
+                self._json(500)
+                self.wfile.write(json.dumps({"error": f"Image generation failed: {str(gen_err)}"}).encode("utf-8"))
+            except Exception:
+                pass
+
+    def handle_image_job(self, body):
+        prompt = body.get("prompt", "Luminary marketing graphic")
+        
+        # Parse target resolution: supports integer width/height or resolution strings
+        width = int(body.get("width", 512))
+        height = int(body.get("height", 512))
+        if "resolution" in body:
+            res_val = str(body["resolution"]).lower()
+            if res_val == "1080p":
+                width, height = 1920, 1080
+            elif res_val == "720p":
+                width, height = 1280, 720
+            elif "x" in res_val:
+                try:
+                    w_s, h_s = res_val.split("x", 1)
+                    width, height = int(w_s), int(h_s)
+                except Exception:
+                    pass
+
+        # Configurable performance resolution cap (default 768x768)
+        max_res_str = os.getenv("MAX_IMAGE_RESOLUTION", "768x768")
+        try:
+            max_w, max_h = map(int, max_res_str.lower().split('x'))
+            max_resolution = (max_w, max_h)
+        except Exception:
+            max_resolution = (768, 768)
+
+        warning_msg = None
+        orig_w, orig_h = width, height
+        if width > max_resolution[0] or height > max_resolution[1]:
+            capped_w = min(width, max_resolution[0])
+            capped_h = min(height, max_resolution[1])
+            warning_msg = f"⚠️ Resolution capped: requested {orig_w}x{orig_h} reduced to {capped_w}x{capped_h} per performance limits."
+            logger.warning(f"[handle_image_job] {warning_msg}")
+            width, height = capped_w, capped_h
+            
+        img_safety = luminary_safety.inspect_image_prompt(prompt)
+        if not img_safety.safe:
+            logger.error(f"[SAFETY BLOCK IMAGE JOB] Category={img_safety.category} Reason={img_safety.reason}")
+            try:
+                self._json(200)
+                self.wfile.write(json.dumps({
+                    "job_id": None,
+                    "status": "blocked",
+                    "reason": img_safety.safe_alternative
+                }).encode("utf-8"))
+            except (ConnectionAbortedError, BrokenPipeError, ConnectionResetError) as e:
+                logger.warning(f"[handle_image_job] Client disconnected: {e}")
+            return
+
+        specs = luminary_intelligence.parse_prompt_specs(prompt)
+        specs["resolution"] = (width, height)
+        enriched_data = luminary_intelligence.build_image_prompt(prompt, specs)
+        enriched_prompt = enriched_data["positive"]
+        negative_prompt = enriched_data["negative"]
+
+        steps = int(body.get("num_inference_steps", DEFAULT_STEPS))
+        def _task_worker(p, w, h, negative_prompt=""):
+            return generate_jpeg_graphic(p, w, h, negative_prompt=negative_prompt, bypass_refinement=True, steps=steps)
+
+        job_id = job_manager.job_manager.submit_image_task(
+            prompt=enriched_prompt,
+            width=width,
+            height=height,
+            negative_prompt=negative_prompt,
+            task_fn=_task_worker,
+            warning=warning_msg
+        )
+
+        try:
+            self._json(202)
+            resp_payload = {
+                "job_id": job_id,
+                "status": "pending",
+                "status_url": f"/job-status/{job_id}",
+                "result_url": f"/image-result/{job_id}"
+            }
+            if warning_msg:
+                resp_payload["warning"] = warning_msg
+            self.wfile.write(json.dumps(resp_payload).encode("utf-8"))
+        except (ConnectionAbortedError, BrokenPipeError, ConnectionResetError) as sock_err:
+            logger.warning(f"[handle_image_job] Client disconnected while returning job ID: {sock_err}")
 
     def handle_audit(self, body):
         url = body.get("url", "").strip()
@@ -1649,7 +1928,7 @@ Return only valid JSON with this schema:
     def handle_blog_generate(self, body):
         topic = body.get("topic", "Industry Insights")
         prompt = f"Write a complete HTML blog post about {topic}. Tone: {body.get('tone', 'professional')}. Audience: {body.get('audience', 'general')}."
-        html_body = query_ollama(prompt, timeout=20)
+        html_body = query_ollama(prompt, timeout=OLLAMA_TIMEOUT)
         if not html_body or "Error connecting" in html_body:
             html_body = (
                 f"<h2>Understanding {topic}</h2>"
@@ -1712,7 +1991,7 @@ def run():
                 subprocess.Popen(["ollama", "serve"], **popen_kwargs)
                 time.sleep(3)  # Allow port binding time
             except Exception as e:
-                logger.warning(f"Self-Healing Alert: Failed to auto-start Ollama: {e}")
+                logger.error(f"[Self-Healing Error] Failed to auto-start Ollama: {e}. Switching to Hugging Face fallback engine.")
 
         # Launch social sync background thread safely
         try:

@@ -1,3 +1,5 @@
+import os
+FALLBACK_CAP = int(os.getenv('FALLBACK_CAP', '1024'))
 """
 luminary_intelligence.py
 ========================

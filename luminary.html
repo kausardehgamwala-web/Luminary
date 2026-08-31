@@ -69,15 +69,211 @@
       fill: #ffffff !important;
       stroke: #ffffff !important;
       text-decoration: none !important;
+
+    /* ==========================================================================
+       UI & CSS Fixes: Chat Window Expansion, User Bubbles, & Deliverable Cards
+       ========================================================================== */
+    /* 1. Expand Chat Window Height */
+    .chat-stage,
+    .chat-container {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 1 auto !important;
+      flex-grow: 1 !important;
+      height: calc(100vh - 280px) !important;
+      min-height: 0 !important;
+      max-width: 950px !important;
+      width: 100% !important;
+      margin: 0 auto !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
     }
 
-</style>');
-        }
-      } catch(e) {}
-    })();
-  </script>
-  <style>
-    .msg-actions {
+    .chat-feed,
+    .chat-history,
+    .chat-messages {
+      flex: 1 1 auto !important;
+      flex-grow: 1 !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow-y: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      padding: 12px 6px !important;
+      box-sizing: border-box !important;
+      scroll-behavior: smooth !important;
+    }
+
+    /* 2. Fix User Chat Bubble Spacing */
+    .chat-message.user,
+    .user-message {
+      margin-left: auto !important;
+      align-items: flex-end !important;
+      align-self: flex-end !important;
+      width: fit-content !important;
+      max-width: 85% !important;
+    }
+
+    .chat-message.user .bubble,
+    .user-message .bubble,
+    .user-message .message-content,
+    .chat-message.user .message-content {
+      display: inline-block !important;
+      height: auto !important;
+      min-height: unset !important;
+      width: fit-content !important;
+      max-width: 85% !important;
+      padding: 12px 18px !important;
+      border-radius: 20px 20px 4px 20px !important;
+      box-sizing: border-box !important;
+      word-break: break-word !important;
+      white-space: pre-wrap !important;
+      background: linear-gradient(135deg, var(--orange), var(--orange-2)) !important;
+      color: #ffffff !important;
+      box-shadow: 0 10px 25px rgba(255, 85, 0, 0.22) !important;
+    }
+
+    /* 3. Fix Document/Attachment Card Layout */
+    .deliverable-container,
+    .attachment-container,
+    .doc-container {
+      margin-top: 12px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    .deliverable-card,
+    .attachment-card,
+    .document-card,
+    .doc-card {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 16px !important;
+      padding: 16px !important;
+      height: auto !important;
+      min-height: unset !important;
+      width: fit-content !important;
+      max-width: 100% !important;
+      border-radius: 12px !important;
+      background: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      box-sizing: border-box !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+      transition: all 0.2s ease !important;
+    }
+
+    body.light-mode .deliverable-card,
+    body.light-mode .attachment-card,
+    body.light-mode .document-card,
+    body.light-mode .doc-card {
+      background: #faf8f5 !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    .deliverable-card:hover,
+    .attachment-card:hover,
+    .document-card:hover {
+      border-color: var(--orange) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 24px var(--orange-glow) !important;
+    }
+
+    .deliverable-left,
+    .attachment-left,
+    .doc-left {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 12px !important;
+      flex: 1 !important;
+      min-width: 0 !important;
+    }
+
+    .deliverable-icon-wrap,
+    .attachment-icon-wrap,
+    .doc-icon-wrap {
+      width: 42px !important;
+      height: 42px !important;
+      min-width: 42px !important;
+      min-height: 42px !important;
+      border-radius: 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+      font-size: 1.15rem !important;
+    }
+
+    .deliverable-info,
+    .attachment-info,
+    .doc-info {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      min-width: 0 !important;
+    }
+
+    .deliverable-info h4,
+    .attachment-info h4,
+    .doc-info h4 {
+      margin: 0 !important;
+      font-size: 0.92rem !important;
+      font-weight: 700 !important;
+      color: var(--text) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .deliverable-info p,
+    .attachment-info p,
+    .doc-info p {
+      margin: 2px 0 0 0 !important;
+      font-size: 0.75rem !important;
+      color: var(--muted) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .deliverable-download-btn,
+    .attachment-download-btn,
+    .doc-download-btn {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      padding: 8px 16px !important;
+      border-radius: 10px !important;
+      background: var(--orange) !important;
+      color: #ffffff !important;
+      font-size: 0.8rem !important;
+      font-weight: 700 !important;
+      text-decoration: none !important;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      transition: all 0.2s ease !important;
+      border: none !important;
+      cursor: pointer !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      height: auto !important;
+    }
+
+    .deliverable-download-btn:hover,
+    .attachment-download-btn:hover,
+    .doc-download-btn:hover {
+      background: #ff661a !important;
+      transform: translateY(-1px) !important;
+    }
+
       display: flex;
       gap: 12px;
       margin-top: 8px;
@@ -1505,19 +1701,7 @@
       text-decoration: none !important;
     }
 
-</style>');
-        }
-      } catch(e){}
-    })();
-  
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
-</script>
+</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -2511,8 +2695,9 @@
       bottom: 0;
       width: 280px;
       z-index: 85;
-      border-right: 0;
-      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      border: none !important;
+      border-right: 0 !important;
+      border-left: none !important;
       background: #0c0a10;
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
@@ -2521,6 +2706,60 @@
       transform: translateX(0);
       opacity: 1;
       box-shadow: none !important;
+    }
+
+    .welcome-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 20px 40px;
+      margin: auto 0;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .welcome-container h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 32px rgba(255, 85, 0, 0.18);
+    }
+
+    .welcome-container p {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+
+    body.light-mode .welcome-container h2 {
+      background: linear-gradient(135deg, #09080b 0%, #334155 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: #09080b;
+      text-shadow: none;
+    }
+
+    body.light-mode .welcome-container p {
+      color: rgba(0, 0, 0, 0.55);
+    }
+
+    .fade-out-up {
+      opacity: 0 !important;
+      transform: translateY(-20px) !important;
+      transition: all 0.4s ease-out !important;
+      pointer-events: none !important;
     }
 
     .dashboard.history-closed .history-panel,
@@ -2597,13 +2836,23 @@
       position: relative;
     }
 
-    .dash-sidebar,
-    .history-panel {
+    .dash-sidebar {
       padding: 28px 20px;
       background: #09080b; /* Fixed fade bleed */
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition), opacity var(--transition), background var(--transition);
+    }
+
+    .history-panel {
+      padding: 28px 20px;
+      background: #09080b;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: none !important;
       display: flex;
       flex-direction: column;
       transition: transform var(--transition), opacity var(--transition), background var(--transition);
@@ -7327,7 +7576,10 @@ body.light-mode .history-item.active {
       };
 
       try {
-        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`);
+        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`, {
+          method: "GET",
+          credentials: "include"
+        });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         if (data && data.analytics) {
@@ -7548,8 +7800,6 @@ body.light-mode .history-item.active {
       }
     };
 
-</script>
-<script>
     window.submitSignupForm = function() {
       try {
         if (window.doSubmitSignupForm) {
@@ -7576,13 +7826,6 @@ body.light-mode .history-item.active {
       }
     };
 
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
 </script>
 
 </head>
@@ -7591,2997 +7834,1312 @@ body.light-mode .history-item.active {
     <section class="app-shell" id="landingView" style="display:block;">
 
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+      /* Global Landing Styles (White/Off-White Theme with Orange Accents) */
       #landingView {
-        background: radial-gradient(circle at 50% -10%, rgba(255, 85, 0, 0.14), transparent 50%),
-                    radial-gradient(circle at 10% 40%, rgba(137, 79, 255, 0.08), transparent 45%),
-                    radial-gradient(circle at 90% 60%, rgba(255, 85, 0, 0.06), transparent 45%),
-                    #08070b !important;
+        background: #ffffff !important;
         position: relative;
-        color: #ffffff !important;
-        font-family: "Outfit", sans-serif;
+        color: #111111 !important;
+        font-family: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif !important;
         min-height: 100vh;
         overflow-x: hidden;
       }
-      #landingView * { box-sizing: border-box; }
-      
-      .landing-nav {
+      #landingView * {
+        box-sizing: border-box;
+      }
+
+      /* Premium Landing Navigation */
+      .luminary-nav {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 20px 48px;
         position: sticky;
         top: 0;
-        z-index: 100;
-        background: rgba(8, 7, 11, 0.85) !important;
-        backdrop-filter: blur(24px) !important;
-        -webkit-backdrop-filter: blur(24px) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.92) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+        max-width: 100%;
       }
-      .landing-nav a {
-        color: rgba(255, 255, 255, 0.75) !important;
-        transition: all 0.2s;
+      .luminary-nav-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
       }
-      .landing-nav a:hover {
+      .luminary-logo-badge {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #111111;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      }
+      .luminary-logo-badge svg {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 2.4;
+      }
+      .luminary-wordmark {
+        font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+        font-weight: 800;
+        font-size: 1.25rem;
+        letter-spacing: -0.03em;
+        color: #111111;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .luminary-wordmark span {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #777777;
+      }
+      .luminary-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+      }
+      .luminary-nav-links a {
+        color: #444444 !important;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: color 0.2s ease;
+      }
+      .luminary-nav-links a:hover {
+        color: #FF5500 !important;
+      }
+      .luminary-nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .luminary-btn-ghost {
+        color: #222222 !important;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 10px 18px;
+        border-radius: 9999px;
+        transition: all 0.2s ease;
+      }
+      .luminary-btn-ghost:hover {
+        color: #FF5500 !important;
+        background: rgba(255, 85, 0, 0.05);
+      }
+      .luminary-btn-pill {
+        background: #FF5500 !important;
+        background-color: #FF5500 !important;
         color: #ffffff !important;
+        text-decoration: none !important;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 12px 24px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 8px 24px rgba(255, 85, 0, 0.3) !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        border: none;
+        cursor: pointer;
       }
-      .landing-nav-cta {
-        background: var(--orange) !important;
-        color: #ffffff !important;
-        border-radius: 10px !important;
-        padding: 8px 18px !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 14px var(--orange-glow) !important;
+      .luminary-btn-pill:hover {
+        background: #ff661a !important;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(255, 85, 0, 0.45) !important;
       }
-      .landing-hero {
+
+      /* Hero Section */
+      .luminary-hero {
+        position: relative;
+        padding: 70px 24px 80px 24px;
         text-align: center;
-        padding: 80px 24px 60px 24px;
-        max-width: 1000px;
+        max-width: 1280px;
         margin: 0 auto;
       }
-      .landing-hero h1 {
-        font-size: 3.8rem;
+      .hero-tagline-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 18px;
+        border-radius: 9999px;
+        background: rgba(255, 85, 0, 0.08);
+        border: 1px solid rgba(255, 85, 0, 0.2);
+        color: #FF5500;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 24px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+      .luminary-hero h1 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: clamp(2.8rem, 5.8vw, 5rem);
         font-weight: 800;
-        line-height: 1.1;
-        letter-spacing: -0.03em;
-        margin-bottom: 20px;
-        color: #ffffff;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: #111111;
+        max-width: 960px;
+        margin: 0 auto 20px auto;
       }
-      .landing-hero h1 span.gradient-text {
-        background: linear-gradient(135deg, #ff5500 0%, #ff8c40 50%, #ffa366 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      .landing-hero p {
-        font-size: 1.25rem;
-        color: rgba(255, 255, 255, 0.65);
+      .luminary-hero p.hero-sub {
+        font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+        font-size: clamp(1.1rem, 2vw, 1.3rem);
+        color: #555555;
         max-width: 720px;
         margin: 0 auto 36px auto;
         line-height: 1.6;
+        font-weight: 400;
       }
-      .landing-cta-btn {
-        background: var(--orange) !important;
-        color: #ffffff !important;
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
-        padding: 14px 32px !important;
-        border-radius: 14px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 10px !important;
-        box-shadow: 0 8px 28px var(--orange-glow) !important;
-        transition: all 0.3s ease !important;
-        text-decoration: none !important;
-        border: none !important;
-        cursor: pointer !important;
-      }
-      .landing-cta-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 36px rgba(255, 85, 0, 0.45) !important;
-        background: #ff661a !important;
-      }
-      .landing-nav {
-
+      .hero-cta-group {
         display: flex;
-
         align-items: center;
-
-        justify-content: space-between;
-
-        padding: 24px 64px;
-
-        position: sticky;
-
-        top: 0;
-
-        z-index: 100;
-
-        background: rgba(250, 249, 246, 0.85);
-
-        backdrop-filter: blur(24px);
-
-        -webkit-backdrop-filter: blur(24px);
-
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-
-      }
-
-      .landing-nav .brand { display: flex; align-items: center; text-decoration: none; }
-
-      .landing-nav .brand-wordmark { display: flex; flex-direction: column; line-height: 1.1; }
-
-      .landing-nav .brand-wordmark strong { color: #050505; letter-spacing: -0.02em; font-size: 1.25rem; }
-
-      .landing-nav .brand-wordmark span { color: rgba(5,5,5,0.5); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-
-      .nav-links { display: flex; gap: 40px; }
-
-      .nav-links a { color: rgba(5,5,5,0.7); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: color 0.2s; }
-
-      .nav-links a:hover { color: var(--orange); }
-
-      .nav-actions { display: flex; align-items: center; gap: 24px; }
-
-      .nav-actions .login-link { color: #050505; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.2s; }
-
-      .nav-actions .login-link:hover { color: var(--orange); }
-
-      
-
-      .btn-primary {
-
-        background: var(--orange);
-
-        color: white;
-
-        padding: 12px 28px;
-
-        border-radius: 50px;
-
-        text-decoration: none;
-
-        font-weight: 600;
-
-        transition: all 0.3s;
-
-        box-shadow: 0 4px 16px rgba(255,85,0,0.25);
-
-      }
-
-      .btn-primary:hover {
-
-        transform: translateY(-2px);
-
-        box-shadow: 0 8px 24px rgba(255,85,0,0.35);
-
-        background: #ff6600;
-
-      }
-
-      
-
-      .keyword-highlight {
-
-        transition: color 0.3s ease, text-shadow 0.3s ease;
-
-        position: relative;
-
-        display: inline-block;
-
-      }
-
-      .keyword-highlight:hover {
-
-        color: var(--orange);
-
-        text-shadow: 0 0 24px rgba(255,85,0,0.2);
-
-      }
-
-
-
-      .landing-hero {
-
-        padding: 140px 48px 80px;
-
-        text-align: center;
-
-        max-width: 1100px;
-
-        margin: 0 auto;
-
-        animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-
-      }
-
-      .landing-hero h1 {
-
-        font-size: 5rem;
-
-        font-weight: 700;
-
-        line-height: 1.05;
-
-        letter-spacing: -0.03em;
-
-        margin-bottom: 24px;
-
-        color: #050505;
-
-      }
-
-      .landing-hero p {
-
-        font-size: 1.35rem;
-
-        color: rgba(5,5,5,0.6);
-
-        max-width: 750px;
-
-        margin: 0 auto 48px;
-
-        line-height: 1.6;
-
-        font-weight: 300;
-
-      }
-
-      .hero-ctas { display: flex; align-items: center; justify-content: center; gap: 16px; }
-
-      .btn-secondary {
-
-        background: #ffffff;
-
-        color: #050505;
-
-        border: 1px solid rgba(0,0,0,0.08);
-
-        padding: 14px 36px;
-
-        border-radius: 50px;
-
-        text-decoration: none;
-
-        font-weight: 600;
-
-        transition: all 0.3s;
-
-        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-
-      }
-
-      .btn-secondary:hover {
-
-        border-color: rgba(0,0,0,0.15);
-
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-
-        transform: translateY(-2px);
-
-      }
-
-      .btn-primary-large {
-
-        background: var(--orange);
-
-        color: white;
-
-        padding: 14px 40px;
-
-        border-radius: 50px;
-
-        text-decoration: none;
-
-        font-weight: 600;
-
-        transition: all 0.3s;
-
-        box-shadow: 0 12px 32px rgba(255,85,0,0.3);
-
-        display: inline-flex;
-
-        align-items: center;
-
-        gap: 12px;
-
-        font-size: 1.05rem;
-
-      }
-
-      .btn-primary-large:hover {
-
-        transform: translateY(-2px);
-
-        box-shadow: 0 16px 48px rgba(255,85,0,0.4);
-
-        background: #ff6600;
-
-      }
-
-      
-
-      .hero-visual {
-
-        margin-top: 80px;
-
-        display: flex;
-
         justify-content: center;
-
-        position: relative;
-
-        perspective: 1000px;
-
-      }
-
-      .visual-card {
-
-        background: #ffffff;
-
-        border-radius: 24px;
-
-        padding: 0;
-
-        box-shadow: 0 32px 80px rgba(0,0,0,0.08);
-
-        border: 1px solid rgba(0,0,0,0.04);
-
-        width: 100%;
-
-        max-width: 880px;
-
-        overflow: hidden;
-
-        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-
-        transform: rotateX(2deg) translateY(0);
-
-      }
-
-      .visual-card:hover {
-
-        transform: rotateX(0deg) translateY(-12px);
-
-        box-shadow: 0 48px 100px rgba(0,0,0,0.12);
-
-      }
-
-      
-
-      .landing-section {
-
-        padding: 140px 48px;
-
-        max-width: 1200px;
-
-        margin: 0 auto;
-
-      }
-
-      .section-header { text-align: center; margin-bottom: 80px; }
-
-      .section-header h2 {
-
-        font-size: 3.5rem;
-
-        font-weight: 700;
-
-        margin-bottom: 24px;
-
-        color: #050505;
-
-        letter-spacing: -0.03em;
-
-        line-height: 1.1;
-
-      }
-
-      .section-header p {
-
-        font-size: 1.25rem;
-
-        color: rgba(5,5,5,0.6);
-
-        max-width: 640px;
-
-        margin: 0 auto;
-
-        line-height: 1.6;
-
-      }
-
-
-
-      .features-grid {
-
-        display: grid;
-
-        grid-template-columns: repeat(3, 1fr);
-
-        gap: 32px;
-
-      }
-
-      .feature-card {
-
-        background: #ffffff;
-
-        border-radius: 24px;
-
-        padding: 48px 40px;
-
-        border: 1px solid rgba(0,0,0,0.04);
-
-        box-shadow: 0 12px 32px rgba(0,0,0,0.02);
-
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-
-      }
-
-      .feature-card:hover {
-
-        box-shadow: 0 32px 80px rgba(0,0,0,0.08);
-
-        transform: translateY(-8px);
-
-        border-color: rgba(255,85,0,0.1);
-
-      }
-
-      .feature-icon {
-
-        width: 56px;
-
-        height: 56px;
-
-        background: rgba(255,85,0,0.08);
-
-        color: var(--orange);
-
-        border-radius: 16px;
-
-        display: flex;
-
-        align-items: center;
-
-        justify-content: center;
-
-        font-size: 1.5rem;
-
-        margin-bottom: 32px;
-
-      }
-
-      .feature-card h3 { font-size: 1.5rem; margin-bottom: 16px; color: #050505; letter-spacing: -0.01em; }
-
-      .feature-card p { color: rgba(5,5,5,0.6); line-height: 1.6; font-size: 1.05rem; }
-
-
-
-      .comparison-table {
-
-        display: grid;
-
-        grid-template-columns: 1fr 1fr;
-
-        gap: 32px;
-
-      }
-
-      .comp-col {
-
-        background: #ffffff;
-
-        border-radius: 32px;
-
-        padding: 64px 48px;
-
-        border: 1px solid rgba(0,0,0,0.05);
-
-        box-shadow: 0 24px 64px rgba(0,0,0,0.04);
-
-      }
-
-      .comp-col.luminary-col {
-
-        background: #050505;
-
-        color: #ffffff;
-
-        border: none;
-
-        position: relative;
-
-        overflow: hidden;
-
-        box-shadow: 0 32px 80px rgba(0,0,0,0.2);
-
-      }
-
-      .comp-col.luminary-col::before {
-
-        content: '';
-
-        position: absolute;
-
-        top: 0; left: 0; right: 0; height: 6px;
-
-        background: var(--orange);
-
-      }
-
-      .comp-col h3 { font-size: 2rem; margin-bottom: 40px; letter-spacing: -0.02em; }
-
-      .comp-col.luminary-col h3 { color: #ffffff; }
-
-      .comp-list { list-style: none; padding: 0; margin: 0; }
-
-      .comp-list li {
-
-        padding: 20px 0;
-
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-
-        display: flex;
-
-        align-items: flex-start;
-
         gap: 16px;
-
-        font-size: 1.15rem;
-
-        color: rgba(5,5,5,0.7);
-
+        margin-bottom: 60px;
+        flex-wrap: wrap;
       }
-
-      .luminary-col .comp-list li {
-
-        border-bottom-color: rgba(255,255,255,0.08);
-
-        color: rgba(255,255,255,0.8);
-
-      }
-
-      .comp-list li:last-child { border-bottom: none; }
-
-      .comp-icon-x { color: #ff3333; margin-top: 4px; font-size: 1.1rem; }
-
-      .comp-icon-check { color: var(--orange); margin-top: 4px; font-size: 1.1rem; }
-
-
-
-      .ecosystem-diagram {
-
-        display: flex;
-
-        flex-direction: column;
-
-        align-items: center;
-
-        gap: 20px;
-
-        position: relative;
-
-      }
-
-      .eco-node {
-
-        background: #ffffff;
-
-        border: 1px solid rgba(0,0,0,0.06);
-
-        padding: 20px 48px;
-
-        border-radius: 100px;
-
-        font-weight: 600;
-
-        font-size: 1.1rem;
-
-        box-shadow: 0 12px 32px rgba(0,0,0,0.04);
-
-        color: #050505;
-
-        position: relative;
-
-        z-index: 2;
-
-        width: 320px;
-
-        text-align: center;
-
-        transition: all 0.3s;
-
-      }
-
-      .eco-node:hover {
-
-        border-color: rgba(255,85,0,0.3);
-
-        color: var(--orange);
-
-        transform: scale(1.05);
-
-        box-shadow: 0 16px 40px rgba(255,85,0,0.1);
-
-      }
-
-      .eco-arrow {
-
-        color: rgba(0,0,0,0.1);
-
-        font-size: 1.5rem;
-
-      }
-
-
-
-      .pricing-grid {
-
-        display: flex;
-
-        justify-content: center;
-
-        gap: 32px;
-
-        max-width: 900px;
-
-        margin: 0 auto;
-
-      }
-
-      .pricing-card {
-
-        background: #ffffff;
-
-        border: 1px solid rgba(0,0,0,0.06);
-
-        border-radius: 32px;
-
-        padding: 56px 48px;
-
-        width: 100%;
-
-        max-width: 420px;
-
-        box-shadow: 0 24px 64px rgba(0,0,0,0.03);
-
-        display: flex;
-
-        flex-direction: column;
-
-        transition: all 0.4s;
-
-      }
-
-      .pricing-card:hover {
-
-        transform: translateY(-8px);
-
-        box-shadow: 0 32px 80px rgba(0,0,0,0.08);
-
-      }
-
-      .pricing-card.pro {
-
-        border: 2px solid var(--orange);
-
-        position: relative;
-
-      }
-
-      .pricing-card.pro::before {
-
-        content: 'Most Popular';
-
-        position: absolute;
-
-        top: -16px;
-
-        left: 50%;
-
-        transform: translateX(-50%);
-
-        background: var(--orange);
-
-        color: white;
-
-        padding: 6px 20px;
-
-        border-radius: 20px;
-
-        font-size: 0.85rem;
-
+      .hero-btn-primary {
+        background: #FF5500 !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        font-size: 1.05rem;
         font-weight: 700;
-
-        text-transform: uppercase;
-
-        letter-spacing: 0.05em;
-
+        padding: 16px 36px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 30px rgba(255, 85, 0, 0.35) !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        border: none;
+        cursor: pointer;
       }
-
-      .plan-name { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; color: rgba(5,5,5,0.6); letter-spacing: 0.02em; }
-
-      .plan-price { font-size: 3.5rem; font-weight: 700; margin-bottom: 12px; color: #050505; letter-spacing: -0.02em; }
-
-      .plan-price span { font-size: 1.1rem; color: rgba(5,5,5,0.5); font-weight: 500; }
-
-      .plan-desc { font-size: 1.05rem; color: rgba(5,5,5,0.6); margin-bottom: 40px; line-height: 1.6; }
-
-      .plan-features { list-style: none; padding: 0; margin: 0 0 48px 0; flex: 1; }
-
-      .plan-features li { padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.04); display: flex; align-items: center; gap: 14px; color: #050505; font-size: 1.05rem; }
-
-      .plan-features li i { color: var(--orange); font-size: 1.1rem; }
-
-
-
-      .landing-footer {
-
+      .hero-btn-primary:hover {
+        background: #ff661a !important;
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px rgba(255, 85, 0, 0.45) !important;
+      }
+      .hero-btn-secondary {
         background: #ffffff;
-
-        padding: 100px 64px 40px;
-
-        border-top: 1px solid rgba(0,0,0,0.05);
-
+        color: #111111 !important;
+        text-decoration: none !important;
+        font-size: 1.05rem;
+        font-weight: 700;
+        padding: 16px 32px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1.5px solid #111111;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+      }
+      .hero-btn-secondary:hover {
+        background: #111111;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       }
 
-      .footer-grid {
-
-        display: grid;
-
-        grid-template-columns: 2fr 1fr 1fr 1fr;
-
-        gap: 64px;
-
-        max-width: 1200px;
-
+      /* Hero Visual Centerpiece with Floating Cards */
+      .hero-stage-wrapper {
+        position: relative;
+        max-width: 920px;
         margin: 0 auto;
-
-        margin-bottom: 80px;
-
-      }
-
-      .footer-brand p { color: rgba(5,5,5,0.6); line-height: 1.6; margin-top: 20px; max-width: 320px; font-size: 1.05rem; }
-
-      .footer-col h4 { color: #050505; font-size: 1.2rem; margin-bottom: 24px; font-weight: 600; }
-
-      .footer-links { list-style: none; padding: 0; margin: 0; }
-
-      .footer-links li { margin-bottom: 14px; }
-
-      .footer-links a { color: rgba(5,5,5,0.6); text-decoration: none; transition: color 0.2s; font-size: 1.05rem; }
-
-      .footer-links a:hover { color: var(--orange); }
-
-      .footer-bottom {
-
-        max-width: 1200px;
-
-        margin: 0 auto;
-
-        padding-top: 32px;
-
-        border-top: 1px solid rgba(0,0,0,0.05);
-
+        padding: 20px 0 40px 0;
         display: flex;
-
-        justify-content: space-between;
-
-        color: rgba(5,5,5,0.4);
-
-        font-size: 0.95rem;
-
+        align-items: center;
+        justify-content: center;
       }
-
-      
-
-      @keyframes fadeUp {
-
-        from { opacity: 0; transform: translateY(20px); }
-
-        to { opacity: 1; transform: translateY(0); }
-
-      }
-
-      
-
-      @media (max-width: 1024px) {
-
-        .landing-hero h1 { font-size: 4rem; }
-
-        .features-grid { grid-template-columns: 1fr 1fr; }
-
-        .comparison-table { grid-template-columns: 1fr; }
-
-      }
-
-      @media (max-width: 768px) {
-
-        .landing-nav { flex-direction: column; gap: 16px; padding: 20px; }
-
-        .nav-links { display: none; }
-
-        .landing-hero { padding: 100px 24px 60px; }
-
-        .landing-hero h1 { font-size: 3rem; }
-
-        .features-grid { grid-template-columns: 1fr; }
-
-        .pricing-grid { flex-direction: column; align-items: center; }
-
-        .footer-grid { grid-template-columns: 1fr; gap: 40px; }
-
-      }
-
-    
-
-      /* V2 Refinements */
-
-      .hero-glow {
-
+      .hero-backdrop-glow {
         position: absolute;
-
-        top: 0; left: 0; right: 0; bottom: 0;
-
-        background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="blur"><feGaussianBlur stdDeviation="12"/></filter><circle cx="100" cy="100" r="80" fill="rgba(255,85,0,0.03)" filter="url(#blur)"/></svg>') no-repeat center center;
-
-        background-size: cover;
-
-        z-index: -1;
-
-        opacity: 0.6;
-
-        animation: pulseGlow 8s ease-in-out infinite alternate;
-
-      }
-
-      
-
-      @keyframes pulseGlow {
-
-        0% { transform: scale(1); opacity: 0.5; }
-
-        100% { transform: scale(1.1); opacity: 0.8; }
-
-      }
-
-      
-
-      .feature-card {
-
-        position: relative;
-
-        overflow: hidden;
-
-        background: linear-gradient(145deg, #ffffff, #fdfcfb);
-
-      }
-
-      .feature-card::before {
-
-        content: '';
-
-        position: absolute;
-
-        top: 0; left: 0; right: 0; height: 4px;
-
-        background: linear-gradient(90deg, rgba(255,85,0,0), rgba(255,85,0,0.4), rgba(255,85,0,0));
-
-        transform: translateX(-100%);
-
-        transition: transform 0.6s ease;
-
-      }
-
-      .feature-card:hover::before {
-
-        transform: translateX(100%);
-
-      }
-
-      
-
-      .stat-highlight {
-
-        font-size: 2.5rem;
-
-        font-weight: 800;
-
-        color: transparent;
-
-        background: linear-gradient(135deg, var(--orange), #ff9955);
-
-        -webkit-background-clip: text;
-
-        letter-spacing: -0.05em;
-
-        line-height: 1;
-
-        margin-bottom: 8px;
-
-        display: block;
-
-      }
-
-      
-
-      .comp-col.luminary-col {
-
-        background: linear-gradient(145deg, #0a0500, #1a0d05);
-
-        border: 1px solid rgba(255,85,0,0.2);
-
-        box-shadow: 0 32px 80px rgba(255,85,0,0.15);
-
-        transform: translateY(-8px);
-
-      }
-
-      .comp-col.luminary-col:hover {
-
-        transform: translateY(-12px);
-
-        box-shadow: 0 40px 100px rgba(255,85,0,0.25);
-
-      }
-
-      
-
-      .brand-context-box {
-
-        background: linear-gradient(145deg, #080400, #120a05) !important;
-
-        padding: 100px 64px !important;
-
-        border: 1px solid rgba(255,85,0,0.15);
-
-      }
-
-      .brand-context-text {
-
-        font-size: 1.6rem !important;
-
-      }
-
-      
-
-      .flow-text {
-
-        background-size: 200% auto;
-
-        color: rgba(255,255,255,0.4) !important;
-
-        background-clip: text;
-
-        -webkit-background-clip: text;
-
-        animation: flowColor 6s linear infinite;
-
-      }
-
-      @keyframes flowColor {
-
-        0% { color: rgba(255,255,255,0.4); }
-
-        10% { color: var(--orange); text-shadow: 0 0 12px rgba(255,85,0,0.6); }
-
-        20% { color: rgba(255,255,255,0.4); text-shadow: none; }
-
-        100% { color: rgba(255,255,255,0.4); }
-
-      }
-
-      .flow-1 { animation-delay: 0s; }
-
-      .flow-2 { animation-delay: 0.8s; }
-
-      .flow-3 { animation-delay: 1.6s; }
-
-      .flow-4 { animation-delay: 2.4s; }
-
-      .flow-5 { animation-delay: 3.2s; }
-
-      .flow-6 { animation-delay: 4.0s; }
-
-      .flow-7 { animation-delay: 4.8s; }
-
-      
-
-      .eco-node {
-
-        font-size: 1.25rem !important;
-
-        padding: 24px 56px !important;
-
-        width: 380px !important;
-
-        border-color: rgba(255,85,0,0.15) !important;
-
-        position: relative;
-
-      }
-
-      .eco-node::after {
-
-        content: '';
-
-        position: absolute;
-
-        top: 50%; left: -20px;
-
-        width: 12px; height: 12px;
-
-        background: var(--orange);
-
+        top: 25%;
+        left: 50%;
+        transform: translate(-50%, -25%);
+        width: 650px;
+        height: 450px;
+        background: radial-gradient(circle, rgba(255, 220, 150, 0.45) 0%, rgba(255, 140, 60, 0.2) 40%, rgba(255,255,255,0) 70%);
         border-radius: 50%;
-
-        transform: translateY(-50%);
-
-        box-shadow: 0 0 12px var(--orange);
-
-        opacity: 0.5;
-
+        z-index: 1;
+        pointer-events: none;
+      }
+      .hero-backdrop-rings {
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 760px;
+        height: 760px;
+        border: 1.5px solid rgba(0, 0, 0, 0.05);
+        border-radius: 50%;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .hero-backdrop-rings::before {
+        content: "";
+        position: absolute;
+        inset: 70px;
+        border: 1.5px dashed rgba(255, 85, 0, 0.15);
+        border-radius: 50%;
       }
 
-      .eco-arrow {
-
-        color: rgba(255,85,0,0.2) !important;
-
-        font-size: 1.8rem !important;
-
-        animation: pulseArrow 2s infinite;
-
+      /* Phone Mockup Center */
+      .phone-mockup-frame {
+        position: relative;
+        z-index: 10;
+        width: 320px;
+        height: 560px;
+        border-radius: 44px;
+        background: #0d0d11;
+        padding: 10px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .phone-notch {
+        position: absolute;
+        top: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 24px;
+        background: #000000;
+        border-radius: 20px;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 10px;
+      }
+      .notch-camera {
+        width: 9px;
+        height: 9px;
+        background: #1a1a24;
+        border-radius: 50%;
+        border: 1.5px solid #282836;
+      }
+      .notch-speaker {
+        width: 38px;
+        height: 4px;
+        background: #1a1a24;
+        border-radius: 4px;
+      }
+      .phone-screen {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 36px;
+        overflow: hidden;
+        background: #1a1921;
+      }
+      .phone-screen-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .phone-screen-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 48px 16px 16px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+        z-index: 20;
+      }
+      .phone-user-tag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(10px);
+        padding: 4px 10px 4px 4px;
+        border-radius: 9999px;
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .phone-user-avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .phone-live-pill {
+        background: #ff3b30;
+        color: #ffffff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
 
-      @keyframes pulseArrow {
-
-        0% { transform: translateY(0); opacity: 0.5; }
-
-        50% { transform: translateY(4px); opacity: 1; color: var(--orange); }
-
-        100% { transform: translateY(0); opacity: 0.5; }
-
+      /* Floating UI Cards Animation & Placement */
+      @keyframes floatSlow {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-14px); }
+      }
+      @keyframes floatReverse {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(12px); }
       }
 
-
-
-    
-
-      .reveal-on-scroll {
-
-        opacity: 0;
-
-        transform: translateY(30px);
-
-        transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-
+      .float-card {
+        position: absolute;
+        z-index: 25;
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+        transition: transform 0.3s ease;
+      }
+      .float-card:hover {
+        transform: scale(1.04) !important;
       }
 
-      .reveal-on-scroll.revealed {
+      /* Card 1: Top Left (Product Thumbnail) */
+      .card-top-left {
+        top: 30px;
+        left: 20px;
+        width: 140px;
+        height: 140px;
+        border-radius: 22px;
+        overflow: hidden;
+        background: #ffffff;
+        animation: floatSlow 5s ease-in-out infinite 0.2s;
+      }
+      .card-top-left img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .card-top-left .video-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 6px;
+      }
 
+      /* Card 2: Bottom Left (Engagement Bar Chart + Rating Badge) */
+      .card-bottom-left {
+        bottom: 50px;
+        left: -30px;
+        background: #fed857;
+        padding: 16px 20px;
+        border-radius: 20px;
+        color: #111111;
+        width: 195px;
+        animation: floatReverse 6s ease-in-out infinite 0.8s;
+      }
+      .card-bottom-left-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .chart-bars-icon {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 24px;
+      }
+      .chart-bar {
+        width: 5px;
+        background: #111111;
+        border-radius: 2px;
+      }
+      .bar-1 { height: 12px; }
+      .bar-2 { height: 24px; }
+      .bar-3 { height: 16px; }
+      .bar-4 { height: 20px; }
+      .engagement-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: rgba(17, 17, 17, 0.75);
+      }
+      .engagement-stat {
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #111111;
+        border-radius: 50%;
+      }
+      .floating-rating-pill {
+        position: absolute;
+        top: -24px;
+        right: -20px;
+        background: #ffe3ed;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        color: #111111;
+        font-size: 0.75rem;
+      }
+
+      /* Card 3: Top Right (Mint Green 8 Items Sold) */
+      .card-top-right {
+        top: 40px;
+        right: 10px;
+        background: #bdf0cb;
+        padding: 16px 20px;
+        border-radius: 24px;
+        width: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #111111;
+        animation: floatSlow 5.5s ease-in-out infinite 1.4s;
+      }
+      .card-tr-info h3 {
+        font-size: 1.9rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1;
+        display: inline-block;
+      }
+      .card-tr-info span.items-label {
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+      .card-tr-sub {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: rgba(17,17,17,0.7);
+        margin: 4px 0 10px 0;
+      }
+      .card-tr-price-pill {
+        background: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        display: inline-block;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      }
+      .card-tr-product-img {
+        width: 60px;
+        height: 80px;
+        object-fit: contain;
+        filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12));
+      }
+
+      /* Card 4: Bottom Right (Creator Portrait & Reaction Bar) */
+      .card-bottom-right {
+        bottom: 70px;
+        right: -20px;
+        background: #ffffff;
+        padding: 10px;
+        border-radius: 20px;
+        width: 175px;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.1);
+        animation: floatReverse 6.2s ease-in-out infinite 0.4s;
+      }
+      .card-br-img-wrap {
+        position: relative;
+        width: 100%;
+        height: 110px;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .card-br-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .card-br-view-badge {
+        position: absolute;
+        bottom: 6px;
+        left: 6px;
+        background: rgba(0,0,0,0.75);
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+      .card-br-reactions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 6px 2px 6px;
+        font-size: 0.85rem;
+        color: #444444;
+      }
+      .card-br-reactions .reaction-red { color: #ff3b30; }
+
+      /* Social Proof Marquee Section */
+      .social-proof-section {
+        padding: 50px 0 60px 0;
+        background: #fafafa;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        text-align: center;
+        overflow: hidden;
+      }
+      .social-proof-title {
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #888888;
+        margin-bottom: 30px;
+      }
+      .marquee-wrapper {
+        display: flex;
+        overflow: hidden;
+        user-select: none;
+        mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+      }
+      @keyframes marqueeScroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      .marquee-track {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        gap: 64px;
+        min-width: 100%;
+        animation: marqueeScroll 24s linear infinite;
+      }
+      .brand-logo-text {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #888888;
+        opacity: 0.75;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+      .brand-logo-text:hover {
+        color: #111111;
         opacity: 1;
-
-        transform: translateY(0);
-
+        transform: scale(1.05);
       }
 
-      
-
-      .eco-node {
-
-        background: linear-gradient(145deg, #ffffff, #fdfcfb) !important;
-
+      /* 3-Column Problem We Solve Section */
+      .problem-section {
+        padding: 100px 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .section-heading-center {
+        text-align: center;
+        max-width: 750px;
+        margin: 0 auto 60px auto;
+      }
+      .section-category-pill {
+        display: inline-block;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #FF5500;
+        margin-bottom: 12px;
+      }
+      .section-heading-center h2 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: clamp(2.2rem, 4vw, 3.2rem);
+        font-weight: 800;
+        color: #111111;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+      }
+      .section-heading-center p {
+        font-size: 1.1rem;
+        color: #666666;
+        line-height: 1.6;
+      }
+      .problem-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+      }
+      .problem-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 24px;
+        padding: 40px 32px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .problem-card:hover {
+        transform: translateY(-6px);
+        border-color: #FF5500;
+        box-shadow: 0 20px 40px rgba(255, 85, 0, 0.12);
+      }
+      .problem-tag {
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 6px;
+        width: fit-content;
+        margin-bottom: 20px;
+      }
+      .tag-tax { background: #fee2e2; color: #dc2626; }
+      .tag-generic { background: #ffedd5; color: #ea580c; }
+      .tag-privacy { background: #ede9fe; color: #7c3aed; }
+      .problem-card h3 {
+        font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #111111;
+        margin-bottom: 12px;
+        line-height: 1.3;
+      }
+      .problem-card p {
+        font-size: 0.96rem;
+        color: #555555;
+        line-height: 1.6;
+        margin-bottom: 24px;
+      }
+      .problem-stat-badge {
+        background: #fafafa;
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 12px;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #222222;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
-      .eco-node:hover {
-
-        background: linear-gradient(145deg, #fff7f2, #ffffff) !important;
-
+      /* Bold Orange How Luminary Works Section */
+      .how-it-works-orange {
+        background: #FF5500 !important;
+        color: #ffffff !important;
+        padding: 100px 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      .how-it-works-orange h2 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: clamp(2.2rem, 4vw, 3.4rem);
+        font-weight: 800;
+        color: #ffffff !important;
+        line-height: 1.15;
+        margin-bottom: 16px;
+      }
+      .how-it-works-orange p.section-sub {
+        font-size: 1.15rem;
+        color: rgba(255, 255, 255, 0.9) !important;
+        max-width: 700px;
+        margin: 0 auto 60px auto;
+        line-height: 1.6;
+      }
+      .how-steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .how-step-card {
+        background: rgba(0, 0, 0, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 32px 24px;
+        backdrop-filter: blur(12px);
+        transition: transform 0.25s ease, background 0.25s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      .how-step-card:hover {
+        transform: translateY(-6px);
+        background: rgba(0, 0, 0, 0.32);
+        border-color: #ffffff;
+      }
+      .how-step-num {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.4);
+        margin-bottom: 16px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+      .how-step-card h3 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 10px;
+      }
+      .how-step-card p {
+        font-size: 0.92rem;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.55;
       }
 
-
-
-    
-    /* Clean Single Light Mode System Enabled */
-
-    .msg-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 8px;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-    }
-    .chat-message:hover .msg-actions {
-      opacity: 1;
-    }
-    .msg-action-btn {
-      background: none;
-      border: none;
-      color: var(--text);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-    .msg-action-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--orange);
-    }
-    .msg-action-btn.active {
-      color: var(--orange);
-    }
-    .msg-action-btn.active svg {
-      fill: var(--orange);
-      stroke: var(--orange);
-    }
-    
-    .working-progress-bar {
-      height: 3px;
-      background: rgba(255, 85, 0, 0.2);
-      border-radius: 2px;
-      margin-top: 8px;
-      overflow: hidden;
-      position: relative;
-      width: 100%;
-    }
-    .working-progress-bar::after {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; bottom: 0;
-      width: 30%;
-      background: var(--orange);
-      border-radius: 2px;
-      animation: progress-slide 1.5s infinite ease-in-out;
-    }
-    @keyframes progress-slide {
-      0% { left: -30%; }
-      100% { left: 100%; }
-    }
-
-    .side-link.active {
-      background: var(--orange) !important;
-      color: #fff !important;
-      border-color: var(--orange) !important;
-      font-weight: 600;
-    }
-    body.light-mode .side-link.active {
-      background: var(--orange) !important;
-      color: #fff !important;
-      border-color: var(--orange) !important;
-    }
-
-    .history-item.active {
-      background: var(--orange) !important;
-      color: #fff !important;
-      border-color: var(--orange) !important;
-      box-shadow: 0 4px 14px var(--orange-glow) !important;
-    }
-    body.light-mode .history-item.active {
-      background: var(--orange) !important;
-      color: #fff !important;
-      border-color: var(--orange) !important;
-      box-shadow: 0 4px 14px var(--orange-glow) !important;
-    }
-    .history-item.active strong,
-    .history-item.active .history-preview,
-    .history-item.active small,
-    body.light-mode .history-item.active strong,
-    body.light-mode .history-item.active .history-preview,
-    body.light-mode .history-item.active small {
-      color: #ffffff !important;
-    }
-
-    .social-tab-btn.active,
-    body.light-mode .social-tab-btn.active,
-    .platform-filter-btn.active,
-    body.light-mode .platform-filter-btn.active {
-      background: var(--orange) !important;
-      color: #ffffff !important;
-      border-color: var(--orange) !important;
-    }
-
-    .msg-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-      padding: 0 4px;
-      opacity: 0.85;
-      transition: opacity 0.2s;
-    }
-    .msg-action-btn {
-      background: none;
-      border: none;
-      color: var(--muted, #888);
-      cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-    .msg-action-btn:hover {
-      background: rgba(255, 85, 0, 0.08);
-      color: var(--orange);
-    }
-    .msg-action-btn.active {
-      color: var(--orange) !important;
-      background: rgba(255, 85, 0, 0.12) !important;
-    }
-    .msg-action-btn.active svg {
-      fill: var(--orange) !important;
-      stroke: var(--orange) !important;
-    }
-    body.light-mode .msg-action-btn.active {
-      color: var(--orange) !important;
-      background: rgba(255, 85, 0, 0.15) !important;
-    }
-    body.light-mode .msg-action-btn.active svg {
-      fill: var(--orange) !important;
-      stroke: var(--orange) !important;
-    }
-
-
-    .pinned-asset-chip,
-    .pinned-asset-chip *,
-    body.light-mode .pinned-asset-chip,
-    body.light-mode .pinned-asset-chip * {
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-    }
-
-
-    #calYearDropdown {
-      display: none;
-      position: absolute;
-      top: 42px;
-      left: 0;
-      width: 110px;
-      max-height: 180px;
-      overflow-y: auto;
-      background: #111015 !important;
-      border: 1px solid var(--orange) !important;
-      border-radius: 10px;
-      z-index: 9999 !important;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      padding: 4px;
-    }
-    body.light-mode #calYearDropdown {
-      background: #ffffff !important;
-      border: 1px solid var(--orange) !important;
-      box-shadow: 0 8px 24px rgba(255,85,0,0.15);
-    }
-    .year-opt {
-      padding: 6px 12px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-    .year-opt:hover,
-    .year-opt.active {
-      background: var(--orange) !important;
-      color: #ffffff !important;
-    }
-    body.light-mode .year-opt {
-      color: #1a1a1a !important;
-    }
-    body.light-mode .year-opt:hover,
-    body.light-mode .year-opt.active {
-      background: var(--orange) !important;
-      color: #ffffff !important;
-    }
-
-
-    /*  Analytics Select Buttons & Options  */
-    .analytics-select {
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      border: 1px solid var(--orange) !important;
-      border-radius: 8px !important;
-      padding: 6px 14px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      outline: none;
-      cursor: pointer;
-      box-shadow: 0 4px 12px var(--orange-glow) !important;
-      height: 34px;
-    }
-    .analytics-select option {
-      background: #111015 !important;
-      color: #ffffff !important;
-      font-weight: 600;
-      padding: 6px;
-    }
-    body.light-mode .analytics-select {
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      border: 1px solid var(--orange) !important;
-      border-radius: 8px !important;
-      font-weight: 700;
-      font-size: 0.85rem;
-      box-shadow: 0 4px 12px var(--orange-glow) !important;
-      height: 34px;
-    }
-    body.light-mode .analytics-select option {
-      background: #ffffff !important;
-      color: #1a1a1a !important;
-      font-weight: 600;
-      padding: 6px;
-    }
-
-
-    .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; border-color: #2b579a !important; font-weight: 700; }
-    .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; border-color: #217346 !important; font-weight: 700; }
-    .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; border-color: #d24726 !important; font-weight: 700; }
-    .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; border-color: #e5a000 !important; font-weight: 700; }
-    .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; border-color: #8e44ad !important; font-weight: 700; }
-    .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; border-color: #e60023 !important; font-weight: 700; }
-    .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; border: none !important; font-weight: 700; }
-    .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; border-color: #16a085 !important; font-weight: 700; }
-
-    body.light-mode .tag-chip.tag-docs { background: #2b579a !important; color: #ffffff !important; }
-    body.light-mode .tag-chip.tag-sheets { background: #217346 !important; color: #ffffff !important; }
-    body.light-mode .tag-chip.tag-ppt { background: #d24726 !important; color: #ffffff !important; }
-    body.light-mode .tag-chip.tag-image { background: #e5a000 !important; color: #ffffff !important; }
-    body.light-mode .tag-chip.tag-audit { background: #8e44ad !important; color: #ffffff !important; }
-    body.light-mode .tag-chip.tag-pinterest { background: #e60023 !important; color: #ffffff !important; }
-    body.light-mode .tag-chip.tag-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important; color: #ffffff !important; }
-    body.light-mode .tag-chip.tag-website { background: #16a085 !important; color: #ffffff !important; }
-
-
-    body.light-mode #analyticsSvg text {
-      fill: #1a1a1a !important;
-      font-weight: 700 !important;
-    }
-    body.light-mode #analyticsSvg line {
-      stroke: rgba(0, 0, 0, 0.22) !important;
-    }
-
-
-    #analyticsSvg text {
-      fill: #ffffff !important;
-      font-weight: 600 !important;
-    }
-    #analyticsSvg line.grid-line {
-      stroke: rgba(255, 255, 255, 0.15) !important;
-    }
-    body.light-mode #analyticsSvg text {
-      fill: #1a1a1a !important;
-      font-weight: 700 !important;
-    }
-    body.light-mode #analyticsSvg line.grid-line {
-      stroke: rgba(0, 0, 0, 0.18) !important;
-    }
-
-
-    /* Analytics Zero Scroll & High-Contrast Graph Visibility */
-    #socialAnalyticsTab {
-      overflow: hidden !important;
-    }
-    .analytics-panel {
-      overflow: hidden !important;
-    }
-    #analyticsSvg text {
-      fill: #ffffff !important;
-      font-weight: 600 !important;
-    }
-    #analyticsSvg line.grid-line {
-      stroke: rgba(255, 255, 255, 0.15) !important;
-    }
-    body.light-mode #analyticsSvg text {
-      fill: #1a1a1a !important;
-      font-weight: 700 !important;
-    }
-    body.light-mode #analyticsSvg line.grid-line {
-      stroke: rgba(0, 0, 0, 0.2) !important;
-    }
-
-
-    /* Hero Greeting Transition Out & Chat Feed Expansion */
-    .workspace-head {
-      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), margin 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      max-height: 200px;
-      overflow: hidden;
-    }
-    .workspace-head.transition-out,
-    .workspace-head.hidden {
-      opacity: 0 !important;
-      transform: translateY(-30px) scale(0.95) !important;
-      max-height: 0px !important;
-      margin: 0px !important;
-      padding: 0px !important;
-      pointer-events: none !important;
-    }
-    .chat-stage {
-      flex: 1;
-      height: 100%;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      transition: padding var(--transition), height var(--transition);
-    }
-    .chat-feed {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      transition: all var(--transition);
-    }
-
-
-    /* Analytics Month & Year Dropdowns */
-    .analytics-select {
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      border: 1px solid var(--orange) !important;
-      border-radius: 10px !important;
-      padding: 6px 14px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      outline: none;
-      cursor: pointer;
-      box-shadow: 0 4px 12px var(--orange-glow) !important;
-      height: 34px;
-    }
-    .analytics-select option {
-      background: #111015 !important;
-      color: #ffffff !important;
-      font-weight: 600;
-    }
-    body.light-mode .analytics-select {
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      border: 1px solid var(--orange) !important;
-      border-radius: 10px !important;
-      font-weight: 700;
-      font-size: 0.88rem;
-      box-shadow: 0 4px 12px var(--orange-glow) !important;
-      height: 34px;
-    }
-    body.light-mode .analytics-select option {
-      background: #ffffff !important;
-      color: #1a1a1a !important;
-      font-weight: 600;
-    }
-
-
-    /* Solid Color Metric Buttons in Both Dark and Light Modes */
-    .metric-filter-btn {
-      padding: 6px 14px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: var(--muted);
-    }
-    body.light-mode .metric-filter-btn {
-      background: #f0f0f0;
-      border: 1px solid #e0e0e0;
-      color: #666;
-    }
-    .metric-filter-btn.active[data-metric="views"],
-    body.light-mode .metric-filter-btn.active[data-metric="views"] {
-      background: #ff5500 !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      border-color: #ff5500 !important;
-      box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3) !important;
-    }
-    .metric-filter-btn.active[data-metric="comments"],
-    body.light-mode .metric-filter-btn.active[data-metric="comments"] {
-      background: #3b82f6 !important;
-      background-color: #3b82f6 !important;
-      color: #ffffff !important;
-      border-color: #3b82f6 !important;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
-    }
-    .metric-filter-btn.active[data-metric="followers"],
-    body.light-mode .metric-filter-btn.active[data-metric="followers"] {
-      background: #10b981 !important;
-      background-color: #10b981 !important;
-      color: #ffffff !important;
-      border-color: #10b981 !important;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
-    }
-    .metric-filter-btn.active[data-metric="likes"],
-    body.light-mode .metric-filter-btn.active[data-metric="likes"] {
-      background: #8e44ad !important;
-      background-color: #8e44ad !important;
-      color: #ffffff !important;
-      border-color: #8e44ad !important;
-      box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3) !important;
-    }
-
-
-    /* Layout Stability Fix - Prevent Shift Down */
-    #socialAnalyticsTab {
-      margin: 0 !important;
-      padding-top: 0 !important;
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
-    }
-    .analytics-panel {
-      margin-top: 0 !important;
-      align-self: flex-start !important;
-    }
-
-
-    /*  AI Fleet & Model Showcase Styling  */
-    .ai-fleet-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      background: rgba(255, 85, 0, 0.12);
-      border: 1px solid rgba(255, 85, 0, 0.35);
-      color: var(--orange);
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all var(--transition);
-      margin-right: 10px;
-    }
-    .ai-fleet-btn:hover {
-      background: var(--orange);
-      color: #ffffff;
-      box-shadow: 0 4px 14px var(--orange-glow);
-      transform: translateY(-1px);
-    }
-    body.light-mode .ai-fleet-btn {
-      background: rgba(255, 85, 0, 0.1);
-      border: 1px solid var(--orange);
-      color: var(--orange);
-    }
-    body.light-mode .ai-fleet-btn:hover {
-      background: var(--orange);
-      color: #ffffff;
-    }
-
-    .ai-fleet-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 10000;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      animation: modalFadeIn 0.25s ease-out;
-    }
-    @keyframes modalFadeIn {
-      from { opacity: 0; transform: scale(0.97); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .ai-fleet-dialog {
-      background: #111015;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 780px;
-      max-height: 88vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-      overflow: hidden;
-    }
-    body.light-mode .ai-fleet-dialog {
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      box-shadow: 0 24px 60px rgba(255, 85, 0, 0.12);
-    }
-
-    .ai-fleet-header {
-      padding: 16px 22px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    body.light-mode .ai-fleet-header {
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    }
-
-    .ai-fleet-icon-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: var(--orange);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px var(--orange-glow);
-    }
-
-    .ai-fleet-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 1.8rem;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0 4px;
-      transition: color 0.2s;
-    }
-    .ai-fleet-close:hover {
-      color: var(--orange);
-    }
-
-    .ai-fleet-body {
-      padding: 20px 22px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .ai-section-title {
-      margin: 0 0 10px 0;
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--orange);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .ai-engine-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 12px;
-    }
-    .ai-engine-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 14px;
-      position: relative;
-    }
-    body.light-mode .ai-engine-card {
-      background: #fdfbf9;
-      border: 1px solid rgba(0, 0, 0, 0.06);
-    }
-
-    .engine-tag {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 6px;
-    }
-    .primary-tag {
-      background: #ff5500;
-      color: #ffffff;
-    }
-    .secondary-tag {
-      background: #3b82f6;
-      color: #ffffff;
-    }
-
-    .engine-name {
-      font-size: 1.02rem;
-      font-weight: 700;
-      color: var(--text);
-      font-family: monospace;
-    }
-    .engine-desc {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 4px;
-      line-height: 1.35;
-    }
-    .engine-meta {
-      font-size: 0.72rem;
-      color: var(--orange);
-      font-weight: 600;
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-      display: inline-block;
-      box-shadow: 0 0 8px #10b981;
-    }
-
-    .ai-roles-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 10px;
-    }
-    .ai-role-item {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 10px;
-      padding: 12px;
-    }
-    body.light-mode .ai-role-item {
-      background: #faf8f5;
-      border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    .role-badge {
-      font-size: 0.68rem;
-      font-family: monospace;
-      color: var(--orange);
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-    .role-title {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .role-desc {
-      font-size: 0.76rem;
-      color: var(--muted);
-      margin-top: 3px;
-      line-height: 1.3;
-    }
-
-    .models-pill-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .model-pill {
-      font-size: 0.75rem;
-      font-family: monospace;
-      padding: 4px 10px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text);
-    }
-    .model-pill.primary {
-      background: rgba(255, 85, 0, 0.15);
-      border-color: var(--orange);
-      color: var(--orange);
-      font-weight: 700;
-    }
-    body.light-mode .model-pill {
-      background: #f2eee9;
-      border-color: rgba(0, 0, 0, 0.08);
-      color: #333;
-    }
-    body.light-mode .model-pill.primary {
-      background: #ffe8db;
-      border-color: var(--orange);
-      color: var(--orange);
-    }
-
-
-    /*  Downloadable Deliverable Cards & Multi-Role Loading UI  */
-    .deliverable-container {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .deliverable-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all var(--transition);
-    }
-    body.light-mode .deliverable-card {
-      background: #faf8f5;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
-    }
-    .deliverable-card:hover {
-      border-color: var(--orange);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px var(--orange-glow);
-    }
-    .deliverable-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .deliverable-icon-wrap {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-    }
-    .icon-pptx { background: rgba(210, 71, 38, 0.15); color: #d24726; border: 1px solid rgba(210, 71, 38, 0.3); }
-    .icon-docx { 
-      background: #2b579a !important; 
-      background-color: #2b579a !important; 
-      color: #ffffff !important; 
-      border: 1px solid #2b579a !important; 
-    }
-    body.light-mode .icon-docx { 
-      background: #2b579a !important; 
-      background-color: #2b579a !important; 
-      color: #ffffff !important; 
-      border: 1px solid #2b579a !important; 
-    }
-    .icon-xlsx { background: rgba(33, 115, 70, 0.15); color: #217346; border: 1px solid rgba(33, 115, 70, 0.3); }
-    .icon-file { background: rgba(255, 85, 0, 0.15); color: var(--orange); border: 1px solid var(--orange); }
-
-    .deliverable-info h4 {
-      margin: 0;
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .deliverable-info p {
-      margin: 2px 0 0 0;
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-    .deliverable-download-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      border-radius: 10px;
-      background: var(--orange) !important;
-      color: #ffffff !important;
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-decoration: none;
-      box-shadow: 0 4px 12px var(--orange-glow);
-      transition: all var(--transition);
-      border: none;
-      cursor: pointer;
-    }
-    .deliverable-download-btn:hover {
-      background: #ff661a !important;
-      transform: translateY(-1px);
-    }
-
-    /* Dynamic Multi-Stage Loading State Animation */
-    .working-state-box {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 4px 0;
-    }
-    .working-stage-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--orange);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .working-stage-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--orange);
-      animation: pulseDot 1.2s infinite ease-in-out;
-    }
-    @keyframes pulseDot {
-      0%, 100% { transform: scale(0.8); opacity: 0.4; }
-      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 10px var(--orange); }
-    }
-
-
-    .deliverable-download-btn,
-    .deliverable-download-btn span,
-    body.light-mode .deliverable-download-btn,
-    body.light-mode .deliverable-download-btn span {
-      color: #ffffff !important;
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-    }
-    .icon-pptx { background: #d24726 !important; color: #ffffff !important; border: 1px solid #d24726 !important; }
-    .icon-xlsx { background: #217346 !important; color: #ffffff !important; border: 1px solid #217346 !important; }
-    body.light-mode .icon-pptx { background: #d24726 !important; color: #ffffff !important; border: 1px solid #d24726 !important; }
-    body.light-mode .icon-xlsx { background: #217346 !important; color: #ffffff !important; border: 1px solid #217346 !important; }
-
-
-    /* Universal Light Mode Orange Button White Text Rule */
-    body.light-mode button[style*="background:var(--orange)"],
-    body.light-mode button[style*="background: var(--orange)"],
-    body.light-mode button[style*="background-color:#ff5500"],
-    body.light-mode button[style*="background-color: #ff5500"],
-    body.light-mode .deliverable-download-btn,
-    body.light-mode .deliverable-download-btn *,
-    body.light-mode .send-btn,
-    body.light-mode .send-btn *,
-    body.light-mode .upgrade-btn,
-    body.light-mode .upgrade-btn *,
-    body.light-mode .side-link.active,
-    body.light-mode .side-link.active *,
-    body.light-mode .social-tab-btn.active,
-    body.light-mode .social-tab-btn.active *,
-    body.light-mode .analytics-select,
-    body.light-mode .analytics-select *,
-    body.light-mode .history-item.active,
-    body.light-mode .history-item.active *,
-    body.light-mode .pinned-asset-chip,
-    body.light-mode .pinned-asset-chip *,
-    body.light-mode .btn-primary,
-    body.light-mode .btn-primary * {
-      color: #ffffff !important;
-      fill: #ffffff !important;
-    }
-
-    /* Solid Deliverable Icons with Crisp White Glyphs / Grids */
-    .icon-xlsx,
-    .icon-xlsx *,
-    .icon-xlsx svg,
-    .icon-xlsx line,
-    .icon-xlsx rect,
-    body.light-mode .icon-xlsx,
-    body.light-mode .icon-xlsx *,
-    body.light-mode .icon-xlsx svg,
-    body.light-mode .icon-xlsx line,
-    body.light-mode .icon-xlsx rect {
-      background: #217346 !important;
-      background-color: #217346 !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      border: 1px solid #217346 !important;
-    }
-
-    .icon-docx,
-    .icon-docx *,
-    .icon-docx svg,
-    .icon-docx line,
-    .icon-docx path,
-    .icon-docx polyline,
-    body.light-mode .icon-docx,
-    body.light-mode .icon-docx *,
-    body.light-mode .icon-docx svg,
-    body.light-mode .icon-docx line,
-    body.light-mode .icon-docx path,
-    body.light-mode .icon-docx polyline {
-      background: #2b579a !important;
-      background-color: #2b579a !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      border: 1px solid #2b579a !important;
-    }
-
-    .icon-pptx,
-    .icon-pptx *,
-    .icon-pptx svg,
-    .icon-pptx line,
-    .icon-pptx rect,
-    body.light-mode .icon-pptx,
-    body.light-mode .icon-pptx *,
-    body.light-mode .icon-pptx svg,
-    body.light-mode .icon-pptx line,
-    body.light-mode .icon-pptx rect {
-      background: #d24726 !important;
-      background-color: #d24726 !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      border: 1px solid #d24726 !important;
-    }
-
-
-    /*  100% IDENTICAL DELIVERABLE ICONS & BUTTONS ACROSS BOTH THEMES  */
-    .deliverable-card,
-    body.light-mode .deliverable-card {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      padding: 12px 16px !important;
-      border-radius: 14px !important;
-      background: rgba(255, 255, 255, 0.04) !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      transition: all var(--transition) !important;
-    }
-    body.light-mode .deliverable-card {
-      background: #faf8f5 !important;
-      border: 1px solid rgba(0, 0, 0, 0.1) !important;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
-    }
-    .deliverable-card:hover,
-    body.light-mode .deliverable-card:hover {
-      border-color: var(--orange) !important;
-      transform: translateY(-2px) !important;
-      box-shadow: 0 8px 24px var(--orange-glow) !important;
-    }
-
-    /* 1. PPT Icon (PowerPoint Red/Orange) - Identical across both modes */
-    .icon-pptx,
-    .icon-pptx *,
-    .icon-pptx svg,
-    .icon-pptx line,
-    .icon-pptx rect,
-    body.light-mode .icon-pptx,
-    body.light-mode .icon-pptx *,
-    body.light-mode .icon-pptx svg,
-    body.light-mode .icon-pptx line,
-    body.light-mode .icon-pptx rect {
-      background: #d24726 !important;
-      background-color: #d24726 !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      fill: none !important;
-      border: 1px solid #d24726 !important;
-    }
-
-    /* 2. DOCS Icon (Word Blue) - Identical across both modes */
-    .icon-docx,
-    .icon-docx *,
-    .icon-docx svg,
-    .icon-docx line,
-    .icon-docx path,
-    .icon-docx polyline,
-    body.light-mode .icon-docx,
-    body.light-mode .icon-docx *,
-    body.light-mode .icon-docx svg,
-    body.light-mode .icon-docx line,
-    body.light-mode .icon-docx path,
-    body.light-mode .icon-docx polyline {
-      background: #2b579a !important;
-      background-color: #2b579a !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      fill: none !important;
-      border: 1px solid #2b579a !important;
-    }
-
-    /* 3. SHEETS Icon (Excel Green) - Identical across both modes */
-    .icon-xlsx,
-    .icon-xlsx *,
-    .icon-xlsx svg,
-    .icon-xlsx line,
-    .icon-xlsx rect,
-    body.light-mode .icon-xlsx,
-    body.light-mode .icon-xlsx *,
-    body.light-mode .icon-xlsx svg,
-    body.light-mode .icon-xlsx line,
-    body.light-mode .icon-xlsx rect {
-      background: #217346 !important;
-      background-color: #217346 !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      fill: none !important;
-      border: 1px solid #217346 !important;
-    }
-
-    /* 4. IMAGE Icon (Amber Yellow / Orange) - Identical across both modes */
-    .icon-image,
-    .icon-image *,
-    .icon-image svg,
-    .icon-image circle,
-    .icon-image line,
-    .icon-image rect,
-    .icon-image path,
-    body.light-mode .icon-image,
-    body.light-mode .icon-image *,
-    body.light-mode .icon-image svg,
-    body.light-mode .icon-image circle,
-    body.light-mode .icon-image line,
-    body.light-mode .icon-image rect,
-    body.light-mode .icon-image path {
-      background: #e5a000 !important;
-      background-color: #e5a000 !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      fill: none !important;
-      border: 1px solid #e5a000 !important;
-    }
-
-    /* 5. ALL DOWNLOAD BUTTONS - Solid Orange + White Text in BOTH modes */
-    .deliverable-download-btn,
-    .deliverable-download-btn *,
-    .deliverable-download-btn span,
-    .deliverable-download-btn svg,
-    body.light-mode .deliverable-download-btn,
-    body.light-mode .deliverable-download-btn *,
-    body.light-mode .deliverable-download-btn span,
-    body.light-mode .deliverable-download-btn svg {
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      fill: none !important;
-      border-radius: 10px !important;
-      padding: 8px 16px !important;
-      font-weight: 700 !important;
-      font-size: 0.8rem !important;
-      text-decoration: none !important;
-      box-shadow: 0 4px 12px var(--orange-glow) !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 6px !important;
-      border: none !important;
-      cursor: pointer !important;
-    }
-    .deliverable-download-btn:hover,
-    body.light-mode .deliverable-download-btn:hover {
-      background: #ff661a !important;
-      background-color: #ff661a !important;
-      transform: translateY(-1px) !important;
-    }
-
-
-    /*  Big Agency Aesthetic Polish & Sleek Image Framing  */
-    .chat-bubble-image-wrap {
-      margin-top: 14px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 85, 0, 0.25);
-      background: rgba(0, 0, 0, 0.4);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 85, 0, 0.15);
-      position: relative;
-      transition: all 0.3s ease;
-      max-width: 600px;
-    }
-    body.light-mode .chat-bubble-image-wrap {
-      background: #faf8f5;
-      border: 1px solid rgba(255, 85, 0, 0.2);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 0 20px rgba(255, 85, 0, 0.08);
-    }
-    .chat-bubble-image-wrap:hover {
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 16px 40px rgba(255, 85, 0, 0.25);
-      border-color: var(--orange);
-    }
-    .chat-bubble-image-wrap img {
-      width: 100%;
-      height: auto;
-      display: block;
-      transition: transform 0.4s ease;
-    }
-    .chat-bubble-image-wrap:hover img {
-      transform: scale(1.02);
-    }
-    .image-engine-badge {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: rgba(10, 9, 13, 0.85);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
-    .image-engine-badge .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--orange);
-      box-shadow: 0 0 6px var(--orange);
-    }
-
-    /* Executive Typography & Markdown Enhancements */
-    .bubble-text h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--text);
-      margin: 12px 0 6px 0;
-      letter-spacing: -0.02em;
-    }
-    .bubble-text h4 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--orange);
-      margin: 10px 0 4px 0;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .bubble-text ul {
-      margin: 6px 0 10px 0;
-      padding-left: 20px;
-    }
-    .bubble-text li {
-      margin-bottom: 4px;
-      line-height: 1.5;
-    }
-    .bubble-text strong {
-      color: var(--text);
-      font-weight: 700;
-    }
-
-
-    /*  Compact Download Buttons with Pure White Text & Icons in Both Modes  */
-    .deliverable-download-btn,
-    .deliverable-download-btn *,
-    .deliverable-download-btn span,
-    .deliverable-download-btn svg,
-    body.light-mode .deliverable-download-btn,
-    body.light-mode .deliverable-download-btn *,
-    body.light-mode .deliverable-download-btn span,
-    body.light-mode .deliverable-download-btn svg {
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      stroke: #ffffff !important;
-      fill: none !important;
-      border-radius: 8px !important;
-      padding: 5px 11px !important;
-      font-weight: 700 !important;
-      font-size: 0.74rem !important;
-      text-decoration: none !important;
-      box-shadow: 0 3px 10px var(--orange-glow) !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 5px !important;
-      border: none !important;
-      cursor: pointer !important;
-      white-space: nowrap !important;
-      height: 28px !important;
-      line-height: 1 !important;
-    }
-    .deliverable-download-btn:hover,
-    body.light-mode .deliverable-download-btn:hover {
-      background: #ff661a !important;
-      background-color: #ff661a !important;
-      transform: translateY(-1px) !important;
-    }
-
-
-    /*  Content Blocked by Safety Guidelines UI Card  */
-    .safety-blocked-card {
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: 14px;
-      padding: 16px 18px;
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.12);
-    }
-    body.light-mode .safety-blocked-card {
-      background: #fef2f2;
-      border: 1px solid #fca5a5;
-      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08);
-    }
-    .safety-blocked-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .safety-shield-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: #ef4444;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
-    .safety-blocked-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #ef4444;
-      margin: 0;
-    }
-    .safety-blocked-subtitle {
-      font-size: 0.76rem;
-      color: var(--muted);
-      margin: 2px 0 0 0;
-    }
-    .safety-blocked-body {
-      font-size: 0.85rem;
-      color: var(--text);
-      line-height: 1.5;
-    }
-    .safety-alternative-box {
-      background: rgba(255, 85, 0, 0.08);
-      border: 1px dashed rgba(255, 85, 0, 0.35);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.82rem;
-      color: var(--text);
-    }
-    body.light-mode .safety-alternative-box {
-      background: #fff7ed;
-      border-color: var(--orange);
-    }
-    .safety-alternative-tag {
-      font-weight: 700;
-      color: var(--orange);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-
-    /* ==========================================================================
-       PREMIUM ULTRA-CLEAN WHITE & ORANGE AGENCY THEME (LIGHT THEME FIRST-CLASS)
-       ========================================================================== */
-    #landingView,
-    .landing-page,
-    section#landingView {
-      background: radial-gradient(circle at 50% -15%, rgba(255, 85, 0, 0.08), transparent 55%),
-                  radial-gradient(circle at 10% 35%, rgba(255, 140, 64, 0.04), transparent 45%),
-                  radial-gradient(circle at 90% 65%, rgba(255, 85, 0, 0.03), transparent 45%),
-                  #ffffff !important;
-      background-color: #ffffff !important;
-      color: #1a1a1a !important;
-      font-family: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif !important;
-      min-height: 100vh !important;
-      overflow-x: hidden !important;
-    }
-
-    #landingView * {
-      box-sizing: border-box;
-    }
-
-    /* 1. Translucent Floating Navigation Bar */
-    .landing-nav {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      padding: 18px 54px !important;
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 100 !important;
-      background: rgba(255, 255, 255, 0.92) !important;
-      backdrop-filter: blur(24px) !important;
-      -webkit-backdrop-filter: blur(24px) !important;
-      border-bottom: 1px solid rgba(255, 85, 0, 0.12) !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
-    }
-    .landing-nav a {
-      color: #1a1a1a !important;
-      font-weight: 600 !important;
-      font-size: 0.95rem !important;
-      text-decoration: none !important;
-      transition: all 0.2s ease !important;
-    }
-    .landing-nav a:hover {
-      color: var(--orange) !important;
-    }
-
-    /* 2. Hero Section & Typography */
-    .landing-hero {
-      text-align: center !important;
-      padding: 70px 24px 50px 24px !important;
-      max-width: 1040px !important;
-      margin: 0 auto !important;
-    }
-    .landing-hero .hero-tag {
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-      padding: 6px 16px !important;
-      border-radius: 20px !important;
-      background: rgba(255, 85, 0, 0.08) !important;
-      border: 1px solid rgba(255, 85, 0, 0.25) !important;
-      color: var(--orange) !important;
-      font-size: 0.82rem !important;
-      font-weight: 700 !important;
-      margin-bottom: 24px !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.05em !important;
-    }
-    .landing-hero h1 {
-      font-size: 3.8rem !important;
-      font-weight: 800 !important;
-      line-height: 1.1 !important;
-      letter-spacing: -0.035em !important;
-      color: #050505 !important;
-      margin: 0 0 20px 0 !important;
-    }
-    .landing-hero h1 span.gradient-text,
-    .landing-hero h1 span.highlight {
-      background: linear-gradient(135deg, #ff5500 0%, #ff7700 100%) !important;
-      -webkit-background-clip: text !important;
-      -webkit-text-fill-color: transparent !important;
-    }
-    .landing-hero p {
-      font-size: 1.25rem !important;
-      color: #4a4a4a !important;
-      max-width: 740px !important;
-      margin: 0 auto 36px auto !important;
-      line-height: 1.6 !important;
-      font-weight: 400 !important;
-    }
-
-    /* 3. Bold Luminary Orange CTA Buttons & Smooth Hover Transitions */
-    .landing-cta-btn,
-    .landing-nav-cta,
-    .btn-primary,
-    .primary-btn {
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      color: #ffffff !important;
-      border: none !important;
-      border-radius: 12px !important;
-      padding: 12px 28px !important;
-      font-weight: 700 !important;
-      font-size: 1rem !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-      box-shadow: 0 8px 24px rgba(255, 85, 0, 0.22) !important;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      cursor: pointer !important;
-      text-decoration: none !important;
-    }
-    .landing-cta-btn:hover,
-    .landing-nav-cta:hover,
-    .btn-primary:hover,
-    .primary-btn:hover {
-      background: #ff661a !important;
-      background-color: #ff661a !important;
-      transform: translateY(-4px) !important;
-      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.35) !important;
-      color: #ffffff !important;
-    }
-
-    /* 4. Elimination of All Dark Blocks in Features, Comparison Columns & Footer */
-    .feature-card,
-    .comparison-card,
-    .pricing-card,
-    .stat-card,
-    .eco-node,
-    .testimonial-card,
-    .landing-footer,
-    footer {
-      background: #ffffff !important;
-      background-color: #ffffff !important;
-      color: #1a1a1a !important;
-      border: 1px solid rgba(0, 0, 0, 0.08) !important;
-      border-radius: 16px !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-    .feature-card:hover,
-    .comparison-card:hover,
-    .pricing-card:hover,
-    .stat-card:hover {
-      transform: translateY(-4px) !important;
-      border-color: var(--orange) !important;
-      box-shadow: 0 12px 32px rgba(255, 85, 0, 0.12) !important;
-    }
-
-    .landing-footer,
-    footer {
-      border-top: 1px solid rgba(255, 85, 0, 0.12) !important;
-      background: #faf9f6 !important;
-      color: #4a4a4a !important;
-      padding: 40px 54px !important;
-    }
-
-    .pricing-card.pro {
-      border: 2px solid var(--orange) !important;
-      box-shadow: 0 8px 28px rgba(255, 85, 0, 0.15) !important;
-    }
-
-
-    /* Enforce Crisp Pure White Text on All Sign Up & Primary CTA Buttons */
-    a.btn-primary,
-    a.btn-primary *,
-    a.btn-primary-large,
-    a.btn-primary-large *,
-    .landing-nav .btn-primary,
-    .landing-nav .btn-primary *,
-    .landing-nav a.btn-primary,
-    .landing-nav a.btn-primary *,
-    .landing-nav-cta,
-    .landing-nav-cta *,
-    .landing-cta-btn,
-    .landing-cta-btn *,
-    button.primary-btn,
-    button.primary-btn *,
-    a.primary-btn,
-    a.primary-btn * {
-      color: #ffffff !important;
-      background: var(--orange) !important;
-      background-color: #ff5500 !important;
-      fill: #ffffff !important;
-      stroke: #ffffff !important;
-      text-decoration: none !important;
-    }
-
-</style>
-
-
+      /* Competitive Advantage Table Section */
+      .comparison-section {
+        padding: 100px 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .comparison-table-wrapper {
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 24px;
+        overflow-x: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+      }
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        min-width: 720px;
+      }
+      .comparison-table th, .comparison-table td {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+      }
+      .comparison-table th {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #111111;
+        background: #fafafa;
+      }
+      .comparison-table th.col-luminary {
+        background: #fff6f0;
+        color: #FF5500;
+        font-size: 1.1rem;
+        border-top: 3px solid #FF5500;
+      }
+      .comparison-table td.col-luminary {
+        background: #fffbf8;
+        font-weight: 700;
+        color: #111111;
+      }
+      .check-green {
+        color: #16a34a;
+        font-size: 1.15rem;
+        margin-right: 6px;
+      }
+      .cross-red {
+        color: #dc2626;
+        font-size: 1.1rem;
+        margin-right: 6px;
+      }
+
+      /* Final CTA Banner */
+      .investor-cta-banner {
+        max-width: 1200px;
+        margin: 0 auto 100px auto;
+        padding: 70px 48px;
+        border-radius: 32px;
+        background: #111111;
+        color: #ffffff;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+      }
+      .investor-cta-banner::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255, 85, 0, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+      .investor-cta-banner h2 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: clamp(2.2rem, 4vw, 3.2rem);
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 16px;
+      }
+      .investor-cta-banner p {
+        font-size: 1.15rem;
+        color: rgba(255, 255, 255, 0.75);
+        max-width: 650px;
+        margin: 0 auto 36px auto;
+        line-height: 1.6;
+      }
+
+      /* Footer */
+      .luminary-footer {
+        background: #fafafa;
+        border-top: 1px solid rgba(0,0,0,0.06);
+        padding: 60px 48px 30px 48px;
+      }
+      .footer-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      /* Responsive Adjustments */
+      @media (max-width: 900px) {
+        .card-top-left, .card-bottom-left, .card-top-right, .card-bottom-right {
+          position: static !important;
+          margin: 12px auto !important;
+          animation: none !important;
+        }
+        .hero-stage-wrapper {
+          flex-direction: column !important;
+        }
+        .luminary-nav-links {
+          display: none;
+        }
+        .luminary-nav {
+          padding: 16px 20px;
+        }
+      }
+    </style>
 
     <div class="landing-page">
-
       <!-- NAVIGATION -->
-
-      <nav class="landing-nav">
-
-        <a class="brand" href="#top">
-
-          <span class="brand-badge" style="width:36px; height:36px; display:inline-block; margin-right:12px;">
-
-            <img src="logo_orange.png" alt="Luminary" style="width:100%; border-radius:8px;">
-
-          </span>
-
-          <span class="brand-wordmark">
-
-            <strong>LUMINARY</strong>
-
-            <span>AI Marketing Agency</span>
-
-          </span>
-
+      <nav class="luminary-nav">
+        <a class="luminary-nav-left" href="#top">
+          <div class="luminary-logo-badge">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="luminary-wordmark">
+            LUMINARY <span>AI Agency</span>
+          </div>
         </a>
 
-        <div class="nav-links">
-
+        <div class="luminary-nav-links">
           <a href="#features">Capabilities</a>
-
-          <a href="#compare">Why Luminary</a>
-
-          <a href="#workflow">How It Works</a>
-
+          <a href="#problem">The Problem</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#comparison">Vs. Competitors</a>
           <a href="#pricing">Pricing</a>
-
         </div>
 
-        <div class="nav-actions">
-
-          <a href="#" class="login-link" onclick="openLoginView(); return false;">Log In</a>
-
-          <a href="#" class="btn-primary" onclick="openSignupView(); return false;">Sign Up</a>
-
+        <div class="luminary-nav-actions">
+          <a href="#" class="luminary-btn-ghost" onclick="openLoginView(); return false;">Log In</a>
+          <a href="#" class="luminary-btn-pill" onclick="openSignupView(); return false;">Start Automating</a>
         </div>
-
       </nav>
 
-
-
-      <!-- HERO -->
-
-      <header class="landing-hero">
-
-        <div class="hero-glow"></div>
-
-        <h1><span class="keyword-highlight">AI Marketing</span> Built to Understand Your <span class="keyword-highlight">Brand</span>.</h1>
-
-        <p>Luminary combines specialized AI systems, marketing intelligence, creative generation, and quality control to help businesses produce high-quality marketing work faster and more intelligently.</p>
-
-        <div class="hero-ctas">
-
-          <a href="#" class="btn-primary-large" onclick="openSignupView(); return false;">Sign Up with Luminary <i class="fa-solid fa-arrow-right"></i></a>
-
-          <a href="#workflow" class="btn-secondary">See How It Works</a>
-
+      <!-- HERO SECTION -->
+      <header class="luminary-hero" id="top">
+        <div class="hero-tagline-badge">
+          ✨ Next-Generation Agency Automation
+        </div>
+        <h1>AI-Driven Conversion Growth, Right Away.</h1>
+        <p class="hero-sub">From concept to conversion — Luminary replaces bloated agency retainers with elite, local AI automation.</p>
+        
+        <div class="hero-cta-group">
+          <a href="#" class="hero-btn-primary" onclick="openSignupView(); return false;">Start Automating <i class="fa-solid fa-arrow-right"></i></a>
+          <a href="#features" class="hero-btn-secondary">View Capabilities</a>
         </div>
 
-        
+        <!-- HERO VISUAL CENTERPIECE (SaaS Device & Floating Cards) -->
+        <div class="hero-stage-wrapper">
+          <div class="hero-backdrop-glow"></div>
+          <div class="hero-backdrop-rings"></div>
 
+          <!-- Card 1: Top Left Product Media Card -->
+          <div class="float-card card-top-left">
+            <div class="video-badge">2:01</div>
+            <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80" alt="Creative Asset">
+          </div>
 
+          <!-- Central Phone Device Mockup -->
+          <div class="phone-mockup-frame">
+            <div class="phone-notch">
+              <div class="notch-camera"></div>
+              <div class="notch-speaker"></div>
+            </div>
+            <div class="phone-screen">
+              <div class="phone-screen-overlay">
+                <div class="phone-user-tag">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Avatar" class="phone-user-avatar">
+                  <span>Wade Warren</span>
+                </div>
+                <div class="phone-live-pill">
+                  <span style="font-size:0.6rem;">●</span> Live
+                </div>
+              </div>
+              <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=640&q=80" alt="AI Marketing Campaign" class="phone-screen-img">
+            </div>
+          </div>
 
+          <!-- Card 2: Bottom Left Stats Card + Rating Badge -->
+          <div class="float-card card-bottom-left">
+            <div class="floating-rating-pill">
+              ★★★★★
+            </div>
+            <div class="card-bottom-left-top">
+              <div class="chart-bars-icon">
+                <div class="chart-bar bar-1"></div>
+                <div class="chart-bar bar-2"></div>
+                <div class="chart-bar bar-3"></div>
+                <div class="chart-bar bar-4"></div>
+              </div>
+              <div>
+                <div class="engagement-label">Engagement</div>
+                <div class="engagement-stat">+40% <span class="live-dot"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Top Right Mint Green Sales Card -->
+          <div class="float-card card-top-right">
+            <div class="card-tr-info">
+              <h3>8</h3> <span class="items-label">items</span>
+              <div class="card-tr-sub">Sold this week</div>
+              <div class="card-tr-price-pill">$12</div>
+            </div>
+            <img src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=240&q=80" alt="Product Mockup" class="card-tr-product-img">
+          </div>
+
+          <!-- Card 4: Bottom Right Reaction / QC Card -->
+          <div class="float-card card-bottom-right">
+            <div class="card-br-img-wrap">
+              <div class="card-br-view-badge">1.5k</div>
+              <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80" alt="Campaign QA">
+            </div>
+            <div class="card-br-reactions">
+              <span class="reaction-red">❤️</span>
+              <span>💬</span>
+              <span>🛒</span>
+              <span>✈️</span>
+            </div>
+          </div>
+        </div>
       </header>
 
-
-
-      <!-- WHAT LUMINARY IS -->
-
-      <section id="features" class="landing-section">
-
-        <div class="section-header">
-
-          <h2>An Agency-Level <span class="keyword-highlight">AI Ecosystem</span></h2>
-
-          <p>Designed strictly for marketing workflows rather than general-purpose chat. We turn strategic requirements into coordinated creative deliverables automatically.</p>
-
+      <!-- SOCIAL PROOF TICKER -->
+      <section class="social-proof-section">
+        <div class="social-proof-title">TRUSTED BY 1,400+ HYPER-GROWTH BRANDS & CREATIVE AGENCIES</div>
+        <div class="marquee-wrapper">
+          <div class="marquee-track">
+            <span class="brand-logo-text">HEIRESS</span>
+            <span class="brand-logo-text">TOZO</span>
+            <span class="brand-logo-text">HELLBABES</span>
+            <span class="brand-logo-text">cocokind</span>
+            <span class="brand-logo-text">Oxyfresh</span>
+            <span class="brand-logo-text">DOT & KEY</span>
+            <span class="brand-logo-text">Skybags</span>
+            <span class="brand-logo-text">Bellefit</span>
+            <span class="brand-logo-text">AMAZING LACE</span>
+            <span class="brand-logo-text">GLOSSIER</span>
+            <span class="brand-logo-text">REVOLVE</span>
+            <span class="brand-logo-text">ALLBIRDS</span>
+          </div>
+          <div class="marquee-track" aria-hidden="true">
+            <span class="brand-logo-text">HEIRESS</span>
+            <span class="brand-logo-text">TOZO</span>
+            <span class="brand-logo-text">HELLBABES</span>
+            <span class="brand-logo-text">cocokind</span>
+            <span class="brand-logo-text">Oxyfresh</span>
+            <span class="brand-logo-text">DOT & KEY</span>
+            <span class="brand-logo-text">Skybags</span>
+            <span class="brand-logo-text">Bellefit</span>
+            <span class="brand-logo-text">AMAZING LACE</span>
+            <span class="brand-logo-text">GLOSSIER</span>
+            <span class="brand-logo-text">REVOLVE</span>
+            <span class="brand-logo-text">ALLBIRDS</span>
+          </div>
         </div>
-
-        <div class="features-grid">
-
-          <div class="feature-card">
-
-            <div class="feature-icon"><i class="fa-solid fa-chess-knight"></i></div>
-
-            <span class="stat-highlight">10x</span><div style="font-weight:600; color:var(--orange); margin-bottom:16px; text-transform:uppercase; letter-spacing:0.05em; font-size:0.85rem;">Faster Strategy</div>
-
-            <h3>Marketing Strategy</h3>
-
-            <p>Develop comprehensive campaign strategies, identify target audience segments, and plan execution timelines with specialized AI strategists.</p>
-
-          </div>
-
-          <div class="feature-card">
-
-            <div class="feature-icon"><i class="fa-solid fa-pen-nib"></i></div>
-
-            <span class="stat-highlight">50+</span><div style="font-weight:600; color:var(--orange); margin-bottom:16px; text-transform:uppercase; letter-spacing:0.05em; font-size:0.85rem;">Formats & Channels</div>
-
-            <h3>Content & Creative</h3>
-
-            <p>Generate high-converting copy, elegant social media graphics, and SEO-optimized articles perfectly aligned with your unique brand voice.</p>
-
-          </div>
-
-          <div class="feature-card">
-
-            <div class="feature-icon"><i class="fa-solid fa-shield-check"></i></div>
-
-            <span class="stat-highlight">100%</span><div style="font-weight:600; color:var(--orange); margin-bottom:16px; text-transform:uppercase; letter-spacing:0.05em; font-size:0.85rem;">Brand Safe</div>
-
-            <h3>Automated Quality Control</h3>
-
-            <p>Every single deliverable is automatically reviewed against your brand guidelines, ensuring consistency, safety, and terminology alignment.</p>
-
-          </div>
-
-        </div>
-
       </section>
 
+      <!-- THE PROBLEM WE SOLVE (3-COLUMN INVESTOR GRID) -->
+      <section class="problem-section" id="problem">
+        <div class="section-heading-center">
+          <span class="section-category-pill">The Market Inefficiency</span>
+          <h2>The Traditional Agency Model is Broken.</h2>
+          <p>Modern DTC and enterprise brands are trapped between exorbitant agency bills and generic, unverified AI outputs.</p>
+        </div>
 
-
-      <!-- DIFFERENTIATION: TRADITIONAL VS LUMINARY -->
-
-      <section id="compare" class="landing-section" style="background: rgba(0,0,0,0.02); max-width: 100%;">
-
-        <div style="max-width: 1200px; margin: 0 auto;">
-
-          <div class="section-header">
-
-            <h2>Beyond <span class="keyword-highlight">General AI</span>. Faster than Traditional Agencies.</h2>
-
-            <p>General AI gives answers. Luminary turns requirements into coordinated, production-ready work with minimal operational friction.</p>
-
-          </div>
-
-          
-
-          <div class="comparison-table">
-
-            <div class="comp-col">
-
-              <h3>Traditional Marketing Agency</h3>
-
-              <ul class="comp-list">
-
-                <li><i class="fa-solid fa-xmark comp-icon-x"></i> Larger manual workflows</li>
-
-                <li><i class="fa-solid fa-xmark comp-icon-x"></i> Multiple team handoffs</li>
-
-                <li><i class="fa-solid fa-xmark comp-icon-x"></i> Slower production cycles</li>
-
-                <li><i class="fa-solid fa-xmark comp-icon-x"></i> Higher operational overhead</li>
-
-                <li><i class="fa-solid fa-xmark comp-icon-x"></i> Disconnected software & tools</li>
-
-                <li><i class="fa-solid fa-xmark comp-icon-x"></i> Repetitive production work</li>
-
-              </ul>
-
+        <div class="problem-grid">
+          <!-- Problem 1 -->
+          <div class="problem-card">
+            <div>
+              <div class="problem-tag tag-tax">01 / High Friction</div>
+              <h3>The Agency Tax</h3>
+              <p>Traditional creative agencies charge $15,000–$50,000 monthly retainers, operate on 3-week turnaround cycles, and assign junior contractors to your key accounts.</p>
             </div>
-
-            <div class="comp-col luminary-col">
-
-              <h3 style="color:var(--orange);"><i class="fa-solid fa-bolt" style="font-size:1.4rem; margin-right:12px; color:var(--orange);"></i>How Luminary Works</h3>
-
-              <ul class="comp-list">
-
-                <li><i class="fa-solid fa-check comp-icon-check"></i> Integrated creative workflows</li>
-
-                <li><i class="fa-solid fa-check comp-icon-check"></i> Faster iteration & execution</li>
-
-                <li><i class="fa-solid fa-check comp-icon-check"></i> Deep, consistent brand context</li>
-
-                <li><i class="fa-solid fa-check comp-icon-check"></i> Automated quality checks</li>
-
-                <li><i class="fa-solid fa-check comp-icon-check"></i> Multi-model collaboration</li>
-
-                <li><i class="fa-solid fa-check comp-icon-check"></i> Lower operational friction</li>
-
-              </ul>
-
+            <div class="problem-stat-badge">
+              <i class="fa-solid fa-triangle-exclamation" style="color:#dc2626;"></i> Average Retainer: $24,500/month
             </div>
-
           </div>
 
-        </div>
-
-      </section>
-
-      
-
-      <!-- BRAND UNDERSTANDING -->
-
-      <section class="landing-section">
-
-        <div class="section-header">
-
-          <h2>Deep <span class="keyword-highlight">Brand</span> Context</h2>
-
-          <p>Luminary ingests your brand's core DNA to ensure every generated asset feels authentically yours. Context is preserved across the entire workspace.</p>
-
-        </div>
-
-        <div class="brand-context-box" style="border-radius: 32px; text-align: center; box-shadow: 0 48px 100px rgba(0,0,0,0.25); position: relative; overflow: hidden;">
-
-          <div style="position:absolute; bottom:-150px; left:50%; transform:translateX(-50%); width:800px; height:400px; background:radial-gradient(ellipse, rgba(255,85,0,0.15), transparent 70%);"></div>
-
-          <div style="position:absolute; top:-50px; right:-50px; width:300px; height:300px; background:radial-gradient(ellipse, rgba(137,79,255,0.08), transparent 70%);"></div>
-
-          <div class="brand-context-text" style="display:flex; justify-content:center; gap:48px; flex-wrap:wrap; font-weight:700; position: relative; z-index: 2;">
-
-            <span class="flow-text flow-1">Identity</span>
-
-            <span style="color:rgba(255,255,255,0.1);">&bull;</span>
-
-            <span class="flow-text flow-2">Positioning</span>
-
-            <span style="color:rgba(255,255,255,0.1);">&bull;</span>
-
-            <span class="flow-text flow-3">Audience</span>
-
-            <span style="color:rgba(255,255,255,0.1);">&bull;</span>
-
-            <span class="flow-text flow-4">Tone of Voice</span>
-
-            <span style="color:rgba(255,255,255,0.1);">&bull;</span>
-
-            <span class="flow-text flow-5">Visual Language</span>
-
-            <span style="color:rgba(255,255,255,0.1);">&bull;</span>
-
-            <span class="flow-text flow-6">Past Campaigns</span>
-
-            <span style="color:rgba(255,255,255,0.1);">&bull;</span>
-
-            <span class="flow-text flow-7">Marketing Goals</span>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- ECOSYSTEM -->
-
-      <section id="workflow" class="landing-section">
-
-        <div class="section-header">
-
-          <h2>Coordinated <span class="keyword-highlight">Intelligence</span></h2>
-
-          <p>Watch how a single strategic prompt flows through specialized AI roles to produce a finalized, multi-channel campaign seamlessly.</p>
-
-        </div>
-
-        <div class="ecosystem-diagram">
-
-          <div class="eco-node">Marketing Strategy</div>
-
-          <i class="fa-solid fa-arrow-down eco-arrow"></i>
-
-          <div class="eco-node">Content Generation</div>
-
-          <i class="fa-solid fa-arrow-down eco-arrow"></i>
-
-          <div class="eco-node">Creative & Asset Design</div>
-
-          <i class="fa-solid fa-arrow-down eco-arrow"></i>
-
-          <div class="eco-node">Automated Quality Control</div>
-
-          <i class="fa-solid fa-arrow-down eco-arrow"></i>
-
-          <div class="eco-node" style="background: var(--orange); color: white; border-color: var(--orange); box-shadow: 0 16px 40px rgba(255,85,0,0.25);">Final Delivery</div>
-
-        </div>
-
-      </section>
-
-
-
-      <!-- PRICING -->
-
-      <section id="pricing" class="landing-section" style="background: rgba(0,0,0,0.02); max-width: 100%;">
-
-        <div style="max-width: 1200px; margin: 0 auto;">
-
-          <div class="section-header">
-
-            <h2>Transparent <span class="keyword-highlight">Pricing</span></h2>
-
-            <p>Invest in an AI agency that scales flawlessly with your creative output.</p>
-
-          </div>
-
-          <div class="pricing-grid">
-
-            <div class="pricing-card">
-
-              <div class="plan-name">STARTER</div>
-
-              <div class="plan-price">₹20,000<span>/mo</span></div>
-
-              <div class="plan-desc">Perfect for emerging brands needing consistent, high-quality content generation and social scheduling.</div>
-
-              <ul class="plan-features">
-
-                <li><i class="fa-solid fa-check"></i> Basic Brand Context</li>
-
-                <li><i class="fa-solid fa-check"></i> AI Copywriting & SEO</li>
-
-                <li><i class="fa-solid fa-check"></i> Standard Quality Control</li>
-
-                <li><i class="fa-solid fa-check"></i> Email Support</li>
-
-              </ul>
-
-              <a href="#" class="btn-secondary" style="text-align:center; width:100%;" onclick="openSignupView(); return false;">Sign Up</a>
-
+          <!-- Problem 2 -->
+          <div class="problem-card">
+            <div>
+              <div class="problem-tag tag-generic">02 / Brand Drift</div>
+              <h3>The Generic AI Trap</h3>
+              <p>Standard cloud tools like ChatGPT, Canva, and stock Midjourney lack deep brand context, mangle typography, hallucinate facts, and fail visual quality control tests.</p>
             </div>
-
-            
-
-            <div class="pricing-card pro">
-
-              <div class="plan-name">PRO</div>
-
-              <div class="plan-price">₹70,000<span>/mo</span></div>
-
-              <div class="plan-desc">For growing organizations requiring full-scale campaign orchestration and multi-model collaboration.</div>
-
-              <ul class="plan-features">
-
-                <li><i class="fa-solid fa-check"></i> Deep Brand Identity Sync</li>
-
-                <li><i class="fa-solid fa-check"></i> Multi-channel Campaigns</li>
-
-                <li><i class="fa-solid fa-check"></i> Advanced Creative Assets</li>
-
-                <li><i class="fa-solid fa-check"></i> Integrated Social Posting</li>
-
-                <li><i class="fa-solid fa-check"></i> Priority Processing</li>
-
-              </ul>
-
-              <a href="#" class="btn-primary-large" style="justify-content:center; width:100%;" onclick="openSignupView(); return false;">Upgrade to Pro</a>
-
+            <div class="problem-stat-badge">
+              <i class="fa-solid fa-xmark" style="color:#ea580c;"></i> Unverified Failure Rate: 68%
             </div>
-
           </div>
 
+          <!-- Problem 3 -->
+          <div class="problem-card">
+            <div>
+              <div class="problem-tag tag-privacy">03 / Security Risk</div>
+              <h3>Data Privacy Leaks</h3>
+              <p>Uploading unreleased product photos and confidential launch strategies to public cloud APIs exposes your brand's competitive moat to external model training sets.</p>
+            </div>
+            <div class="problem-stat-badge">
+              <i class="fa-solid fa-shield-halved" style="color:#7c3aed;"></i> Solution: 100% Local Air-Gapped AI
+            </div>
+          </div>
         </div>
-
       </section>
 
+      <!-- HOW LUMINARY WORKS (BOLD ORANGE THEMATIC SECTION) -->
+      <section class="how-it-works-orange" id="how-it-works">
+        <div class="section-heading-center">
+          <span class="section-category-pill" style="color:#ffffff; background:rgba(0,0,0,0.25); padding:4px 14px; border-radius:9999px;">Autonomous Architecture</span>
+          <h2>End-to-End Autonomous Agency Execution</h2>
+          <p class="section-sub">Four specialized intelligence layers work in synchronized harmony to deliver complete, print-ready campaigns in seconds.</p>
+        </div>
 
+        <div class="how-steps-grid">
+          <div class="how-step-card">
+            <div class="how-step-num">01</div>
+            <h3>Brand & Brief Ingestion</h3>
+            <p>Upload style guides, HEX color palettes, tone rules, and real product photos into your private, secure brand vault.</p>
+          </div>
+
+          <div class="how-step-card">
+            <div class="how-step-num">02</div>
+            <h3>Multi-Role AI Fleet</h3>
+            <p>Creative Directors, Copywriters, Prompt Engineers, and Strategists collaborate in parallel to formulate end-to-end deliverables.</p>
+          </div>
+
+          <div class="how-step-card">
+            <div class="how-step-num">03</div>
+            <h3>Computer-Vision QC</h3>
+            <p>Autonomous multimodal inspection evaluates contrast, typography alignment, OCR spelling, and aesthetic scores prior to delivery.</p>
+          </div>
+
+          <div class="how-step-card">
+            <div class="how-step-num">04</div>
+            <h3>Multi-Format Instant Export</h3>
+            <p>One-click export to DOCX campaign briefs, PPTX pitch decks, XLSX media plans, 4K print-ready images, and social sync.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CAPABILITIES SECTION -->
+      <section id="features" class="problem-section">
+        <div class="section-heading-center">
+          <span class="section-category-pill">Comprehensive Capabilities</span>
+          <h2>The Complete AI Agency in One Platform</h2>
+          <p>Everything you need to launch, test, scale, and automate multi-channel brand growth.</p>
+        </div>
+
+        <div class="problem-grid">
+          <div class="problem-card">
+            <div>
+              <div style="font-size:2rem; color:#FF5500; margin-bottom:16px;"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+              <h3>Production Image Studio</h3>
+              <p>Hardware-accelerated local image synthesis powered by SDXL and custom agency enhancement matrices. Resolves high-resolution print graphics with zero burned-in errors.</p>
+            </div>
+            <div class="problem-stat-badge">
+              <i class="fa-solid fa-bolt" style="color:#FF5500;"></i> 4K Native Resolution / 300 DPI
+            </div>
+          </div>
+
+          <div class="problem-card">
+            <div>
+              <div style="font-size:2rem; color:#FF5500; margin-bottom:16px;"><i class="fa-solid fa-file-powerpoint"></i></div>
+              <h3>Enterprise Document Generation</h3>
+              <p>Instantly produce client-ready PowerPoint presentations, Word strategy documents, and Excel financial media budgets directly inside chat.</p>
+            </div>
+            <div class="problem-stat-badge">
+              <i class="fa-solid fa-file-export" style="color:#FF5500;"></i> Native DOCX, PPTX & XLSX Formats
+            </div>
+          </div>
+
+          <div class="problem-card">
+            <div>
+              <div style="font-size:2rem; color:#FF5500; margin-bottom:16px;"><i class="fa-solid fa-share-nodes"></i></div>
+              <h3>Omnichannel Auto-Publishing</h3>
+              <p>Schedule and sync approved campaigns across Instagram, Pinterest, LinkedIn, and Meta Ads Manager with autonomous timing optimization.</p>
+            </div>
+            <div class="problem-stat-badge">
+              <i class="fa-solid fa-clock-rotate-left" style="color:#FF5500;"></i> Automated Social Deployment
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPETITIVE ADVANTAGE COMPARISON SECTION -->
+      <section class="comparison-section" id="comparison">
+        <div class="section-heading-center">
+          <span class="section-category-pill">Competitive Benchmark</span>
+          <h2>Why Luminary Wins: Built for True ROI</h2>
+          <p>A direct comparison against legacy advertising agencies and primitive cloud AI wrappers.</p>
+        </div>
+
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Capability / Benchmark</th>
+                <th class="col-luminary">Luminary AI</th>
+                <th>Traditional Agencies (Ogilvy, BBDO)</th>
+                <th>Basic AI Tools (Jasper, Canva)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Data Privacy & Execution</strong></td>
+                <td class="col-luminary"><i class="fa-solid fa-circle-check check-green"></i> 100% Local GPU Execution (Air-Gapped)</td>
+                <td><i class="fa-solid fa-triangle-exclamation" style="color:#ea580c;"></i> Manual NDAs / Leaks</td>
+                <td><i class="fa-solid fa-circle-xmark cross-red"></i> Public Cloud Training Retention</td>
+              </tr>
+              <tr>
+                <td><strong>Automated Vision QC Engine</strong></td>
+                <td class="col-luminary"><i class="fa-solid fa-circle-check check-green"></i> Built-in Multimodal QA & OCR Gate</td>
+                <td><i class="fa-solid fa-circle-check check-green"></i> Subjective Manual Reviews</td>
+                <td><i class="fa-solid fa-circle-xmark cross-red"></i> Zero Verification (Hallucinations)</td>
+              </tr>
+              <tr>
+                <td><strong>Full Deliverable Ecosystem</strong></td>
+                <td class="col-luminary"><i class="fa-solid fa-circle-check check-green"></i> Complete Bundles (DOCX, PPTX, XLSX, 4K)</td>
+                <td><i class="fa-solid fa-circle-check check-green"></i> Manual PDF Deliverables</td>
+                <td><i class="fa-solid fa-circle-xmark cross-red"></i> Raw Text / Images Only</td>
+              </tr>
+              <tr>
+                <td><strong>Turnaround Time</strong></td>
+                <td class="col-luminary"><i class="fa-solid fa-circle-check check-green"></i> Sub-30 Seconds Real-Time</td>
+                <td><i class="fa-solid fa-circle-xmark cross-red"></i> 2 to 4 Weeks Per Iteration</td>
+                <td><i class="fa-solid fa-triangle-exclamation" style="color:#ea580c;"></i> Fragmented Manual Stitching</td>
+              </tr>
+              <tr>
+                <td><strong>Cost Structure</strong></td>
+                <td class="col-luminary"><i class="fa-solid fa-circle-check check-green"></i> Fixed Predictable Software License</td>
+                <td><i class="fa-solid fa-circle-xmark cross-red"></i> $15,000–$50,000/mo Retainers</td>
+                <td><i class="fa-solid fa-triangle-exclamation" style="color:#ea580c;"></i> Multiple Disconnected Subscriptions</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PRICING SECTION -->
+      <section id="pricing" class="problem-section" style="padding-top:20px;">
+        <div class="section-heading-center">
+          <span class="section-category-pill">Transparent Investment</span>
+          <h2>Predictable Pricing for High-Growth Teams</h2>
+          <p>Invest in an autonomous agency platform that scales flawlessly with your creative demand.</p>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:30px; max-width:900px; margin:0 auto;">
+          <div class="problem-card" style="padding:40px 32px;">
+            <div>
+              <div style="font-size:0.85rem; font-weight:800; color:#888888; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Starter Agency</div>
+              <div style="font-size:2.4rem; font-weight:900; color:#111111; margin-bottom:12px;">$499<span style="font-size:1rem; font-weight:600; color:#777777;">/month</span></div>
+              <p style="color:#666666; font-size:0.95rem; line-height:1.5;">Ideal for emerging DTC brands seeking consistent, high-converting social campaigns and asset generation.</p>
+              <ul style="list-style:none; padding:0; margin:24px 0; display:flex; flex-direction:column; gap:12px; font-size:0.92rem; color:#333333;">
+                <li><i class="fa-solid fa-check check-green"></i> Core Brand Context Ingestion</li>
+                <li><i class="fa-solid fa-check check-green"></i> Autonomous Copywriting & SEO</li>
+                <li><i class="fa-solid fa-check check-green"></i> Local Hardware AI Image Generation</li>
+                <li><i class="fa-solid fa-check check-green"></i> Standard Vision Quality Control</li>
+              </ul>
+            </div>
+            <a href="#" class="hero-btn-secondary" style="justify-content:center; width:100%;" onclick="openSignupView(); return false;">Start with Starter</a>
+          </div>
+
+          <div class="problem-card" style="padding:40px 32px; border:2px solid #FF5500; box-shadow:0 15px 40px rgba(255,85,0,0.12); position:relative;">
+            <div style="position:absolute; top:-14px; right:24px; background:#FF5500; color:#ffffff; font-size:0.75rem; font-weight:800; padding:4px 14px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.06em;">Most Popular</div>
+            <div>
+              <div style="font-size:0.85rem; font-weight:800; color:#FF5500; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Enterprise Agency</div>
+              <div style="font-size:2.4rem; font-weight:900; color:#111111; margin-bottom:12px;">$1,499<span style="font-size:1rem; font-weight:600; color:#777777;">/month</span></div>
+              <p style="color:#666666; font-size:0.95rem; line-height:1.5;">For scaling brands and agencies needing full-scale campaign orchestration and multi-channel publishing.</p>
+              <ul style="list-style:none; padding:0; margin:24px 0; display:flex; flex-direction:column; gap:12px; font-size:0.92rem; color:#333333;">
+                <li><i class="fa-solid fa-check check-green"></i> Deep Brand Identity & Palette Synchronization</li>
+                <li><i class="fa-solid fa-check check-green"></i> Full Multi-Model Collaboration Fleet</li>
+                <li><i class="fa-solid fa-check check-green"></i> Automated Multi-Format Documents (PPTX/DOCX/XLSX)</li>
+                <li><i class="fa-solid fa-check check-green"></i> Integrated Social Auto-Publishing Engine</li>
+                <li><i class="fa-solid fa-check check-green"></i> Priority Local Hardware Processing</li>
+              </ul>
+            </div>
+            <a href="#" class="hero-btn-primary" style="justify-content:center; width:100%;" onclick="openSignupView(); return false;">Upgrade to Enterprise</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVESTOR CTA BANNER -->
+      <section class="problem-section" style="padding-top:0;">
+        <div class="investor-cta-banner">
+          <h2>Experience the Future of Agency Automation</h2>
+          <p>Eliminate agency delays, protect proprietary brand intelligence, and automate conversion growth with Luminary.</p>
+          <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+            <a href="#" class="hero-btn-primary" onclick="openSignupView(); return false;">Launch Autonomous App <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="#" class="hero-btn-secondary" style="background:transparent; color:#ffffff !important; border-color:rgba(255,255,255,0.4);" onclick="openSignupView(); return false;">Schedule Investor Demo</a>
+          </div>
+        </div>
+      </section>
 
       <!-- FOOTER -->
-
-      <footer class="landing-footer">
-
-        <div class="footer-grid">
-
-          <div class="footer-brand">
-
-            <a class="brand" href="#top" style="text-decoration:none;">
-
-              <span class="brand-badge" style="width:36px; height:36px; display:inline-block; vertical-align:middle; margin-right:12px;">
-
-                <img src="logo_orange.png" alt="Luminary" style="width:100%; border-radius:8px;">
-
-              </span>
-
-              <span class="brand-wordmark" style="vertical-align:middle; font-size:1.25rem;">
-
-                <strong>LUMINARY</strong>
-
-              </span>
-
-            </a>
-
-            <p>The premium AI marketing agency built to understand, scale, and elevate your brand's narrative.</p>
-
+      <footer class="luminary-footer">
+        <div class="footer-inner">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="luminary-logo-badge" style="width:32px; height:32px;">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div style="font-weight:800; font-size:1.1rem; color:#111111;">LUMINARY <span style="font-weight:500; font-size:0.85rem; color:#777777;">AI Marketing Agency</span></div>
           </div>
-
-          <div class="footer-col">
-
-            <h4>Product</h4>
-
-            <ul class="footer-links">
-
-              <li><a href="#features">Capabilities</a></li>
-
-              <li><a href="#workflow">Workflows</a></li>
-
-              <li><a href="#pricing">Pricing</a></li>
-
-            </ul>
-
+          <div style="font-size:0.9rem; color:#777777;">&copy; 2026 Luminary AI Inc. All rights reserved. 100% Local Hardware Accelerated.</div>
+          <div style="display:flex; gap:20px; font-size:1.1rem; color:#444444;">
+            <a href="#" style="color:#555555;"><i class="fa-brands fa-twitter"></i></a>
+            <a href="#" style="color:#555555;"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="#" style="color:#555555;"><i class="fa-brands fa-github"></i></a>
           </div>
-
-          <div class="footer-col">
-
-            <h4>Company</h4>
-
-            <ul class="footer-links">
-
-              <li><a href="#">About Us</a></li>
-
-              <li><a href="#">Careers</a></li>
-
-              <li><a href="#">Contact</a></li>
-
-            </ul>
-
-          </div>
-
-          <div class="footer-col">
-
-            <h4>Legal</h4>
-
-            <ul class="footer-links">
-
-              <li><a href="#">Privacy Policy</a></li>
-
-              <li><a href="#">Terms of Service</a></li>
-
-            </ul>
-
-          </div>
-
         </div>
-
-        <div class="footer-bottom">
-
-          <div>&copy; 2026 Luminary AI. All rights reserved.</div>
-
-          <div style="display:flex; gap:20px;">
-
-            <a href="#" style="color:rgba(5,5,5,0.4);"><i class="fa-brands fa-twitter" style="font-size:1.2rem;"></i></a>
-
-            <a href="#" style="color:rgba(5,5,5,0.4);"><i class="fa-brands fa-linkedin" style="font-size:1.2rem;"></i></a>
-
-          </div>
-
-        </div>
-
       </footer>
-
     </div>
-
-    </section>
-
-  <section class="auth-view" id="authView">
+</section>
+<section class="auth-view" id="authView">
       <div class="auth-waves">
         <div class="auth-wave-el one"></div>
         <div class="auth-wave-el two"></div>
@@ -10733,9 +9291,8 @@ body.light-mode .history-item.active {
             <i class="fa-solid fa-chevron-left" style="color:#ffffff; font-size:1.1rem;"></i>
           </button>
           <div class="chat-stage">
-            <div class="workspace-head" id="heroGreetingHead">
-              
-              <h2 id="welcomeHeading">Welcome, Daytona!</h2>
+            <div id="welcome-message" class="welcome-container">
+              <h2 id="welcomeHeading">Welcome to Luminary</h2>
               <p>How can I help you today?</p>
             </div>
             <div class="chat-feed" id="chatFeed"></div>
@@ -11152,7 +9709,11 @@ body.light-mode .history-item.active {
       formEl.querySelectorAll("input, textarea").forEach(input => removeFieldError(input));
     }
 
-    const state = {
+    // Gemini-style Isolated Chat Session State Management
+    let chatSessions = window.chatSessions = {};
+    let currentChatId = window.currentChatId = null;
+
+    var state = window.state = {
       account: null,
       chats: [],
       activeChatId: null,
@@ -11282,6 +9843,11 @@ body.light-mode .history-item.active {
       if (!state.account) return;
       const st = getStore();
       const k = accountKey(state.account);
+      // Sync chatSessions to state.chats
+      if (Object.keys(chatSessions).length) {
+        state.chats = Object.values(chatSessions).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      }
+      state.activeChatId = currentChatId || state.activeChatId;
       st[k] = {
         account: state.account,
         chats: state.chats,
@@ -11305,27 +9871,30 @@ body.light-mode .history-item.active {
           id: "chat_default_1",
           title: "Brand Campaign Strategy",
           createdAt: new Date().toISOString(),
+          inputDraft: "",
           messages: [
             { role: "user", text: "Create a luxury marketing strategy for Luminary AI launch." },
-            { role: "assistant", text: "Here is your multi-channel launch campaign strategy:\\n\\n1. **Instagram Campaign**: High-contrast geometric visuals.\\n2. **YouTube Showcase**: 60-second product demo video.\\n3. **Facebook Retargeting**: Direct audience engagement ads.", date: "10:30 AM" }
+            { role: "assistant", text: "Here is your multi-channel launch campaign strategy:\n\n1. **Instagram Campaign**: High-contrast geometric visuals.\n2. **YouTube Showcase**: 60-second product demo video.\n3. **Facebook Retargeting**: Direct audience engagement ads.", date: "10:30 AM" }
           ]
         },
         {
           id: "chat_default_2",
           title: "Instagram Visuals & Copy",
           createdAt: new Date(Date.now() - 86400000).toISOString(),
+          inputDraft: "",
           messages: [
             { role: "user", text: "Generate Instagram copy and post ideas." },
-            { role: "assistant", text: "### Luminary Launch Post\\n*Caption*: Precision growth, automated beautifully. Empower your brand with Luminary AI.\\n\\n[IMAGE][logo_orange.png](Download Logo)", date: "Yesterday" }
+            { role: "assistant", text: "### Luminary Launch Post\n*Caption*: Precision growth, automated beautifully. Empower your brand with Luminary AI.\n\n[IMAGE][logo_orange.png](Download Logo)", date: "Yesterday" }
           ]
         },
         {
           id: "chat_default_3",
           title: "Q3 Marketing Analytics Audit",
           createdAt: new Date(Date.now() - 172800000).toISOString(),
+          inputDraft: "",
           messages: [
             { role: "user", text: "Audit performance metrics across all social channels." },
-            { role: "assistant", text: "### Performance Audit Summary\\n- **Total Reach**: 45.2K impressions\\n- **Engagement Rate**: +34% growth\\n- **Top Platform**: Instagram (2.5K views)", date: "2 days ago" }
+            { role: "assistant", text: "### Performance Audit Summary\n- **Total Reach**: 45.2K impressions\n- **Engagement Rate**: +34% growth\n- **Top Platform**: Instagram (2.5K views)", date: "2 days ago" }
           ]
         }
       ];
@@ -11353,22 +9922,43 @@ body.light-mode .history-item.active {
         } catch(e) {}
       }
       state.chats = existingChats || defaultChats;
+
+      // Populate Gemini-style isolated chatSessions state
+      chatSessions = window.chatSessions = {};
+      (state.chats || []).forEach(c => {
+        chatSessions[c.id] = {
+          id: c.id,
+          title: c.title || "New chat",
+          messages: Array.isArray(c.messages) ? c.messages : [],
+          inputDraft: c.inputDraft || "",
+          createdAt: c.createdAt || new Date().toISOString(),
+          updatedAt: c.updatedAt || new Date().toISOString()
+        };
+      });
+
       state.brandAssets = Array.isArray(saved?.brandAssets) && saved.brandAssets.length ? saved.brandAssets : defaultBrandAssets;
       state.pinnedAssets = Array.isArray(saved?.pinnedAssets) ? saved.pinnedAssets : [];
       state.calendarEvents = defaultCalendarEvents;
 
       state.activeChatId = saved?.activeChatId || (state.chats.length ? state.chats[0].id : null);
+      currentChatId = window.currentChatId = state.activeChatId;
 
       if (!state.chats.length) {
         createNewChat();
       } else if (!state.activeChatId || !state.chats.find((c) => c.id === state.activeChatId)) {
         state.activeChatId = state.chats[0].id;
+        currentChatId = window.currentChatId = state.activeChatId;
       }
       updateAccountUI();
       renderHistory();
       renderChat();
       renderBrandAssets();
       renderPinnedAssets();
+
+      const promptEl = document.getElementById("promptInput") || document.getElementById("chat-input");
+      if (promptEl && currentChatId && chatSessions[currentChatId]) {
+        promptEl.value = chatSessions[currentChatId].inputDraft || "";
+      }
     }
 
     function updateAccountUI() {
@@ -11381,28 +9971,84 @@ body.light-mode .history-item.active {
     }
 
     function createNewChat() {
+      const promptField = document.getElementById("promptInput") || document.getElementById("chat-input");
+      
+      // Save outgoing input draft before creating new chat
+      if (currentChatId && chatSessions[currentChatId] && promptField) {
+        chatSessions[currentChatId].inputDraft = promptField.value;
+        const out = (state.chats || []).find(c => c.id === currentChatId);
+        if (out) out.inputDraft = promptField.value;
+      }
+
       const now = new Date();
-      const id = "chat_" + now.getTime();
+      const id = "chat_" + Date.now();
       const title = "New chat";
-      state.chats.unshift({
+      const newSession = {
         id,
         title,
+        messages: [],
+        inputDraft: "",
         createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-        messages: []
-      });
+        updatedAt: now.toISOString()
+      };
+
+      chatSessions[id] = newSession;
+      currentChatId = window.currentChatId = id;
       state.activeChatId = id;
+      state.chats = [newSession, ...(state.chats || []).filter(c => c.id !== id)];
+
+      // 1. Explicitly clear all prompt / chat input fields
       if (elements.promptInput) elements.promptInput.value = "";
+      if (promptField) promptField.value = "";
+
+      // 2. Clear attachments, tags, and reply context
       state.attachments = [];
       state.selectedTags = [];
+      if (typeof clearReply === "function") {
+        clearReply();
+      } else if (typeof window.clearReply === "function") {
+        window.clearReply();
+      }
+
+      // 3. Clear the main chat window completely
+      const feed = elements.chatFeed || document.getElementById("chatFeed");
+      if (feed) feed.innerHTML = "";
+
+      // 4. Reinject/restore the premium Welcome Message
+      const chatStage = document.querySelector(".chat-stage") || document.querySelector(".chat-container");
+      let welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead");
+      if (!welcomeEl && chatStage) {
+        const welDiv = document.createElement("div");
+        welDiv.id = "welcome-message";
+        welDiv.className = "welcome-container";
+        welDiv.innerHTML = '<h2 id="welcomeHeading">Welcome to Luminary</h2><p>How can I help you today?</p>';
+        chatStage.insertBefore(welDiv, chatStage.firstChild);
+        welcomeEl = welDiv;
+      }
+      if (welcomeEl) {
+        welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+        welcomeEl.style.display = "flex";
+      }
+
       renderSelections();
       persistAccount();
       renderHistory();
       renderChat();
+
+      if (typeof switchMainView === "function") {
+        switchMainView("home");
+      } else if (typeof window.switchMainView === "function") {
+        window.switchMainView("home");
+      }
+      if (promptField) promptField.focus();
     }
+    window.createNewChat = createNewChat;
 
     function getActiveChat() {
-      return state.chats.find((c) => c.id === state.activeChatId);
+      if (currentChatId && chatSessions[currentChatId]) {
+        return chatSessions[currentChatId];
+      }
+      return (state.chats || []).find((c) => c.id === (currentChatId || state.activeChatId));
     }
 
     function openLightbox(src, filename) {
@@ -11525,12 +10171,25 @@ body.light-mode .history-item.active {
 
     function renderChat() {
       const chat = getActiveChat();
+      const welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
       if (!chat) {
         if (elements.chatFeed) elements.chatFeed.innerHTML = "";
+        if (welcomeEl) {
+          welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+          welcomeEl.style.display = "flex";
+        }
         return;
       }
       if (chat.messages && chat.messages.length > 0) {
-        if (typeof window.hideHeroGreeting === 'function') window.hideHeroGreeting();
+        if (welcomeEl) {
+          welcomeEl.classList.add("fade-out-up");
+          welcomeEl.style.display = "none";
+        }
+      } else {
+        if (welcomeEl) {
+          welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+          welcomeEl.style.display = "flex";
+        }
       }
       if (!chat.messages || !chat.messages.length) {
         if (elements.chatFeed) elements.chatFeed.innerHTML = "";
@@ -11564,8 +10223,7 @@ body.light-mode .history-item.active {
           
           if (roleClass === "assistant") {
               if (message.isRunning) {
-                  let rText = message.runningText || message.text || "Luminary AI is working...";
-                  bubbleTextHtml = `<div class="running-indicator-content"><span class="running-indicator-text">${escapeHtml(rText)}</span></div>`;
+                  bubbleTextHtml = "Luminary AI is working...";
                   workingHtml = '<div class="working-progress-bar"></div>';
                   let start = message.startTime || Date.now();
                   timerHtml = `<div class="message-time live-timer" data-start="${start}" style="font-size:0.7rem; color:var(--orange); margin-top:8px; text-align:right;">0s</div>`;
@@ -11578,13 +10236,13 @@ body.light-mode .history-item.active {
                   let downActive = message.feedback === "negative" ? "active" : "";
                   actionsHtml = `
                     <div class="msg-actions" style="display:flex; align-items:center; gap:8px;">
-                      <button class="msg-action-btn" title="Reply" onclick="setReplyTo('${escapeHtml(message.text.slice(0,60))}...')">
+                      <button type="button" class="msg-action-btn reply-msg-btn" title="Reply to this response" onclick="setReplyByIndex(${idx}); event.stopPropagation();">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
                       </button>
-                      <button class="msg-action-btn ${upActive}" title="Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'positive')">
+                      <button type="button" class="msg-action-btn ${upActive}" title="Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'positive'); event.stopPropagation();">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
                       </button>
-                      <button class="msg-action-btn ${downActive}" title="Not Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'negative')">
+                      <button type="button" class="msg-action-btn ${downActive}" title="Not Helpful" onclick="setFeedback('${chat.id}', ${idx}, 'negative'); event.stopPropagation();">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
                       </button>
                       <span style="font-size:0.75rem; color:var(--muted); font-weight:600; margin-left:4px;">${tTaken}</span>
@@ -11650,23 +10308,50 @@ body.light-mode .history-item.active {
 
     
     
+    window.setReplyByIndex = function(msgIdx) {
+      const chat = getActiveChat();
+      if (!chat || !chat.messages || !chat.messages[msgIdx]) return;
+      const msg = chat.messages[msgIdx];
+      let snippet = "";
+      if (msg.deliverables && msg.deliverables.length) {
+        const imgDeliv = msg.deliverables.find(d => d.type === 'image' || d.type === 'png' || d.type === 'jpg');
+        if (imgDeliv) {
+          snippet = "Generated Image: " + (imgDeliv.title || imgDeliv.filename || "Agency Visual Deliverable");
+        } else {
+          snippet = "Deliverable: " + (msg.deliverables[0].title || msg.deliverables[0].filename || "Agency Asset");
+        }
+      }
+      if (!snippet && msg.text) {
+        snippet = msg.text.trim().replace(/\s+/g, ' ').slice(0, 70);
+        if (msg.text.length > 70) snippet += "...";
+      }
+      if (!snippet) snippet = "Generated AI Output";
+      window.setReplyTo(snippet);
+    };
+
     window.setReplyTo = function(snippet) {
       state.replyingTo = snippet;
       const textEl = document.getElementById('replyStripText');
       if(textEl) {
-          textEl.textContent = "Reply to: " + snippet;
+          textEl.textContent = "Replying to: " + snippet;
           const strip = textEl.parentElement;
           strip.style.display = 'flex';
-          strip.style.padding = '9px 14px';
+          strip.style.alignItems = 'center';
+          strip.style.justifyContent = 'space-between';
+          strip.style.padding = '8px 14px';
           strip.style.background = 'var(--orange)';
           strip.style.backgroundColor = '#ff5500';
           strip.style.border = '1px solid #ff5500';
-          strip.style.borderRadius = '8px';
+          strip.style.borderRadius = '10px';
           strip.style.color = '#ffffff';
-          strip.style.marginBottom = '12px';
+          strip.style.marginBottom = '10px';
           strip.style.boxShadow = '0 4px 14px var(--orange-glow)';
           const btn = document.getElementById('cancelReplyBtn');
           if(btn) btn.style.color = '#ffffff';
+      }
+      const promptInput = document.getElementById('promptInput');
+      if (promptInput) {
+        promptInput.focus();
       }
     };
     
@@ -11686,9 +10371,11 @@ body.light-mode .history-item.active {
       
       // POST to backend
       try {
-          await fetch('/api/feedback', {
+          const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
+          await fetch(`${baseUrl}/api/feedback`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
               body: JSON.stringify({
                   rating: rating,
                   context: chat.messages[msgIdx].text,
@@ -11705,18 +10392,22 @@ body.light-mode .history-item.active {
       const hSearch = document.getElementById("historySearch") || elements.historySearch;
       if (!hList) return;
       const query = (hSearch?.value || "").trim().toLowerCase();
+      const activeId = currentChatId || state.activeChatId;
       const items = (state.chats || []).filter((c) => {
         if (!query) return true;
-        const haystack = [c.title, ...(c.messages || []).map((m) => m.text)].join(" ").toLowerCase();
+        const s = chatSessions[c.id] || c;
+        const haystack = [s.title || c.title, ...(s.messages || c.messages || []).map((m) => m.text)].join(" ").toLowerCase();
         return haystack.includes(query);
       });
       hList.innerHTML = items.map((c) => {
-        const preview = c.messages && c.messages.length ? c.messages[c.messages.length - 1]?.text || "No messages yet." : "No messages yet.";
-        const active = c.id === state.activeChatId ? " active" : "";
+        const s = chatSessions[c.id] || c;
+        const msgs = s.messages || c.messages || [];
+        const preview = msgs.length ? msgs[msgs.length - 1]?.text || "No messages yet." : "No messages yet.";
+        const active = c.id === activeId ? " active" : "";
         return `
-          <div class="history-item${active}" data-chat-id="${c.id}">
+          <div class="history-item${active}" data-chat-id="${c.id}" onclick="selectChat('${c.id}')">
             <div style="display:flex; flex-direction:column; gap:2px; overflow:hidden; flex-grow:1; max-width:82%;">
-              <strong style="font-size:0.92rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${escapeHtml(c.title)}</strong>
+              <strong style="font-size:0.92rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${escapeHtml(s.title || c.title)}</strong>
               <div class="history-preview" style="font-size:0.78rem; opacity:0.6; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${escapeHtml(preview)}</div>
             </div>
             <button class="delete-chat-btn" type="button" aria-label="Delete Chat" onclick="event.stopPropagation(); deleteChat('${c.id}')" style="position:relative; bottom:auto; right:auto; flex-shrink:0; margin-left:auto; z-index:5;">
@@ -11733,20 +10424,74 @@ body.light-mode .history-item.active {
     window.renderHistoryList = renderHistory;
 
     window.selectChat = function(id) {
+      if (!id) return;
+      const inputBox = document.getElementById("promptInput") || document.getElementById("chat-input");
+
+      // 1. Save the current input box text into the outgoing chat's state
+      if (currentChatId && chatSessions[currentChatId] && inputBox) {
+        chatSessions[currentChatId].inputDraft = inputBox.value;
+        const outgoing = (state.chats || []).find(c => c.id === currentChatId);
+        if (outgoing) outgoing.inputDraft = inputBox.value;
+      }
+
+      // 2. Update currentChatId pointer to the clicked session's ID
+      currentChatId = window.currentChatId = id;
       state.activeChatId = id;
-      renderHistory();
+
+      // Ensure session exists in chatSessions
+      if (!chatSessions[id]) {
+        const existing = (state.chats || []).find(c => c.id === id);
+        if (existing) {
+          chatSessions[id] = {
+            id: existing.id,
+            title: existing.title || "New chat",
+            messages: Array.isArray(existing.messages) ? existing.messages : [],
+            inputDraft: existing.inputDraft || "",
+            createdAt: existing.createdAt || new Date().toISOString(),
+            updatedAt: existing.updatedAt || new Date().toISOString()
+          };
+        }
+      }
+
+      // 3. Clear the main chat UI
+      const feed = document.getElementById("chatFeed") || elements.chatFeed;
+      if (feed) feed.innerHTML = "";
+
+      // 4. Re-render the message bubbles for that specific history
       renderChat();
+
+      // 5. Restore the input box text from chat's draft
+      if (inputBox) {
+        inputBox.value = (chatSessions[id] && chatSessions[id].inputDraft) ? chatSessions[id].inputDraft : "";
+      }
+
+      // 6. Update the .active styling in the sidebar to highlight the selected chat
+      renderHistory();
       persistAccount();
+
+      if (typeof switchMainView === "function") {
+        switchMainView("home");
+      } else if (typeof window.switchMainView === "function") {
+        window.switchMainView("home");
+      }
+      if (inputBox) inputBox.focus();
     };
 
     window.deleteChat = function(id) {
-      state.chats = state.chats.filter(c => c.id !== id);
-      if (state.activeChatId === id) {
-        state.activeChatId = state.chats[0]?.id || null;
+      delete chatSessions[id];
+      state.chats = (state.chats || []).filter(c => c.id !== id);
+      if (currentChatId === id || state.activeChatId === id) {
+        const nextId = state.chats[0]?.id || null;
+        if (nextId) {
+          window.selectChat(nextId);
+        } else {
+          createNewChat();
+        }
+      } else {
+        persistAccount();
+        renderHistory();
+        renderChat();
       }
-      persistAccount();
-      renderHistory();
-      renderChat();
     };
 
     function renderPinnedAssets() {
@@ -11799,7 +10544,7 @@ body.light-mode .history-item.active {
     }
 
     async function requestBackend(path, payload) {
-      const baseUrl = window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.port === '8000' ? '' : 'http://localhost:8000');
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
       try {
         const response = await fetch(baseUrl + path, {
           method: "POST",
@@ -11807,6 +10552,7 @@ body.light-mode .history-item.active {
             "Content-Type": "application/json",
             "X-Client-ID": "1"
           },
+          credentials: "include",
           body: JSON.stringify(payload)
         });
         const data = await response.json().catch(() => ({}));
@@ -11860,31 +10606,20 @@ body.light-mode .history-item.active {
 
     
     window.hideHeroGreeting = function() {
-      const head = document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
-      if (head && !head.classList.contains("transition-out")) {
-        head.classList.add("transition-out");
-        head.style.opacity = "0";
-        head.style.transform = "translateY(-30px) scale(0.95)";
-        head.style.maxHeight = "0px";
-        head.style.margin = "0px";
-        head.style.padding = "0px";
+      const welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
+      if (welcomeEl && !welcomeEl.classList.contains("fade-out-up")) {
+        welcomeEl.classList.add("fade-out-up");
         setTimeout(() => {
-          head.classList.add("hidden");
-          head.style.display = "none";
+          welcomeEl.style.display = "none";
         }, 400);
       }
     };
 
     window.showHeroGreeting = function() {
-      const head = document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
-      if (head) {
-        head.classList.remove("transition-out", "hidden");
-        head.style.display = "block";
-        head.style.opacity = "1";
-        head.style.transform = "translateY(0) scale(1)";
-        head.style.maxHeight = "200px";
-        head.style.margin = "-10px 0 0 0";
-        head.style.padding = "0px";
+      const welcomeEl = document.getElementById("welcome-message") || document.getElementById("heroGreetingHead") || document.querySelector(".workspace-head");
+      if (welcomeEl) {
+        welcomeEl.classList.remove("fade-out-up", "transition-out", "hidden");
+        welcomeEl.style.display = "flex";
       }
     };
 
@@ -11902,16 +10637,45 @@ body.light-mode .history-item.active {
 
       const chat = getActiveChat();
       if (!chat) return;
+      const targetChatId = chat.id;
+
+      if (!chatSessions[targetChatId]) {
+        chatSessions[targetChatId] = {
+          id: chat.id,
+          title: chat.title || "New chat",
+          messages: Array.isArray(chat.messages) ? chat.messages : [],
+          inputDraft: "",
+          createdAt: chat.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      // Auto-rename chat if it is currently 'New chat'
+      if (!chat.title || chat.title.toLowerCase() === "new chat" || chat.title.toLowerCase() === "untitled chat") {
+        const cleanPrompt = (origPrompt || "").replace(/\[Replying to:[^\]]*\]/g, "").trim();
+        const words = cleanPrompt.split(/\s+/).filter(Boolean);
+        if (words.length > 0) {
+          const generatedTitle = words.slice(0, 5).join(" ") + (words.length > 5 ? "..." : "");
+          chat.title = generatedTitle;
+          chatSessions[targetChatId].title = generatedTitle;
+        }
+      }
 
       const attachmentsCopy = [...state.attachments];
       const pinnedCopy = [...(state.pinnedAssets || [])];
 
-      chat.messages.push({
+      const userMsg = {
         role: "user",
         text: prompt,
         attachments: attachmentsCopy,
         date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
+      };
+
+      // 4. Bind Messaging to State: Push message data into chatSessions[currentChatId].messages
+      chatSessions[targetChatId].messages.push(userMsg);
+      chat.messages = chatSessions[targetChatId].messages;
+      chatSessions[targetChatId].inputDraft = "";
+      chat.inputDraft = "";
 
       const attachmentContext = attachmentsCopy.length
         ? "\\n\\nAttached files:\\n" + attachmentsCopy.map(item => {
@@ -11937,7 +10701,7 @@ body.light-mode .history-item.active {
       const activeImageTag = state.selectedTags.find(t => imageTags.includes(t));
       const currentTag = activeImageTag || state.selectedTags[0] || "";
 
-      const history = chat.messages ? chat.messages.map((item) => ({ role: item.role, text: item.text })) : [];
+      const history = chatSessions[targetChatId].messages ? chatSessions[targetChatId].messages.map((item) => ({ role: item.role, text: item.text })) : [];
       const requestPayload = {
         prompt: prompt + taskContext + accountContext + attachmentContext + pinnedContext,
         tag: currentTag,
@@ -11954,55 +10718,52 @@ body.light-mode .history-item.active {
       elements.sendBtn.disabled = true;
       elements.sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:0.85rem;"></i>';
 
-      // Context-aware progress indicator text
-      let workingNotice = "Luminary AI is working...";
-      const pLower = (prompt || "").toLowerCase();
-      if (/image|graphic|visual|poster|photo|picture|logo|banner|illustration|render|art|draw|wallpaper/i.test(pLower)) {
-        workingNotice = "Generating visual graphic (this can take a few minutes on this hardware)...";
-      } else if (/presentation|pitch\s*deck|slide|deck|pptx/i.test(pLower)) {
-        workingNotice = "Designing executive presentation deck...";
-      } else if (/document|report|brief|docx/i.test(pLower)) {
-        workingNotice = "Drafting comprehensive strategy document...";
-      } else if (/sheet|excel|spreadsheet|calendar|xlsx|csv/i.test(pLower)) {
-        workingNotice = "Compiling data models & calendar spreadsheet...";
-      }
-
       const startTimeVal = Date.now();
-      chat.messages.push({
+      chatSessions[targetChatId].messages.push({
         role: "assistant",
-        text: workingNotice,
-        runningText: workingNotice,
+        text: "Luminary AI is working...",
         isRunning: true,
         startTime: startTimeVal
       });
+      chat.messages = chatSessions[targetChatId].messages;
       renderChat();
+      renderHistory();
       persistAccount();
+
+      // Immediate DOM update for active sidebar item
+      const activeTitleEl = document.querySelector(`.history-item[data-chat-id="${targetChatId}"] strong`) || document.querySelector(".history-item.active strong");
+      if (activeTitleEl) activeTitleEl.textContent = chat.title;
+      const activeSubtitleEl = document.querySelector(`.history-item[data-chat-id="${targetChatId}"] .history-preview`) || document.querySelector(".history-item.active .history-preview");
+      if (activeSubtitleEl) activeSubtitleEl.textContent = "Working...";
 
       try {
         const responseData = await requestBackend("/chat", requestPayload);
         const elapsedSeconds = Math.round((Date.now() - startTimeVal) / 1000);
         
-        chat.messages[chat.messages.length - 1] = {
+        chatSessions[targetChatId].messages[chatSessions[targetChatId].messages.length - 1] = {
           role: "assistant",
           text: responseData.response || "Something went wrong. Please try again.",
           timeTaken: elapsedSeconds,
           tags: tagsBeforeClear,
           suggestions: responseData.smart_suggestion?.chips || [],
-          timeTaken: Math.floor((Date.now() - (chat.messages[chat.messages.length-1].startTime || Date.now()))/1000), date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
       } catch (error) {
         console.error("[Luminary] Backend request failed:", error);
-        chat.messages[chat.messages.length - 1] = {
+        chatSessions[targetChatId].messages[chatSessions[targetChatId].messages.length - 1] = {
           role: "assistant",
           text: error.message || "Something went wrong. Please try again.",
-          timeTaken: Math.floor((Date.now() - (chat.messages[chat.messages.length-1].startTime || Date.now()))/1000), date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          timeTaken: Math.floor((Date.now() - startTimeVal) / 1000),
+          date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
       } finally {
         elements.sendBtn.disabled = false;
         elements.sendBtn.innerHTML = `<i class="fa-solid fa-arrow-up" style="color: #ffffff; font-size: 1.15rem;"></i>`;
       }
 
-      chat.updatedAt = new Date().toISOString();
+      chatSessions[targetChatId].updatedAt = new Date().toISOString();
+      chat.updatedAt = chatSessions[targetChatId].updatedAt;
+      chat.messages = chatSessions[targetChatId].messages;
       renderChat();
       renderHistory();
       persistAccount();
@@ -12382,6 +11143,14 @@ body.light-mode .history-item.active {
     });
 
     elements.sendBtn?.addEventListener("click", sendPrompt);
+    elements.promptInput?.addEventListener("input", () => {
+      const activeId = currentChatId || state.activeChatId;
+      if (activeId && chatSessions[activeId]) {
+        chatSessions[activeId].inputDraft = elements.promptInput.value;
+        const c = (state.chats || []).find(x => x.id === activeId);
+        if (c) c.inputDraft = elements.promptInput.value;
+      }
+    });
     elements.promptInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -12426,48 +11195,6 @@ body.light-mode .history-item.active {
     if (!initParams.get("view") && !initParams.has("subview") && !initParams.has("subtab") && !initParams.has("modal")) {
       showView("landing");
     }
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
-</script>
-<script>
-    window.submitSignupForm = function() {
-      try {
-        if (window.doSubmitSignupForm) {
-          window.doSubmitSignupForm();
-        } else {
-          window.showView("dashboard");
-        }
-      } catch (err) {
-        console.error("Signup error fallback:", err);
-        window.showView("dashboard");
-      }
-    };
-
-    window.submitLoginForm = function() {
-      try {
-        if (window.doSubmitLoginForm) {
-          window.doSubmitLoginForm();
-        } else {
-          window.showView("dashboard");
-        }
-      } catch (err) {
-        console.error("Login error fallback:", err);
-        window.showView("dashboard");
-      }
-    };
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
 
 </script>
 
@@ -12599,10 +11326,13 @@ body.light-mode .history-item.active {
       if (!grid) return;
 
       const currentClientId = (state && state.account && state.account.id) ? state.account.id : "kausar";
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
 
       try {
-        const res = await fetch(`${baseUrl}/api/social/connections?client_id=${encodeURIComponent(currentClientId)}`);
+        const res = await fetch(`${baseUrl}/api/social/connections?client_id=${encodeURIComponent(currentClientId)}`, {
+          method: "GET",
+          credentials: "include"
+        });
         if (!res.ok) {
           throw new Error("HTTP " + res.status);
         }
@@ -12679,12 +11409,13 @@ body.light-mode .history-item.active {
 
       const currentClientId = (state && state.account && state.account.id) ? state.account.id : "kausar";
       const brandName = (state && state.account && (state.account.business || state.account.company || state.account.name)) ? (state.account.business || state.account.company || state.account.name) : "daytona";
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
 
       try {
         const res = await fetch(`${baseUrl}/api/social/connect`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             client_id: currentClientId,
             platform: platform,
@@ -12738,10 +11469,11 @@ body.light-mode .history-item.active {
     };
 
     window.disconnectSocialPlatform = async function(connIdOrPlatform, platformName) {
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
       try {
         await fetch(`${baseUrl}/api/social/connections/${encodeURIComponent(connIdOrPlatform)}`, {
-          method: "DELETE"
+          method: "DELETE",
+          credentials: "include"
         });
         if (typeof showToast === "function") {
           showToast(`Disconnected ${platformName || 'account'} successfully.`);
@@ -13081,10 +11813,16 @@ body.light-mode .history-item.active {
     document.getElementById("historyOpenBtn")?.addEventListener("click", () => window.toggleHistory(true));
     document.getElementById("historyCloseBtn")?.addEventListener("click", () => window.toggleHistory(false));
     document.getElementById("newChatBtn")?.addEventListener("click", () => {
-      const feed = document.getElementById("chatFeed");
-      if (feed) feed.innerHTML = "";
-      window.switchMainView("home");
-      document.getElementById("promptInput")?.focus();
+      if (typeof window.createNewChat === "function") {
+        window.createNewChat();
+      } else {
+        const feed = document.getElementById("chatFeed");
+        if (feed) feed.innerHTML = "";
+        const promptEl = document.getElementById("promptInput") || document.getElementById("chat-input");
+        if (promptEl) promptEl.value = "";
+        window.switchMainView("home");
+        promptEl?.focus();
+      }
     });
 
     // Calendar Navigation
@@ -13130,14 +11868,6 @@ body.light-mode .history-item.active {
     bindAllInteractiveButtons();
   }
 })();
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
 </script>
 
 
@@ -13299,8 +12029,8 @@ body.light-mode .history-item.active {
 
       // 1. Disconnect active Social API connections on purge
       try {
-        const baseUrl = window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.port === '8000' ? '' : 'http://localhost:8000');
-        fetch(`${baseUrl}/api/social/connections/all`, { method: "DELETE" }).catch(() => {});
+        const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
+        fetch(`${baseUrl}/api/social/connections/all`, { method: "DELETE", credentials: "include" }).catch(() => {});
       } catch(apiErr) {
         console.warn("[Social API Purge Warning]:", apiErr);
       }
@@ -13405,7 +12135,7 @@ body.light-mode .history-item.active {
       if (!svg) return;
 
       const currentClientId = (state && state.account && state.account.id) ? state.account.id : "kausar";
-      const baseUrl = window.API_BASE || ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000" ? "" : "http://localhost:8000");
+      const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
 
       const monthSelect = document.getElementById("analyticsMonthSelect");
       const yearSelect = document.getElementById("analyticsYearSelect");
@@ -13414,7 +12144,10 @@ body.light-mode .history-item.active {
       const y = yearSelect ? yearSelect.value : new Date().getFullYear();
 
       try {
-        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`);
+        const res = await fetch(`${baseUrl}/api/social/analytics?client_id=${encodeURIComponent(currentClientId)}&month=${m}&year=${y}`, {
+          method: "GET",
+          credentials: "include"
+        });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         window.currentAnalyticsData = data;
@@ -13871,15 +12604,6 @@ body.light-mode .history-item.active {
       console.warn("URL Params parse error:", e);
     }
   }
-
-
-    window.toggleAiFleetModal = function(show) {
-      const modal = document.getElementById("aiFleetModal");
-      if (modal) {
-        modal.style.display = show ? "flex" : "none";
-      }
-    };
-
 </script>
 
 

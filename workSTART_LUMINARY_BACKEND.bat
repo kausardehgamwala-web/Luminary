@@ -10,6 +10,9 @@ echo   Image AI: Stable Diffusion v1-5 (Local CPU)
 echo ========================================================
 echo.
 
+if "%1"=="test" goto run_tests
+if "%1"=="run_tests" goto run_tests
+
 :: Check if port 8000 is already in use and attempt to kill existing process
 netstat -ano | findstr LISTENING | findstr :8000 >nul 2>&1
 if %errorlevel% equ 0 (
@@ -31,7 +34,7 @@ if %errorlevel% equ 0 (
 )
 
 :: ── VENV CHECK: Dedicated Luminary Virtual Environment ──────────────────────
-set "VENV_PY=%~dp0.venv\Scripts\python.exe"
+for %%I in ("%~dp0.venv\Scripts\python.exe") do set "VENV_PY=%%~fI"
 
 if not exist "%VENV_PY%" (
   echo.
@@ -45,6 +48,12 @@ if not exist "%VENV_PY%" (
   echo.
   pause
   exit /b 1
+)
+
+:: ── DEPENDENCY CHECK: Silently install/verify requirements.txt ──────────────
+if exist "%~dp0requirements.txt" (
+  echo [INFO] Verifying Python dependencies quietly...
+  "%VENV_PY%" -m pip install -r "%~dp0requirements.txt" --quiet
 )
 
 echo Starting Luminary Server with dedicated Python: %VENV_PY%
@@ -65,7 +74,15 @@ if not defined LUMINARY_AUTH_SECRET (
   echo [INFO] LUMINARY_AUTH_SECRET not set in CMD. luminary_auth will auto-load from .env or generate a secure 256-bit key.
 )
 
-"%VENV_PY%" "%~dp0server.py"
+:: -- Output Token Limits --------------------------------------------------
+set "CHAT_OUTPUT_TOKENS=2048"
+set "DOC_OUTPUT_TOKENS=4096"
+set "PPT_OUTPUT_TOKENS=4096"
+set "SHEET_OUTPUT_TOKENS=4096"
+set "PROMPT_BUILDER_MAX_TOKENS=1024"
+set "SDXL_PROMPT_MAX_TOKENS=77"
+set "FALLBACK_CAP=1024"
+"%VENV_PY%" "%~dp0server.py" --host 0.0.0.0 --port 8000
 if %errorlevel% neq 0 (
   echo.
   echo [SERVER TERMINATED WITH ERROR CODE %errorlevel%]
@@ -73,4 +90,15 @@ if %errorlevel% neq 0 (
 echo.
 echo Press any key to close this window...
 pause
+exit /b 0
+
+:run_tests
+for %%I in ("%~dp0.venv\Scripts\python.exe") do set "VENV_PY=%%~fI"
+if not exist "%VENV_PY%" set "VENV_PY=python"
+echo Running Luminary Ruthless System Test Suite...
+"%VENV_PY%" "%~dp0test_system.py"
+echo Test suite execution completed.
+pause
+exit /b 0
+
 

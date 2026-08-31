@@ -14,3 +14,7 @@ python-pptx
 pandas
 openpyxl
 selenium
+sentencepiece
+textstat
+datasets
+
