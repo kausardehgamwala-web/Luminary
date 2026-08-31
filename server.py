@@ -1266,6 +1266,10 @@ class LuminaryHandler(BaseHTTPRequestHandler):
 
         # ── 4. Web Research with Caching ──────────────────────────────────────
         search_results = ""
+        is_table_or_sheet = (specs.get("output_type") in ["xlsx", "csv", "sheet"]) or any(kw in lowered for kw in ["csv", "spreadsheet", "table", "sample sales data", "rows of"])
+        if is_table_or_sheet and not any(kw in lowered for kw in ["latest stock", "today's news", "live price", "current weather"]):
+            specs["needs_web_search"] = False
+
         if specs["needs_web_search"]:
             clean_q = re.sub(r"\[.*?\]", "", prompt).strip()
             # Check persistent search cache first
@@ -1371,11 +1375,15 @@ class LuminaryHandler(BaseHTTPRequestHandler):
 
         # Determine appropriate output token limit per endpoint
         if out_type == "text":
-            token_limit = CHAT_OUTPUT_TOKENS
+            task_num_predict = CHAT_OUTPUT_TOKENS
         elif out_type in ["pptx", "docx", "xlsx"]:
-            token_limit = DOC_OUTPUT_TOKENS
+            task_num_predict = DOC_OUTPUT_TOKENS
+        elif out_type in ["sheet", "csv"]:
+            task_num_predict = SHEET_OUTPUT_TOKENS
         else:
-            token_limit = CHAT_OUTPUT_TOKENS  # fallback for other types
+            task_num_predict = CHAT_OUTPUT_TOKENS
+        token_limit = task_num_predict
+
         # Timeout scaling based on token count (larger outputs may need more time)
         initial_timeout = max(OLLAMA_TIMEOUT, int(token_limit * 0.1) + 90)
         response_text = query_ollama(cot_prompt, timeout=initial_timeout, model_name=routed_model, num_predict=token_limit)
@@ -1462,7 +1470,8 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                             break
                         logger.error(f"[V14 CD QC] Agency quality check failed (score={cd_qc['score']}). CD initiating revision...")
                         healing_prompt = _cd_orchestrator.build_revision_prompt(prompt, response_text, cd_qc)
-                        retry_text = query_ollama(healing_prompt, timeout=90, model_name=routed_model, num_predict=task_num_predict)
+                        num_predict_value = task_num_predict if 'task_num_predict' in locals() else DOC_OUTPUT_TOKENS
+                        retry_text = query_ollama(healing_prompt, timeout=90, model_name=routed_model, num_predict=num_predict_value)
                         if retry_text and "Offline" not in retry_text and "Could not connect" not in retry_text and len(retry_text) > 50:
                             response_text = retry_text
                             qa_attempts += 1
@@ -1489,7 +1498,8 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                         f"Previous Output:\n{response_text}\n\n"
                         f"Revised Output:"
                     )
-                    retry_text = query_ollama(healing_prompt, timeout=90, model_name=routed_model, num_predict=task_num_predict)
+                    num_predict_value = task_num_predict if 'task_num_predict' in locals() else DOC_OUTPUT_TOKENS
+                    retry_text = query_ollama(healing_prompt, timeout=90, model_name=routed_model, num_predict=num_predict_value)
                     if retry_text and "Offline" not in retry_text and "Could not connect" not in retry_text and len(retry_text) > 50:
                         response_text = retry_text
                     else:
@@ -1580,7 +1590,8 @@ class LuminaryHandler(BaseHTTPRequestHandler):
                     else:
                         fix_prompt = f"### Instruction:\nYou generated an asset, but QC check identified missing requirements:\n{qc_res.fix_instructions}\n\nOriginal Prompt:\n{prompt}\n\nRegenerate full revised text:\n### Response:"
                     
-                    revised_text = query_ollama(fix_prompt, timeout=90, model_name=routed_model, num_predict=task_num_predict)
+                    num_predict_value = task_num_predict if 'task_num_predict' in locals() else DOC_OUTPUT_TOKENS
+                    revised_text = query_ollama(fix_prompt, timeout=90, model_name=routed_model, num_predict=num_predict_value)
                     if revised_text and "Offline" not in revised_text and "Could not connect" not in revised_text and len(revised_text) > 100:
                         clean_text = re.sub(r"<clarify>.*?</clarify>|<suggest>.*?</suggest>", "", revised_text, flags=re.DOTALL)
                         if is_ppt:
