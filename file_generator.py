@@ -427,10 +427,16 @@ def _add_slide(prs, palette, title: str, bullets: list, slide_num: int, speaker_
 
 def generate_docx(markdown_text: str, output_path: str, prompt: str = "") -> str:
     """
-    Generates a professional Word document with proper styling.
-    Features: custom margins, styled headings, paragraph spacing,
-              table support, header/footer, TOC placeholder.
+    Generates a professional Word document with proper corporate styling.
+    Features: navy headings, custom margins, paragraph spacing,
+              table support, header/footer, list formatting.
     """
+    try:
+        import doc_generator
+        return doc_generator.generate_doc_file(markdown_text, output_path, prompt=prompt)
+    except Exception as e:
+        pass
+
     doc = docx.Document()
 
     # ── Brand/Template setup ──────────────────────────────────────────────────
