@@ -155,7 +155,8 @@ class DocGenerator:
         header = section.header
         hp = header.paragraphs[0]
         hp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        hrun = hp.add_run("LUMINARY AI ENTERPRISE DELIVERABLE | CONFIDENTIAL")
+        doc_tag = f" | {title[:40].upper()}" if title else " | CONFIDENTIAL"
+        hrun = hp.add_run(f"LUMINARY AI ENTERPRISE DELIVERABLE{doc_tag}")
         hrun.font.name = "Calibri"
         hrun.font.size = Pt(8.5)
         hrun.font.color.rgb = self.muted_color
@@ -169,6 +170,14 @@ class DocGenerator:
         frun.font.color.rgb = self.muted_color
 
         lines = content_text.split('\n')
+        
+        # If title provided and content doesn't start with a # heading, prepend a title heading
+        if title and not any(l.strip().startswith('# ') for l in lines[:5]):
+            clean_title = re.sub(r'^(generate|write|create|draft)\s+(a|an)?\s*', '', title, flags=re.IGNORECASE).strip()
+            if clean_title:
+                lines.insert(0, f"# {clean_title.title()}")
+                lines.insert(1, "")
+
         in_table = False
         table_rows = []
 
@@ -255,4 +264,4 @@ doc_generator = DocGenerator()
 
 
 def generate_doc_file(content_text: str, output_path: str, prompt: str = "") -> str:
-    return doc_generator.generate(content_text, output_path)
+    return doc_generator.generate(content_text, output_path, title=prompt)

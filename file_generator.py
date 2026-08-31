@@ -14,7 +14,10 @@ Improvements in v2.0:
 
 import re
 import os
+import logging
 from pathlib import Path
+
+logger = logging.getLogger("luminary.file_generator")
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
@@ -435,7 +438,7 @@ def generate_docx(markdown_text: str, output_path: str, prompt: str = "") -> str
         import doc_generator
         return doc_generator.generate_doc_file(markdown_text, output_path, prompt=prompt)
     except Exception as e:
-        pass
+        logger.error(f"[DocGenerator] Professional DOCX generator failed, falling back to legacy generator: {e}", exc_info=True)
 
     doc = docx.Document()
 
