@@ -1701,6 +1701,42 @@
       text-decoration: none !important;
     }
 
+
+/* ─── LUMINARY BUTTON VIBRANCY & REVIVAL SYSTEM ─── */
+.btn, .primary-btn, .hero-btn-primary, #newChatBtn, #new-chat-btn, .login-btn, .signup-btn, .disconnect-btn, .btn-disconnect {
+  opacity: 1 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.hero-btn-primary, .primary-btn, #newChatBtn, .login-btn, .signup-btn {
+  background-color: #FF5500 !important;
+  color: #ffffff !important;
+  border: 1px solid #FF5500 !important;
+  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+.hero-btn-primary:hover, .primary-btn:hover, #newChatBtn:hover, .login-btn:hover, .signup-btn:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.1) !important;
+  box-shadow: 0 8px 24px rgba(255, 85, 0, 0.45) !important;
+}
+
+.disconnect-btn, .btn-disconnect, button.disconnect, .social-disconnect-btn {
+  background-color: #E63946 !important;
+  color: #ffffff !important;
+  border: 1px solid #E63946 !important;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.25) !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+
+.disconnect-btn:hover, .btn-disconnect:hover, button.disconnect:hover, .social-disconnect-btn:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.1) !important;
+  box-shadow: 0 6px 18px rgba(230, 57, 70, 0.4) !important;
+}
+
 </style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9231,45 +9267,68 @@ body.light-mode .history-item.active {
         </div>
       </section>
 
-      <!-- PRICING SECTION -->
-      <section id="pricing" class="problem-section" style="padding-top:20px;">
-        <div class="section-heading-center">
-          <span class="section-category-pill">Transparent Investment</span>
-          <h2>Predictable Pricing for High-Growth Teams</h2>
-          <p>Invest in an autonomous agency platform that scales flawlessly with your creative demand.</p>
-        </div>
+            <!-- FLEXIBLE ENTERPRISE SCALING SECTION -->
+      <section id="pricing" class="problem-section" style="background:#fafafa; padding:90px 5% 90px 5%; border-top:1px solid #eeeeee; border-bottom:1px solid #eeeeee;">
+        <div class="enterprise-pricing-container" style="max-width:1080px; margin:0 auto; text-align:center;">
+          <span class="section-category-pill" style="margin-bottom:16px;">Enterprise Infrastructure</span>
+          <h2 style="font-family:'Playfair Display', serif; font-size:clamp(2.4rem, 4.5vw, 3.8rem); font-weight:800; color:#111111; letter-spacing:-0.02em; margin-bottom:24px; line-height:1.15;">
+            Flexible Scaling for Elite Brands.
+          </h2>
+          <p style="font-family:'Plus Jakarta Sans', 'Inter', sans-serif; font-size:clamp(1.05rem, 1.6vw, 1.25rem); color:#444444; max-width:820px; margin:0 auto 48px auto; line-height:1.7;">
+            We don’t do rigid tiers. Luminary scales dynamically with your agency’s output. Deploy on our secure infrastructure, or run 100% locally on your hardware for zero recurring cloud inference costs. A bespoke architecture tailored to your brand.
+          </p>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:30px; max-width:900px; margin:0 auto;">
-          <div class="problem-card" style="padding:40px 32px;">
-            <div>
-              <div style="font-size:0.85rem; font-weight:800; color:#888888; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Starter Agency</div>
-              <div style="font-size:2.4rem; font-weight:900; color:#111111; margin-bottom:12px;">$499<span style="font-size:1rem; font-weight:600; color:#777777;">/month</span></div>
-              <p style="color:#666666; font-size:0.95rem; line-height:1.5;">Ideal for emerging DTC brands seeking consistent, high-converting social campaigns and asset generation.</p>
-              <ul style="list-style:none; padding:0; margin:24px 0; display:flex; flex-direction:column; gap:12px; font-size:0.92rem; color:#333333;">
-                <li><i class="fa-solid fa-check check-green"></i> Core Brand Context Ingestion</li>
-                <li><i class="fa-solid fa-check check-green"></i> Autonomous Copywriting & SEO</li>
-                <li><i class="fa-solid fa-check check-green"></i> Local Hardware AI Image Generation</li>
-                <li><i class="fa-solid fa-check check-green"></i> Standard Vision Quality Control</li>
-              </ul>
+          <!-- ENTERPRISE PERKS GRID -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:20px; max-width:960px; margin:0 auto 48px auto; text-align:left;">
+            <div style="background:#ffffff; border:1px solid #eaeaea; border-radius:16px; padding:22px 24px; box-shadow:0 4px 16px rgba(0,0,0,0.03); display:flex; align-items:flex-start; gap:14px;">
+              <div style="background:rgba(255,85,0,0.1); color:#FF5500; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">
+                <i class="fa-solid fa-microchip"></i>
+              </div>
+              <div>
+                <div style="font-weight:700; font-size:1.02rem; color:#111111; margin-bottom:4px;">Custom Model Fine-Tuning</div>
+                <div style="font-size:0.88rem; color:#666666; line-height:1.4;">Trained on your brand's exclusive visual guidelines and voice taxonomy.</div>
+              </div>
             </div>
-            <a href="#" class="hero-btn-secondary" style="justify-content:center; width:100%;" onclick="openSignupView(); return false;">Start with Starter</a>
+
+            <div style="background:#ffffff; border:1px solid #eaeaea; border-radius:16px; padding:22px 24px; box-shadow:0 4px 16px rgba(0,0,0,0.03); display:flex; align-items:flex-start; gap:14px;">
+              <div style="background:rgba(255,85,0,0.1); color:#FF5500; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">
+                <i class="fa-solid fa-server"></i>
+              </div>
+              <div>
+                <div style="font-weight:700; font-size:1.02rem; color:#111111; margin-bottom:4px;">On-Premise Deployment</div>
+                <div style="font-size:0.88rem; color:#666666; line-height:1.4;">100% air-gapped GPU clusters with zero cloud transmission or data leakage.</div>
+              </div>
+            </div>
+
+            <div style="background:#ffffff; border:1px solid #eaeaea; border-radius:16px; padding:22px 24px; box-shadow:0 4px 16px rgba(0,0,0,0.03); display:flex; align-items:flex-start; gap:14px;">
+              <div style="background:rgba(255,85,0,0.1); color:#FF5500; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">
+                <i class="fa-solid fa-user-tie"></i>
+              </div>
+              <div>
+                <div style="font-weight:700; font-size:1.02rem; color:#111111; margin-bottom:4px;">Dedicated Strategist</div>
+                <div style="font-size:0.88rem; color:#666666; line-height:1.4;">Dedicated AI pipeline architects for agency workflow integration.</div>
+              </div>
+            </div>
+
+            <div style="background:#ffffff; border:1px solid #eaeaea; border-radius:16px; padding:22px 24px; box-shadow:0 4px 16px rgba(0,0,0,0.03); display:flex; align-items:flex-start; gap:14px;">
+              <div style="background:rgba(255,85,0,0.1); color:#FF5500; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">
+                <i class="fa-solid fa-infinity"></i>
+              </div>
+              <div>
+                <div style="font-weight:700; font-size:1.02rem; color:#111111; margin-bottom:4px;">Unlimited Local Generation</div>
+                <div style="font-size:0.88rem; color:#666666; line-height:1.4;">Zero per-token billing, zero seat limits, and unbounded creative volume.</div>
+              </div>
+            </div>
           </div>
 
-          <div class="problem-card" style="padding:40px 32px; border:2px solid #FF5500; box-shadow:0 15px 40px rgba(255,85,0,0.12); position:relative;">
-            <div style="position:absolute; top:-14px; right:24px; background:#FF5500; color:#ffffff; font-size:0.75rem; font-weight:800; padding:4px 14px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.06em;">Most Popular</div>
-            <div>
-              <div style="font-size:0.85rem; font-weight:800; color:#FF5500; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Enterprise Agency</div>
-              <div style="font-size:2.4rem; font-weight:900; color:#111111; margin-bottom:12px;">$1,499<span style="font-size:1rem; font-weight:600; color:#777777;">/month</span></div>
-              <p style="color:#666666; font-size:0.95rem; line-height:1.5;">For scaling brands and agencies needing full-scale campaign orchestration and multi-channel publishing.</p>
-              <ul style="list-style:none; padding:0; margin:24px 0; display:flex; flex-direction:column; gap:12px; font-size:0.92rem; color:#333333;">
-                <li><i class="fa-solid fa-check check-green"></i> Deep Brand Identity & Palette Synchronization</li>
-                <li><i class="fa-solid fa-check check-green"></i> Full Multi-Model Collaboration Fleet</li>
-                <li><i class="fa-solid fa-check check-green"></i> Automated Multi-Format Documents (PPTX/DOCX/XLSX)</li>
-                <li><i class="fa-solid fa-check check-green"></i> Integrated Social Auto-Publishing Engine</li>
-                <li><i class="fa-solid fa-check check-green"></i> Priority Local Hardware Processing</li>
-              </ul>
-            </div>
-            <a href="#" class="hero-btn-primary" style="justify-content:center; width:100%;" onclick="openSignupView(); return false;">Upgrade to Enterprise</a>
+          <!-- GLOWING ORANGE CTA -->
+          <div style="display:flex; justify-content:center; gap:18px; align-items:center; flex-wrap:wrap;">
+            <a href="#" class="hero-btn-primary" style="font-size:1.1rem; padding:18px 44px; border-radius:14px; box-shadow:0 8px 30px rgba(255,85,0,0.45); font-weight:800; letter-spacing:0.02em;" onclick="openSignupView(); return false;">
+              Book a Custom Demo <i class="fa-solid fa-arrow-right" style="margin-left:8px;"></i>
+            </a>
+            <a href="#" class="hero-btn-secondary" style="font-size:1.05rem; padding:18px 36px; border-radius:14px; font-weight:700; background:#ffffff; border:1px solid #dcdcdc; color:#111111 !important;" onclick="openSignupView(); return false;">
+              Talk to Sales
+            </a>
           </div>
         </div>
       </section>
@@ -11606,7 +11665,7 @@ body.light-mode .history-item.active {
 
             <div style="display:flex; justify-content:flex-end; align-items:center; padding-top:18px; border-top:1px solid rgba(255,255,255,0.06);">
               ${isConnected ? `
-                <button type="button" onclick="window.disconnectSocialPlatform('${connId}', '${p.name}')" class="outline-btn" style="height:42px; padding:0 22px; font-size:0.9rem; font-weight:700; border-color:rgba(220,38,38,0.35); color:#dc2626; border-radius:10px; cursor:pointer; background:rgba(220,38,38,0.04); transition:all 0.2s;">
+                <button type="button" onclick="window.disconnectSocialPlatform('${p.key}', '${p.name}')" class="disconnect-btn social-disconnect-btn" style="height:42px; padding:0 22px; font-size:0.9rem; font-weight:700; background:#E63946 !important; color:#ffffff !important; border:1px solid #E63946 !important; border-radius:10px; cursor:pointer; box-shadow:0 4px 12px rgba(230,57,70,0.25); display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; opacity:1 !important;">
                   <i class="fa-solid fa-link-slash" style="margin-right:6px;"></i> Disconnect
                 </button>
               ` : `
@@ -11692,11 +11751,22 @@ body.light-mode .history-item.active {
 
     window.disconnectSocialPlatform = async function(connIdOrPlatform, platformName) {
       const baseUrl = window.API_BASE || (window.location.origin && window.location.origin.startsWith("http") ? window.location.origin : "http://localhost:8000");
+      const currentClientId = (state && state.account && state.account.id) ? state.account.id : "kausar";
       try {
-        await fetch(`${baseUrl}/api/social/connections/${encodeURIComponent(connIdOrPlatform)}`, {
-          method: "DELETE",
-          credentials: "include"
-        });
+        // Call POST disconnect and DELETE endpoints for maximum reliability
+        await Promise.allSettled([
+          fetch(`${baseUrl}/api/social/disconnect`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ client_id: currentClientId, platform: connIdOrPlatform })
+          }),
+          fetch(`${baseUrl}/api/social/connections/${encodeURIComponent(connIdOrPlatform)}`, {
+            method: "DELETE",
+            credentials: "include"
+          })
+        ]);
+
         if (typeof showToast === "function") {
           showToast(`Disconnected ${platformName || 'account'} successfully.`);
         }
