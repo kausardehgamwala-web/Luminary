@@ -222,11 +222,28 @@ class SocialManager:
             resp = social_api.upload_media_bytes(image_source, "instagram_post.jpg", "image/jpeg")
             media_id = resp.get("media_id")
         elif isinstance(image_source, str):
-            if os.path.exists(image_source):
-                with open(image_source, "rb") as f:
-                    img_bytes = f.read()
-                resp = social_api.upload_media_bytes(img_bytes, os.path.basename(image_source), "image/jpeg")
-                media_id = resp.get("media_id")
+            clean_local = image_source.lstrip("/\\")
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            candidate_paths = [
+                image_source,
+                clean_local,
+                os.path.join(base_dir, clean_local),
+                os.path.join(base_dir, "generated", os.path.basename(image_source))
+            ]
+            local_found = None
+            for p in candidate_paths:
+                if os.path.exists(p) and os.path.isfile(p):
+                    local_found = p
+                    break
+
+            if local_found:
+                try:
+                    with open(local_found, "rb") as f:
+                        img_bytes = f.read()
+                    resp = social_api.upload_media_bytes(img_bytes, os.path.basename(local_found), "image/jpeg")
+                    media_id = resp.get("media_id")
+                except Exception as ex:
+                    logger.warning(f"[Instagram Media Upload Notice] {ex}")
             elif image_source.startswith("http"):
                 # Pass public URL directly or download bytes
                 try:
