@@ -69,10 +69,211 @@
       fill: #ffffff !important;
       stroke: #ffffff !important;
       text-decoration: none !important;
+
+    /* ==========================================================================
+       UI & CSS Fixes: Chat Window Expansion, User Bubbles, & Deliverable Cards
+       ========================================================================== */
+    /* 1. Expand Chat Window Height */
+    .chat-stage,
+    .chat-container {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 1 auto !important;
+      flex-grow: 1 !important;
+      height: calc(100vh - 280px) !important;
+      min-height: 0 !important;
+      max-width: 950px !important;
+      width: 100% !important;
+      margin: 0 auto !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
     }
 
+    .chat-feed,
+    .chat-history,
+    .chat-messages {
+      flex: 1 1 auto !important;
+      flex-grow: 1 !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow-y: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      padding: 12px 6px !important;
+      box-sizing: border-box !important;
+      scroll-behavior: smooth !important;
+    }
 
-    .msg-actions {
+    /* 2. Fix User Chat Bubble Spacing */
+    .chat-message.user,
+    .user-message {
+      margin-left: auto !important;
+      align-items: flex-end !important;
+      align-self: flex-end !important;
+      width: fit-content !important;
+      max-width: 85% !important;
+    }
+
+    .chat-message.user .bubble,
+    .user-message .bubble,
+    .user-message .message-content,
+    .chat-message.user .message-content {
+      display: inline-block !important;
+      height: auto !important;
+      min-height: unset !important;
+      width: fit-content !important;
+      max-width: 85% !important;
+      padding: 12px 18px !important;
+      border-radius: 20px 20px 4px 20px !important;
+      box-sizing: border-box !important;
+      word-break: break-word !important;
+      white-space: pre-wrap !important;
+      background: linear-gradient(135deg, var(--orange), var(--orange-2)) !important;
+      color: #ffffff !important;
+      box-shadow: 0 10px 25px rgba(255, 85, 0, 0.22) !important;
+    }
+
+    /* 3. Fix Document/Attachment Card Layout */
+    .deliverable-container,
+    .attachment-container,
+    .doc-container {
+      margin-top: 12px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    .deliverable-card,
+    .attachment-card,
+    .document-card,
+    .doc-card {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 16px !important;
+      padding: 16px !important;
+      height: auto !important;
+      min-height: unset !important;
+      width: fit-content !important;
+      max-width: 100% !important;
+      border-radius: 12px !important;
+      background: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      box-sizing: border-box !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+      transition: all 0.2s ease !important;
+    }
+
+    body.light-mode .deliverable-card,
+    body.light-mode .attachment-card,
+    body.light-mode .document-card,
+    body.light-mode .doc-card {
+      background: #faf8f5 !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    .deliverable-card:hover,
+    .attachment-card:hover,
+    .document-card:hover {
+      border-color: var(--orange) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 24px var(--orange-glow) !important;
+    }
+
+    .deliverable-left,
+    .attachment-left,
+    .doc-left {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 12px !important;
+      flex: 1 !important;
+      min-width: 0 !important;
+    }
+
+    .deliverable-icon-wrap,
+    .attachment-icon-wrap,
+    .doc-icon-wrap {
+      width: 42px !important;
+      height: 42px !important;
+      min-width: 42px !important;
+      min-height: 42px !important;
+      border-radius: 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+      font-size: 1.15rem !important;
+    }
+
+    .deliverable-info,
+    .attachment-info,
+    .doc-info {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      min-width: 0 !important;
+    }
+
+    .deliverable-info h4,
+    .attachment-info h4,
+    .doc-info h4 {
+      margin: 0 !important;
+      font-size: 0.92rem !important;
+      font-weight: 700 !important;
+      color: var(--text) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .deliverable-info p,
+    .attachment-info p,
+    .doc-info p {
+      margin: 2px 0 0 0 !important;
+      font-size: 0.75rem !important;
+      color: var(--muted) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    .deliverable-download-btn,
+    .attachment-download-btn,
+    .doc-download-btn {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      padding: 8px 16px !important;
+      border-radius: 10px !important;
+      background: var(--orange) !important;
+      color: #ffffff !important;
+      font-size: 0.8rem !important;
+      font-weight: 700 !important;
+      text-decoration: none !important;
+      box-shadow: 0 4px 12px var(--orange-glow) !important;
+      transition: all 0.2s ease !important;
+      border: none !important;
+      cursor: pointer !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      height: auto !important;
+    }
+
+    .deliverable-download-btn:hover,
+    .attachment-download-btn:hover,
+    .doc-download-btn:hover {
+      background: #ff661a !important;
+      transform: translateY(-1px) !important;
+    }
+
       display: flex;
       gap: 12px;
       margin-top: 8px;
