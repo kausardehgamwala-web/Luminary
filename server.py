@@ -354,54 +354,82 @@ def query_fallback(prompt: str, max_tokens: int = MAX_TOKENS, json_mode: bool = 
     return "Text AI unavailable"
 
 
+MODEL_HIERARCHY = [
+    "qwen2.5-coder:1.5b",
+    "qwen2.5-coder:7b",
+    "deepseek-r1:8b",
+    "deepseek-coder:6.7b",
+    "llama3:8b",
+    "mistral:7b"
+]
+
+
 def query_ollama(prompt, json_mode=False, timeout=None, model_name=None, num_predict=1024, fallback_on_error=True):
     if timeout is None:
         timeout = OLLAMA_TIMEOUT
     proxy_support = urllib.request.ProxyHandler({})
     opener = urllib.request.build_opener(proxy_support)
-    target_model = model_name if model_name else MODEL_NAME
-    logger.info(f"[Ollama Call] Requesting model '{target_model}' (timeout={timeout}s, num_predict={num_predict})...")
-    payload = {
-        "model": target_model,
-        "prompt": prompt,
-        "stream": False,
-        "options": {
-            "num_predict": num_predict,
-            "temperature": 0.4,
-            "max_tokens": MAX_TOKENS
-        }
-    }
-    if json_mode:
-        payload["format"] = "json"
-    req = urllib.request.Request(
-        OLLAMA_URL,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
-    )
     
-    try:
-        t0 = time.time()
-        with opener.open(req, timeout=timeout) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            elapsed = time.time() - t0
-            logger.info(f"[Ollama Success] Model '{target_model}' responded in {elapsed:.2f}s.")
-            return data.get("response", "")
-    except urllib.error.HTTPError as http_err:
-        if http_err.code == 404:
-            logger.warning(f"[Ollama Status] Model '{target_model}' not found in Ollama — pull it with: ollama pull {target_model}")
-            logger.error(f"[Ollama Error] Model '{target_model}' not found in Ollama.")
-        else:
-            logger.warning(f"[Ollama Status] Ollama HTTP error {http_err.code}: {http_err.reason} for model '{target_model}'")
-        if fallback_on_error:
-            logger.info("[Ollama Fallback] Switching to Hugging Face fallback engine.")
-            return query_fallback(prompt, max_tokens=MAX_TOKENS, json_mode=json_mode)
-        return "{}" if json_mode else ""
-    except Exception as exc:
-        logger.error(f"[Ollama Error] Ollama call failed for model '{target_model}': {exc}")
-        if fallback_on_error:
-            logger.info("[Ollama Fallback] Switching to Hugging Face fallback engine.")
-            return query_fallback(prompt, max_tokens=MAX_TOKENS, json_mode=json_mode)
-        return "{}" if json_mode else ""
+    # Build candidate model list with requested/primary model first
+    candidates = []
+    if model_name:
+        candidates.append(model_name)
+    env_primary = os.getenv("PRIMARY_MODEL", "").strip()
+    if env_primary and env_primary not in candidates:
+        candidates.append(env_primary)
+    if MODEL_NAME and MODEL_NAME not in candidates:
+        candidates.append(MODEL_NAME)
+    for m in MODEL_HIERARCHY:
+        if m not in candidates:
+            candidates.append(m)
+            
+    last_err = None
+    for candidate in candidates:
+        logger.info(f"[Ollama Call] Requesting model '{candidate}' (timeout={timeout}s, num_predict={num_predict})...")
+        payload = {
+            "model": candidate,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "num_predict": num_predict,
+                "temperature": 0.4,
+                "max_tokens": MAX_TOKENS
+            }
+        }
+        if json_mode:
+            payload["format"] = "json"
+        req = urllib.request.Request(
+            OLLAMA_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        try:
+            t0 = time.time()
+            with opener.open(req, timeout=timeout) as response:
+                data = json.loads(response.read().decode("utf-8"))
+                elapsed = time.time() - t0
+                resp_text = data.get("response", "")
+                if resp_text is not None and len(resp_text.strip()) > 0:
+                    logger.info(f"[Ollama Success] Model '{candidate}' responded in {elapsed:.2f}s.")
+                    return resp_text
+        except urllib.error.HTTPError as http_err:
+            last_err = http_err
+            if http_err.code == 404:
+                logger.warning(f"[Ollama Status] Model '{candidate}' not found in Ollama (404). Trying next candidate...")
+            else:
+                logger.warning(f"[Ollama Status] Model '{candidate}' HTTP {http_err.code}: {http_err.reason}. Trying next candidate...")
+            continue
+        except Exception as exc:
+            last_err = exc
+            logger.warning(f"[Ollama Status] Model '{candidate}' failed ({exc}). Trying next candidate...")
+            continue
+
+    logger.error(f"[Ollama Error] All Ollama candidate models failed. Last error: {last_err}")
+    if fallback_on_error:
+        logger.info("[Ollama Fallback] Switching to Hugging Face fallback engine.")
+        return query_fallback(prompt, max_tokens=MAX_TOKENS, json_mode=json_mode)
+    return "{}" if json_mode else ""
+
 
 
 
@@ -2006,6 +2034,17 @@ def run():
             local_sdxl_service.sdxl_service.async_preload_model()
         except Exception as e:
             logger.error(f"Failed to initiate SDXL background load: {e}")
+
+        # Pre-warm active Ollama model in background to avoid cold start delays
+        def _warmup_ollama():
+            try:
+                active_m = os.getenv("PRIMARY_MODEL", "qwen2.5-coder:1.5b")
+                logger.info(f"[Ollama Warmup] Pre-warming active model '{active_m}'...")
+                query_ollama("Hello, test 123.", timeout=30, model_name=active_m, fallback_on_error=False)
+                logger.info(f"[Ollama Warmup] Model '{active_m}' is warm and loaded in memory.")
+            except Exception as _we:
+                logger.debug(f"[Ollama Warmup] Warmup note: {_we}")
+        threading.Thread(target=_warmup_ollama, daemon=True).start()
 
         server_address = (SERVER_HOST if SERVER_HOST != "0.0.0.0" else "", SERVER_PORT)
         server = ThreadingHTTPServer(server_address, LuminaryHandler)
