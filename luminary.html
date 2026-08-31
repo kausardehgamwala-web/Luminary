@@ -8700,20 +8700,186 @@ body.light-mode .history-item.active {
         line-height: 1.6;
       }
 
-      /* Footer */
-      .luminary-footer {
-        background: #fafafa;
-        border-top: 1px solid rgba(0,0,0,0.06);
-        padding: 60px 48px 30px 48px;
+      /* Luminary Brand Logo */
+      .luminary-logo-badge {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #FF5500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(255, 85, 0, 0.35);
+        flex-shrink: 0;
       }
-      .footer-inner {
+      .luminary-logo-badge img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .luminary-wordmark {
+        font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+        font-weight: 800;
+        font-size: 1.25rem;
+        letter-spacing: 0.08em;
+        color: #111111;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+      }
+      .luminary-wordmark span {
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #FF5500;
+        background: rgba(255, 85, 0, 0.08);
+        padding: 2px 8px;
+        border-radius: 6px;
+        letter-spacing: 0.04em;
+      }
+
+      /* Massive, Premium SaaS Multi-Column Footer */
+      .luminary-footer {
+        background: #111111 !important;
+        color: #ffffff !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 90px 6% 40px 6% !important;
+        position: relative;
+        overflow: hidden;
+      }
+      .luminary-footer * {
+        box-sizing: border-box;
+      }
+      .luminary-footer-grid {
         max-width: 1200px;
         margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 50px;
+        margin-bottom: 60px;
+      }
+      .footer-brand-col {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .footer-brand-col .luminary-wordmark {
+        color: #ffffff !important;
+      }
+      .footer-mission {
+        font-size: 0.96rem;
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.65;
+        max-width: 340px;
+        margin: 0;
+      }
+      .footer-social-links {
+        display: flex;
         align-items: center;
+        gap: 14px;
+        margin-top: 6px;
+      }
+      .footer-social-link {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+      .footer-social-link:hover {
+        background: #FF5500;
+        color: #ffffff !important;
+        border-color: #FF5500;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(255, 85, 0, 0.35);
+      }
+      .footer-col h4 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin: 0 0 20px 0;
+      }
+      .footer-links-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .footer-links-list a {
+        color: rgba(255, 255, 255, 0.6) !important;
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+      .footer-links-list a:hover {
+        color: #FF5500 !important;
+        padding-left: 4px;
+      }
+      .luminary-footer-bottom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         flex-wrap: wrap;
-        gap: 20px;
+        gap: 16px;
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .footer-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        padding: 4px 12px;
+        border-radius: 9999px;
+        color: #4ade80;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .footer-status-dot {
+        width: 7px;
+        height: 7px;
+        background: #22c55e;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #22c55e;
+      }
+
+      @media (max-width: 900px) {
+        .luminary-footer-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 36px;
+        }
+        .footer-brand-col {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 600px) {
+        .luminary-footer-grid {
+          grid-template-columns: 1fr;
+        }
+        .luminary-footer-bottom {
+          flex-direction: column;
+          align-items: flex-start;
+        }
       }
 
       /* Responsive Adjustments */
@@ -8740,7 +8906,7 @@ body.light-mode .history-item.active {
       <nav class="luminary-nav">
         <a class="luminary-nav-left" href="#top">
           <div class="luminary-logo-badge">
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <img src="logo_orange.png" alt="Luminary Logo">
           </div>
           <div class="luminary-wordmark">
             LUMINARY <span>AI Agency</span>
@@ -9120,20 +9286,76 @@ body.light-mode .history-item.active {
         </div>
       </section>
 
-      <!-- FOOTER -->
+      <!-- EXPANDED PREMIUM SAAS FOOTER -->
       <footer class="luminary-footer">
-        <div class="footer-inner">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div class="luminary-logo-badge" style="width:32px; height:32px;">
-              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="luminary-footer-grid">
+          <!-- Column 1: Brand & Mission Statement -->
+          <div class="footer-brand-col">
+            <a class="luminary-nav-left" href="#top" style="text-decoration:none;">
+              <div class="luminary-logo-badge">
+                <img src="logo_orange.png" alt="Luminary Logo">
+              </div>
+              <div class="luminary-wordmark" style="color:#ffffff;">
+                LUMINARY <span>AI Agency</span>
+              </div>
+            </a>
+            <p class="footer-mission">
+              Elite AI automation for modern agencies. Replace bloated retainers with local, air-gapped creative intelligence and conversion-driven campaigns.
+            </p>
+            <div class="footer-social-links">
+              <a href="#" class="footer-social-link" title="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a>
+              <a href="#" class="footer-social-link" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#" class="footer-social-link" title="GitHub"><i class="fa-brands fa-github"></i></a>
+              <a href="#" class="footer-social-link" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+              <a href="#" class="footer-social-link" title="Discord"><i class="fa-brands fa-discord"></i></a>
             </div>
-            <div style="font-weight:800; font-size:1.1rem; color:#111111;">LUMINARY <span style="font-weight:500; font-size:0.85rem; color:#777777;">AI Marketing Agency</span></div>
           </div>
-          <div style="font-size:0.9rem; color:#777777;">&copy; 2026 Luminary AI Inc. All rights reserved. 100% Local Hardware Accelerated.</div>
-          <div style="display:flex; gap:20px; font-size:1.1rem; color:#444444;">
-            <a href="#" style="color:#555555;"><i class="fa-brands fa-twitter"></i></a>
-            <a href="#" style="color:#555555;"><i class="fa-brands fa-linkedin"></i></a>
-            <a href="#" style="color:#555555;"><i class="fa-brands fa-github"></i></a>
+
+          <!-- Column 2: Product -->
+          <div class="footer-col">
+            <h4>Product</h4>
+            <ul class="footer-links-list">
+              <li><a href="#features">Capabilities</a></li>
+              <li><a href="#features">Computer-Vision QC</a></li>
+              <li><a href="#features">Document Studio (PPTX/DOCX)</a></li>
+              <li><a href="#how-it-works">Multi-Role AI Fleet</a></li>
+              <li><a href="#pricing">Pricing & Plans</a></li>
+              <li><a href="#">Changelog & Updates</a></li>
+            </ul>
+          </div>
+
+          <!-- Column 3: Company -->
+          <div class="footer-col">
+            <h4>Company</h4>
+            <ul class="footer-links-list">
+              <li><a href="#">About Us</a></li>
+              <li><a href="#">Investors & Deck</a></li>
+              <li><a href="#">Customer Stories</a></li>
+              <li><a href="#">Careers <span style="font-size:0.75rem; background:#FF5500; color:#fff; padding:1px 6px; border-radius:4px; margin-left:4px;">Hiring</span></a></li>
+              <li><a href="#">Agency Partner Program</a></li>
+              <li><a href="#">Contact Support</a></li>
+            </ul>
+          </div>
+
+          <!-- Column 4: Legal & Trust -->
+          <div class="footer-col">
+            <h4>Legal & Trust</h4>
+            <ul class="footer-links-list">
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="#">Local Data Security</a></li>
+              <li><a href="#">GDPR & SOC2 Compliance</a></li>
+              <li><a href="#">Cookie Preferences</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="luminary-footer-bottom">
+          <div>&copy; 2026 Luminary AI Inc. All rights reserved.</div>
+          <div class="footer-status-pill">
+            <span class="footer-status-dot"></span>
+            100% Air-Gapped Local Inference &bull; System Operational
           </div>
         </div>
       </footer>
